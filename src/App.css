@@ -1,0 +1,135 @@
+/*index.js*/
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/*App.js*/
+.App {
+  text-align: center;
+  font-size: calc(8px + 2vmin);
+  background-color: rgb(28, 25, 36);
+  color: white;
+}
+
+.Container {
+    display: flex;
+  }
+
+.PoemContainer {
+  flex: 1 1 0;
+}
+
+.NoteContainer {
+  flex: 2 1 0;
+}
+
+.App-header {
+  min-height: 21vmin;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/*Audio.js*/
+.Transcript {
+  font-size: .75em;
+  font-style: italic;
+  margin: 1em;
+}
+
+.DateContainer{
+  display:flex;
+}
+
+
+
+.DateChangeButton{
+  flex: 2 1 0;
+  background:transparent;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+  font-weight: bold;
+  margin-left: 4rem;
+  margin-right: 4rem;
+  font-size: 1em;
+  color: rgb(66, 66, 112);
+
+}
+
+.DateContainer {
+  margin: 1em;
+  font-size: 2em;
+}
+
+.TranscriptButton {
+  background:transparent;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+  font-weight: bold;
+  color: rgb(199, 87, 87);
+}
+
+.AudioPlayerContainer{
+  display: flex;
+}
+
+.FormattingContainer1{
+  flex:2 1 0;
+}
+.AudioPlayer {
+  flex: 1 2 0;
+}
+.FormattingContainer{
+  flex: 2 1 0;
+}
+
+/*Note.js*/
+.NoteText {
+  font-size: .75em;
+  margin: 2em;
+}
+
+/*Poem.js*/
+.PoemText {
+  text-align: left;
+  padding-left: 3em; 
+}
+
+.ToBuy {
+  font-size: .5em;
+  text-decoration: none;
+}
+
+.PoemTitle {
+  font-size: 1em;
+}
+
+a {
+  color: #69b9ff;
+  text-decoration: none;
+}
+
+
+
+
+
+
+
+
