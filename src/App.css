@@ -21,25 +21,41 @@ code {
   color: white;
 }
 
-.Container {
-    display: flex;
-  }
-
-.PoemContainer {
-  flex: 1 1 0;
-}
-
-.NoteContainer {
-  flex: 2 1 0;
-}
-
 .App-header {
-  min-height: 21vmin;
+  min-height: 10vmin;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
 }
+
+.LogoImage {
+  flex: 0 2 2;
+}
+
+.Container {
+  display: flex;
+}
+
+.PoemContainer {
+  flex: 1 0 0;
+}
+
+.NoteContainer {
+  flex: 1 3 0;
+}
+
+.holder{
+  display:flex;
+  justify-content:right;
+  margin:3em;
+}
+.DateContainer{
+  flex: 3 0 auto;
+  margin: .25em;
+  font-size: 1em;
+}
+
 
 /*Audio.js*/
 .Transcript {
@@ -48,14 +64,10 @@ code {
   margin: 1em;
 }
 
-.DateContainer{
-  display:flex;
-}
-
 
 
 .DateChangeButton{
-  flex: 2 1 0;
+  flex: 1 1 0;
   background:transparent;
   background-repeat: no-repeat;
   border: none;
@@ -66,13 +78,7 @@ code {
   margin-left: 4rem;
   margin-right: 4rem;
   font-size: 1em;
-  color: rgb(66, 66, 112);
-
-}
-
-.DateContainer {
-  margin: 1em;
-  font-size: 2em;
+  color: #0c4b6e;
 }
 
 .TranscriptButton {
@@ -90,14 +96,15 @@ code {
   display: flex;
 }
 
-.FormattingContainer1{
-  flex:2 1 0;
-}
 .AudioPlayer {
-  flex: 1 2 0;
+  flex: 1 1 0;
+  max-height: 4em;
+  margin-top: 2em;
+  justify-content: center;
+  align-items: center;
 }
 .FormattingContainer{
-  flex: 2 1 0;
+  flex: 1 0 auto;
 }
 
 /*Note.js*/
@@ -130,6 +137,108 @@ a {
 
 
 
+/**Button*/
 
+
+@import url("https://fonts.googleapis.com/css?family=Raleway:400");
+
+* {
+	box-sizing: border-box;
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 90deg;
+  inherits: true;
+}
+
+@property --gradX {
+  syntax: '<percentage>';
+  initial-value: 50%;
+  inherits: true;
+}
+
+@property --gradY {
+  syntax: '<percentage>';
+  initial-value: 0%;
+  inherits: true;
+}
+
+body {
+	font-family: Raleway, sans-serif;
+	text-align: center;
+	margin: 0;
+	padding: 1rem;
+	background-color: rgba(10, 12, 18, 1);
+	color: white;
+	min-height: 100vh;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+}
+
+p {
+	margin: 0;
+}
+
+:root {
+	--d: 2500ms;
+	--angle: 90deg;
+	--gradX: 100%;
+	--gradY: 50%;
+	--c1: rgba(168, 239, 255, 1);
+	--c2: rgba(168, 239, 255, 0.1);
+}
+
+.wrapper {
+	min-width: min(10rem, 100%);
+  margin: 3em;
+}
+
+.box {
+	font-size: 1.75em;
+	border: 0.35rem solid;
+	border-image: conic-gradient(from var(--angle), var(--c2), var(--c1) 0.1turn, var(--c1) 0.15turn, var(--c2) 0.25turn) 30;
+	animation: borderRotate var(--d) linear infinite forwards;
+}
+
+.boxbackwards {
+	font-size: 1.75em;
+	border: 0.35rem solid;
+	border-image: conic-gradient(from var(--angle), var(--c2), var(--c1) 0.1turn, var(--c1) 0.15turn, var(--c2) 0.25turn) 30;
+	animation: borderRotate var(--d) linear infinite reverse;
+}
+
+
+
+@keyframes borderRotate {
+	100% {
+		--angle: 420deg;
+	}
+}
+
+@keyframes borderRadial {
+	20% {
+		--gradX: 100%;
+		--gradY: 50%;
+	}
+	40% {
+		--gradX: 100%;
+		--gradY: 100%;
+	}
+	60% {
+		--gradX: 50%;
+		--gradY: 100%;
+	}
+	80% {
+		--gradX: 0%;
+		--gradY: 50%;
+	}
+	100% {
+		--gradX: 50%;
+		--gradY: 0%;
+	}
+}
 
 

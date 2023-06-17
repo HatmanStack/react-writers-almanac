@@ -1,5 +1,6 @@
 import React from 'react';
 import './App.css';
+import DOMPurify from 'dompurify';
 
 export default function Poem({poemTitle, poem, author}) {
 
@@ -13,9 +14,9 @@ export default function Poem({poemTitle, poem, author}) {
     
 return (
     <div>
-        <div className="PoemTitle"  dangerouslySetInnerHTML={{ __html:poemTitle}} /> 
-        <div className="Author"  dangerouslySetInnerHTML={{ __html:author}} /> 
-        <div className="Author"  dangerouslySetInnerHTML={{ __html:poem}} /> 
+        <div className="PoemTitle"  dangerouslySetInnerHTML={{ __html:DOMPurify.sanitize(poemTitle)}} /> 
+        <div className="Author"  dangerouslySetInnerHTML={{ __html:DOMPurify.sanitize(author)}} /> 
+        <div className="Author"  dangerouslySetInnerHTML={{ __html:DOMPurify.sanitize(poem)}} /> 
         
     </div>
 );

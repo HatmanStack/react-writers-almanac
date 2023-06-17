@@ -12,33 +12,33 @@ export default function Audio({linkDate, date, day, transcript, onChangeDate, mp
     const forward = new Date(holderDate);
     forward.setDate(holderDate.getDate() + 2);
     const audioRef = useRef(null);
-    useEffect(() => {
-        audioRef.current.audio.current.pause();
 
-    });
+    useEffect(() => { 
+        audioRef.current.audio.current.pause();
+    }, []);
     
     return (
         <div>
             <br></br>
-            
-        <div className="Date Container">
-        <button className="DateChangeButton" onClick={() => onChangeDate(back)}>Prev</button>
-        <div className="DateContainer" dangerouslySetInnerHTML={{ __html:day }} /> 
-        
-        <div className="DateContainer" dangerouslySetInnerHTML={{ __html:date}} /> 
-        <button className="DateChangeButton" onClick={() => onChangeDate(forward)} >Next</button>
-        </div>
         
         <div className="AudioPlayerContainer">
-        <div className="FormattingContainer1"></div>
+        <div className="FormattingContainer"></div>
+        <div class="wrapper">
+	    <div class="boxbackwards">
+        <button className="DateChangeButton" onClick={() => onChangeDate(back)}>Prev</button>
+        </div>
+        </div>
         <AudioPlayer
             className="AudioPlayer"
             ref={audioRef}
-            autoPlay={false} // Disable autoplay
+            autoPlay={false} 
             src={mp3Link}
-             // Assign the ref to the AudioPlayer component
-            // Add other props here
         />
+        <div class="wrapper">
+	    <div class="box">
+            <  button className="DateChangeButton" onClick={() => onChangeDate(forward)} >Next</button>
+	        </div>
+        </div>
         <div className="FormattingContainer"></div>
         </div>
         
