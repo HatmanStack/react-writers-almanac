@@ -18,6 +18,7 @@ import ColorScroll from 'react-color-scroll';
 
 
 function formatDate(newDate, separator=''){
+  
   let date = newDate.getDate();
   let month = newDate.getMonth() + 1;
   let year = newDate.getFullYear();
@@ -46,10 +47,10 @@ function App() {
   const [author, setAuthor] = useState(' ');
   const [note, setNote] = useState(' ');
   const [mp3, setMP3] = useState(' ');
-  const changeDate = (x) => {setLinkDate(formatDate(x));};
-  
+  //const changeDate = (x) => {setLinkDate(formatDate(x));};
+  const changeDate = (x) => {console.log(x)};
  
-  
+  //console.log(x)
   useEffect(() => {
     async function getData() {
      //const fetchedData = await Storage.get(linkDate.toString() + '.txt', { download:true});      
@@ -94,7 +95,7 @@ function App() {
         <header className="App-header">
         <img className="LogoImage" src={logo} alt="LOGO"></img>
         <div className="FormattingContainer"></div>
-        <Search   />
+        <Search className="SearchBar"  onChangeDate={changeDate} />
         <div className="holder">
         
           <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }></div>
