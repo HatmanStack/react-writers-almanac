@@ -4,10 +4,12 @@ import Note from './Note';
 import Poem from './Poem';
 import Search from './Search';
 import logo from './assets/logo_writersalmanac.png';
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 //import { Storage } from 'aws-amplify';
 import DOMPurify from 'dompurify';
 import ColorScroll from 'react-color-scroll';
+import testmp3 from './assets/19930101.mp3';
+
 
 //import { Authenticator } from '@aws-amplify/ui-react';
 //import '@aws-amplify/ui-react/styles.css';
@@ -37,8 +39,11 @@ else {
   presentDate = '2014' + presentDate.substring(4,);
 }
 
+
+
+
 function App() {
-  const [linkDate, setLinkDate] = useState(presentDate);
+  const [linkDate, setLinkDate] = useState('19930101');
   const [day, setDay] = useState(' ');
   const [date, setCurrentDate] = useState(' ');
   const [transcript, setTranscript] = useState(' ');
@@ -46,15 +51,27 @@ function App() {
   const [poem, setPoem] = useState(' ');
   const [author, setAuthor] = useState(' ');
   const [note, setNote] = useState(' ');
-  const [mp3, setMP3] = useState(' ');
-  //const changeDate = (x) => {setLinkDate(formatDate(x));};
-  const changeDate = (x) => {console.log(x)};
- 
+  const [mp3, setMP3] = useState('http://download.publicradio.org/podcast/writers_almanac/2017/05/twa_20170531_64.mp3');
+  
+  const changeDate = (x) => {
+    if (/\d/.test(linkDate)) {
+      const holderDate = new Date(linkDate.substring(0, 4) + "-" + linkDate.substring(4, 6) + "-" + linkDate.substring(6));
+  
+      const forwardDateHolder = new Date(holderDate);
+      forwardDateHolder.setDate(holderDate.getDate() + (x === 'back' ? 0 : 2));
+      setLinkDate(formatDate(forwardDateHolder));
+      console.log({linkDate});
+    } else {
+      // logic to fetch author higher or lower in alphabet based on x value
+    }
+  };
+  
+
   //console.log(x)
   useEffect(() => {
     async function getData() {
      //const fetchedData = await Storage.get(linkDate.toString() + '.txt', { download:true});      
-      
+        
      //fetchedData.Body.text().then(string => {
         //const splitString = string.split('####');
         //const sanitizedSplitString = splitString.map((item) => DOMPurify.sanitize(item));
@@ -103,7 +120,7 @@ function App() {
           </div>
         </header>
     
-        <Audio linkDate={linkDate} day={day} date={date} transcript={transcript} mp3Link={mp3} onChangeDate={changeDate}/>
+        <Audio searchedTerm={linkDate} day={day} date={date} transcript={transcript} mp3Link={mp3} onChangeDate={changeDate}/>
         <div className="Container">
           <div className="PoemContainer" >
             <Poem poemTitle={poemTitle} poem={poem} author={author}/>
@@ -113,6 +130,7 @@ function App() {
           </div>
         </div>
         </ColorScroll>
+        
     </div>
   );
 }
