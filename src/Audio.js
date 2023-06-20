@@ -31,11 +31,14 @@ export default function Audio({ searchedTerm, transcript, onChangeDate, mp3Link 
     const authorOrNot = hasNumbers(searchedTerm);
     if (authorOrNot) {
       return (
+        <div>
         <AudioPlayer
           className="AudioPlayer"
           autoPlay={false}
           src={mp3Link}
         />
+        <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>Transcript</button>
+        </div>
       );
     } else {
       return (
@@ -66,7 +69,7 @@ export default function Audio({ searchedTerm, transcript, onChangeDate, mp3Link 
         <div className="FormattingContainer"></div>
       </div>
 
-      <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>Transcript</button>
+      
       <br></br>
       {isShowing ? <p className="Transcript">{transcript}</p> : null}
 
