@@ -75,17 +75,18 @@ function App() {
     setLinkDate(x);
   };
   
-  const dateOrAuthor = ({query}) => {
-      const holder = Object.keys(query).map(function (key){
-        return query[key];
-      });
-      if(holder.length > 2){
-        const date = new Date(holder.slice(2,3).toString());
-        setLinkDate(formatDate(date));
-      }else {
+  const authorPoemList = ({query}) => {
+    console.log(query)
+    if(query != null && sortedAuthors.indexOf(query.label) > -1){
+        const holder = Object.keys(query).map(function (key){
+          return query[key];
+        });
         setLinkDate(holder.slice(0,1).toString());
-      }
-      console.log('dateOrAuthor');
+    }
+  }
+
+  const calendarDate = ({calendarChangedDate}) => {
+      setLinkDate(formatDate(calendarChangedDate));
   }
 
 
@@ -192,7 +193,7 @@ function App() {
         <header className="App-header">
         <img className="LogoImage" src={logo} alt="LOGO"></img>
         <div className="FormattingContainer"></div>
-        <Search className="SearchBar"  onDateOrAuthor={dateOrAuthor} linkDate={linkDate} />
+        <Search className="SearchBar"  onAuthorPoemList={authorPoemList} onCalendarDate={calendarDate} linkDate={linkDate} />
         <div className="holder">
         
           <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }></div>
