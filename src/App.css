@@ -108,14 +108,8 @@ code {
   background-color:#8293a2;
   background-repeat: no-repeat;
   border: none;
-  cursor: pointer;
-  overflow: hidden;
-  outline: none;
-  font-weight: bold;
   margin-left: 4rem;
   margin-right: 4rem;
-  color: #0c4b6e;
-  transform: translateZ(20px);
 }
 
 .PoemTitleButton{
