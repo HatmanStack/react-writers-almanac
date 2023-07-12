@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import sortedAuthorstxt from '../assets/Authors_sorted.txt';
+import sortedAuthorstxt from '../assets/Authors_sorted.js';
 import '../App.css';
 
 

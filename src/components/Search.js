@@ -8,7 +8,6 @@ import { DateCalendar } from '@mui/x-date-pickers';
 
 import list from '../assets/searchJson';
 
-
   export default function Search({onAuthorPoemList, onCalendarDate, linkDate}) {
     const [isShowing, setIsShowing] = useState(false);
     
@@ -19,6 +18,7 @@ import list from '../assets/searchJson';
       onCalendarDate({calendarChangedDate});
     }
     const handleKeyDown = (event) => {
+      console.log("handleKeyDown")
         if (event.key === 'Enter') {    
           setIsShowing(false);     
           onAuthorPoemList({query});

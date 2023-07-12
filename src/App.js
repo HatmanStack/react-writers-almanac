@@ -5,11 +5,12 @@ import Poem from './components/Poem';
 import Search from './components/Search';
 import Author from './components/Author';
 import logo from './assets/logo_writersalmanac.png';
-import sortedAuthorstxt from './assets/Authors_sorted.txt';
+import sortedAuthors from './assets/Authors_sorted.js';
 import React, { useState, useEffect} from 'react';
 import { Storage } from 'aws-amplify';
 import DOMPurify from 'dompurify';
 import ColorScroll from 'react-color-scroll';
+
 
 
 function formatDate(newDate,notToday=true, separator=''){
@@ -28,7 +29,6 @@ function formatDate(newDate,notToday=true, separator=''){
   return fDate;
 }
 
-const sortedAuthors = sortedAuthorstxt.split(',');
 
 const presentDate = () => {
   const holder = formatDate(new Date(), false);
@@ -78,11 +78,12 @@ function App() {
   };
   
   const authorPoemList = ({query}) => {
-    console.log(query)
+    
     if(query != null && sortedAuthors.indexOf(query.label) > -1){
         const holder = Object.keys(query).map(function (key){
           return query[key];
         });
+        console.log("test")
         setLinkDate(holder.slice(0,1).toString());
     }
   }
@@ -131,6 +132,9 @@ function App() {
       const fetchedmp3 = await Storage.get(linkDate.toString()  + '.mp3');
       setMP3(fetchedmp3);
     }
+    import('./assets/Authors_sorted.js')
+      .then(res => res.default)
+      .then(contents => console.log(contents))
     getData();
   }, [linkDate]);
 
