@@ -83,7 +83,6 @@ function App() {
         const holder = Object.keys(query).map(function (key){
           return query[key];
         });
-        console.log("test")
         setLinkDate(holder.slice(0,1).toString());
     }
   }
@@ -94,6 +93,7 @@ function App() {
 
 
   const changeDate = async (x) => {
+    console.log(x);
     if (/\d/.test(linkDate)) {
       const holderDate = new Date(linkDate.substring(0, 4) + "-" + linkDate.substring(4, 6) + "-" + linkDate.substring(6));
       const forwardDateHolder = new Date(holderDate);
@@ -114,6 +114,7 @@ function App() {
   useEffect(() => {
     async function getData() {
      const fetchedData = await Storage.get(linkDate.toString() + '.txt', { download:true});
+     console.log("test");
      fetchedData.Body.text().then(string => {
         const splitString = string.split('####');
         if (/\d/.test(linkDate)) {
@@ -129,12 +130,11 @@ function App() {
           setAuthorData(splitString);
         }
       });
-      const fetchedmp3 = await Storage.get(linkDate.toString()  + '.mp3');
-      setMP3(fetchedmp3);
+      if ( linkDate > 20090111){
+        const fetchedmp3 = await Storage.get(linkDate.toString()  + '.mp3');
+        setMP3(fetchedmp3);
+      }
     }
-    import('./assets/Authors_sorted.js')
-      .then(res => res.default)
-      .then(contents => console.log(contents))
     getData();
   }, [linkDate]);
 
