@@ -9,7 +9,7 @@ export default function Poem({ poemTitle, poem, changeAuthor, author }) {
       <div>
         <div className="PoemTitle" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poemTitle) }} />
         <button className="AuthorButton" onClick={() => changeAuthor({author})}>
-          by {author}
+          by <div className="Author" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(author) }}/>
         </button>
         <div className="Author" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poem) }} />
       </div>
