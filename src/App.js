@@ -74,7 +74,12 @@ function App() {
   const [note, setNote] = useState(' ');
   const [mp3, setMP3] = useState('');
   const changeAuthor = (x) =>{ 
-    setLinkDate(x.author);
+    if(/<br>/.test(x.author)){
+      const holder = x.author.split("<br>");
+      setLinkDate(holder[0]);
+    }else{
+      setLinkDate(x.author);
+    }
   };
   
   const authorPoemList = ({query}) => {
