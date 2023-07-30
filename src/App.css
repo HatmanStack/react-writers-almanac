@@ -48,7 +48,7 @@ code {
   visibility: hidden;
 }
 
-.MuiAutocomplete-listbox{
+.MuiAutocomplete-list{
   width:20em;
   background:#8293a2;
 }
@@ -98,6 +98,10 @@ code {
   margin: 1em;
 }
 
+.rhap_container .rhap_additional-controls {
+  display: none; 
+}
+
 .ButtonImage{
   margin-top:1.1em;
 }
@@ -136,12 +140,10 @@ code {
   color: #FFFFF6;
   flex: 2 0 0;
   justify-content: center;
-  
 }
 
 .PoemFormatContainer{
   flex: 8 0 auto;
-  
 }
 
 .PoemDate{
@@ -169,10 +171,9 @@ code {
 
 .AudioPlayer {
   flex: 2 0 0;
-  max-height: 4em;
-  margin-top: 3em;
+  min-width:20em;
   justify-content: center;
-  align-items: center;
+  margin-top: 1.1em;
 }
 
 .FormattingContainer{
@@ -185,13 +186,10 @@ code {
   margin: 2em;
 }
 
-
-
 /*Poem.js*/
 .PoemText {
   text-align: left;
   padding-left: 2em; 
- 
 }
 
 .ToBuy {
@@ -262,7 +260,6 @@ body {
 
 .wrapper {
 	min-width: min(10rem, 100%);
-  margin: 3em;
 }
 
 .box {

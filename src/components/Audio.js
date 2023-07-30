@@ -36,6 +36,10 @@ export default function Audio({ searchedTerm, transcript, onChangeDate, mp3Link 
           className="AudioPlayer"
           autoPlay={false}
           src={mp3Link}
+          showSkipControls={false}
+          showJumpControls={false}
+          showAdditionalControls={false}
+          layout='horizontal-reverse'
         />
         <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>Transcript</button>
         </div>

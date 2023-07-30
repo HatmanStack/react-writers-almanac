@@ -73,13 +73,9 @@ function App() {
   const [authorData, setAuthorData] = useState('');
   const [note, setNote] = useState(' ');
   const [mp3, setMP3] = useState('');
+  const [clearfields, setClearFields] = useState('');
   const changeAuthor = (x) =>{ 
-    if(/<br>/.test(x.author)){
-      const holder = x.author.split("<br>");
-      setLinkDate(holder[0]);
-    }else{
       setLinkDate(x.author);
-    }
   };
   
   const authorPoemList = ({query}) => {
@@ -98,7 +94,8 @@ function App() {
 
 
   const changeDate = async (x) => {
-    console.log(x);
+    console.log('changedate');
+    setClearFields(linkDate);
     if (/\d/.test(linkDate)) {
       const holderDate = new Date(linkDate.substring(0, 4) + "-" + linkDate.substring(4, 6) + "-" + linkDate.substring(6));
       const forwardDateHolder = new Date(holderDate);
@@ -171,7 +168,7 @@ function App() {
         <header className="App-header">
         <img className="LogoImage" src={logo} alt="LOGO"></img>
         <div className="FormattingContainer"></div>
-        <Search className="SearchBar"  onAuthorPoemList={authorPoemList} onCalendarDate={calendarDate} linkDate={linkDate} />
+        <Search className="SearchBar"  onAuthorPoemList={authorPoemList} onCalendarDate={calendarDate} linkDate={linkDate} clearfields={clearfields} />
         <div className="holder">
         
           <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }></div>
