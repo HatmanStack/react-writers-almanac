@@ -29,6 +29,7 @@ code {
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  margin-left: 3em;
 }
 
 .SearchBar{
@@ -36,6 +37,10 @@ code {
 }
 .MuiAutocomplete-root{
   width:8em;
+}
+
+.MuiAutocomplete-root .MuiFormControl-root .MuiFormLabel-root{
+  color:white;
 }
 
 .MuiTextField-root input {
@@ -48,7 +53,9 @@ code {
   visibility: hidden;
 }
 
-.MuiAutocomplete-list{
+
+
+.MuiAutocomplete-listbox{
   width:20em;
   background:#8293a2;
 }
@@ -68,15 +75,19 @@ code {
   justify-content:right;
   margin:3em;
 }
-.DateContainer{
+.DayContainer{
   flex: 3 0 auto;
   margin: .25em;
   font-size: 1em;
+}
+.DateContainer {
+  margin-right:3em;
 }
 /**end App.js HeaderContainer*/
 
 .PoemContainer {
   flex: 1 0 0;
+  margin-left:3em;
 }
 
 .itemRow{
@@ -85,6 +96,7 @@ code {
 
 .NoteContainer {
   flex: 1 3 0;
+  margin-right: 3em;
 }
 
 .Container {

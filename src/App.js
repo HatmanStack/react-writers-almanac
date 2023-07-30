@@ -94,7 +94,7 @@ function App() {
 
 
   const changeDate = async (x) => {
-    console.log('changedate');
+    
     setClearFields(linkDate);
     if (/\d/.test(linkDate)) {
       const holderDate = new Date(linkDate.substring(0, 4) + "-" + linkDate.substring(4, 6) + "-" + linkDate.substring(6));
@@ -116,7 +116,7 @@ function App() {
   useEffect(() => {
     async function getData() {
      const fetchedData = await Storage.get(linkDate.toString() + '.txt', { download:true});
-     console.log("test");
+     
      fetchedData.Body.text().then(string => {
         const splitString = string.split('####');
         if (/\d/.test(linkDate)) {
@@ -171,8 +171,8 @@ function App() {
         <Search className="SearchBar"  onAuthorPoemList={authorPoemList} onCalendarDate={calendarDate} linkDate={linkDate} clearfields={clearfields} />
         <div className="holder">
         
-          <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }></div>
-          <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }></div>
+          <div className="DayContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }></div>
+          <div className="DayContainer DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }></div>
           </div>
         </header>
     
