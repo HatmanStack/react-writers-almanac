@@ -8,6 +8,11 @@ A single page web application that uses React to serve daily poems and history a
     - Plays an audio file of Garrison Keillor narrating some of the history and reading the poem
     - Includes transcripts of the audio file created by OpenAI Whisper
 
+## Technology
+    - Single Page Application (SPA) written in React
+    - Hosted on AWS CloudFront
+    - Database served using AWS s3
+
 ## Getting Started
 
 ```
