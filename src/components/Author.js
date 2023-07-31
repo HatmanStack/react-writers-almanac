@@ -14,7 +14,7 @@ export default function Author({ authorData, formatAuthorDate, setLinkDate}) {
         const [firstItem,  secondItem] = item.split('****');
         const newFirstItem = firstItem.replaceAll(/[^\x20-\x7E]/g, '');
         return (
-          <div className="Container">
+          <div className="AuthorPoemIndexContainer ">
             
             <button className="AuthorButton" onClick={() => handleClick(secondItem)}>
               {newFirstItem}

@@ -5,20 +5,22 @@ import DOMPurify from 'dompurify';
 export default function Poem({ poemTitle, poem, changeAuthor, author }) {
     
   const authors = author.split('****');
-  const poems = poemTitle.split('****')
-
+  const poemTitles = poemTitle.split('****');
+  const poems = poem.split('****');
+  console.log(authors[1]);
     return (
       <div>
         {authors.map((string, index) => (
           <div>
-          <div className="PoemTitle" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poems[index]) }} />
-          <button className="AuthorButton" onClick={() => changeAuthor({string})}>
+          <div className="PoemTitle" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poemTitles[index]) }} />
+          <button className="AuthorButton" onClick={() => changeAuthor(string)}>
           by <span className="Author" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(string) }}/>
         </button>
+          <div className="Author PoemBody" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poems[index]) }} />
         </div>
         ))}
         
-        <div className="Author" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poem) }} />
+        
       </div>
     );
   }

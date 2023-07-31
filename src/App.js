@@ -75,7 +75,8 @@ function App() {
   const [mp3, setMP3] = useState('');
   const [clearfields, setClearFields] = useState('');
   const changeAuthor = (x) =>{ 
-      setLinkDate(x.author);
+      console.log(x);
+      setLinkDate(x);
   };
   
   const authorPoemList = ({query}) => {
