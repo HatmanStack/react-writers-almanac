@@ -7,7 +7,7 @@ export default function Poem({ poemTitle, poem, changeAuthor, author }) {
   const authors = author.split('****');
   const poemTitles = poemTitle.split('****');
   const poems = poem.split('****');
-  console.log(authors[1]);
+  
     return (
       <div>
         {authors.map((string, index) => (

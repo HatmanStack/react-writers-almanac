@@ -9,22 +9,25 @@ A single page web application that uses React to serve daily poems and history a
     - Includes transcripts of the audio file created by OpenAI Whisper
 
 ## Technology
+
     - Single Page Application (SPA) written in React
     - Hosted on AWS CloudFront
     - Database served using AWS s3
-
+    - OpenAI Whisper (Transcription)
+    
 ## Getting Started
-
+    
 ```
 git clone https://github.com/hatmanstack/react-writers-almanac.git
 cd react-writers-almanac
-npm install
+npm install --global yarn
+yarn
 npm start
 ```
 
 ## Usage
 
-To use the app, simply visit http://localhost:3000 in your browser. The database is no longer being updated but the archive is large enough to deliver a new entry for the day/date of which ever year we're in going forward.  When the app loads it will automatically load the current day's poem and history. Functionality for "Previous" and "Next" buttons has been added links to author and database updates are still needed.
+To use the app, simply visit http://localhost:3000 in your browser. The original database is not being updated but the archive is large enough to deliver a new entry for the day/date of the year we're in going forward.  The app loads the current day's (based on the day of the week) poem and history.
 
 ## License
 
