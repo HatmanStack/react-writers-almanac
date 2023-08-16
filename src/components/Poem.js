@@ -12,7 +12,7 @@ export default function Poem({ poemTitle, poem, changeAuthor, author }) {
       <div>
         {authors.map((string, index) => (
           <div>
-          <div className="PoemTitle" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poemTitles[index]) }} />
+          <h2><div className="PoemTitle" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poemTitles[index]) }} /></h2>
           <button className="AuthorButton" onClick={() => changeAuthor(string)}>
           by <span className="Author" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(string) }}/>
         </button>

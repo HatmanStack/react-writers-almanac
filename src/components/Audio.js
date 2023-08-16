@@ -5,6 +5,7 @@ import next from '../assets/next.png';
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 import VanillaTilt from 'vanilla-tilt';
+import DOMPurify from 'dompurify';
 
 function Tilt(props) {
   const { options, ...rest } = props;
@@ -17,7 +18,7 @@ function Tilt(props) {
   return <div ref={tilt} {...rest} />;
 }
 
-export default function Audio({ searchedTerm, transcript, onChangeDate, mp3Link }) {
+export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,  date }) {
   const [isShowing, setIsShowing] = useState(false);
   
   const options = {
@@ -26,10 +27,12 @@ export default function Audio({ searchedTerm, transcript, onChangeDate, mp3Link 
     max: 20
   };
 
-  const Heading = ({ searchedTerm }) => {
+  const Heading = ({searchTerm}) => {
     const hasNumbers = term => /\d/.test(term);
     const authorOrNot = hasNumbers(searchedTerm);
-    if (authorOrNot) {
+    console.log({mp3Link});
+    
+    if (authorOrNot && mp3Link!='NotAvailable') {
       return (
         <div>
         <AudioPlayer
@@ -44,7 +47,13 @@ export default function Audio({ searchedTerm, transcript, onChangeDate, mp3Link 
         <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>Transcript</button>
         </div>
       );
-    } else {
+    } else if(authorOrNot) {
+      return(
+      <div>
+        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) }}/>
+      </div>
+      );
+    }else {
       return (
         <div>
           <h3>{searchedTerm}</h3>

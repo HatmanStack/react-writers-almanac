@@ -136,6 +136,8 @@ function App() {
       if ( linkDate > 20090111){
         const fetchedmp3 = await Storage.get(linkDate.toString()  + '.mp3');
         setMP3(fetchedmp3);
+      }else{
+        setMP3('NotAvailable');
       }
     }
     getData();
@@ -177,7 +179,7 @@ function App() {
           </div>
         </header>
     
-        <Audio searchedTerm={linkDate}transcript={transcript} mp3Link={mp3} onChangeDate={changeDate}/>
+        <Audio searchedTerm={linkDate}transcript={transcript} mp3Link={mp3} onChangeDate={changeDate} date={day}/>
         <Body/>
         </ColorScroll> 
     </div>
