@@ -1,6 +1,6 @@
 # The Writers Almanac
 
-A single page web application that uses React to serve daily poems and history about the day. It also serves an audio file from Garrison Keillor or Billy Collins narrating some of the history and reading a poem. OpenAI Whisper is used to create transcripts of the audio file which is also included in the app. This <b>Proof of Concept</b> version is running [here](https://d2znj5wmc4rqij.cloudfront.net). The original version is located [here](https://www.writersalmanac.org/index.html%3Fp=10097.html)
+A single page web application that uses React to serve daily poems and history about the day. It also serves an audio file from Garrison Keillor or Billy Collins narrating some of the history and reading a poem. OpenAI Whisper is used to create transcripts of the audio file which is also included in the app. This <b>Proof of Concept</b> version is running [here](https://d1lox34eubm7rt.cloudfront.net). The original version is located [here](https://www.writersalmanac.org/index.html%3Fp=10097.html)
 
 ## Features
 

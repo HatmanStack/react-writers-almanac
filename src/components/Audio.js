@@ -32,7 +32,7 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
     const authorOrNot = hasNumbers(searchedTerm);
     console.log({mp3Link});
     
-    if (authorOrNot && mp3Link!='NotAvailable') {
+    if (authorOrNot && mp3Link!=='NotAvailable') {
       return (
         <div>
         <AudioPlayer
