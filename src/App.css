@@ -185,6 +185,11 @@ code {
   display: flex;
 }
 
+.AudioStack{
+  display: flex;
+  flex-direction: column;
+}
+
 .AudioPlayer {
   flex: 2 0 0;
   min-width:20em;

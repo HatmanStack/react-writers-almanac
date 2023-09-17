@@ -50,10 +50,8 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
     
     if (authorOrNot && mp3Link!=='NotAvailable') {
       return (
-        <div>
-        <audio src={mp3Link} autoPlay={false} loop={false} controls />
-        
-      
+        <div className="AudioStack">
+        <audio className="AudioPlayer" src={mp3Link} autoPlay={false} loop={false} controls />
         <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>Transcript</button>
         </div>
       );
