@@ -26,16 +26,10 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
     speed: 600,
     max: 20
   };
-
-  const Heading = ({searchTerm}) => {
-    const hasNumbers = term => /\d/.test(term);
-    const authorOrNot = hasNumbers(searchedTerm);
-    console.log({mp3Link});
-    
-    if (authorOrNot && mp3Link!=='NotAvailable') {
-      return (
-        <div>
-        <AudioPlayer
+  
+  /**
+   * 
+   * <AudioPlayer
           className="AudioPlayer"
           autoPlay={false}
           src={mp3Link}
@@ -44,6 +38,22 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
           showAdditionalControls={false}
           layout='horizontal-reverse'
         />
+   * 
+   * 
+   * 
+   * 
+   */
+
+  const Heading = ({searchTerm}) => {
+    const hasNumbers = term => /\d/.test(term);
+    const authorOrNot = hasNumbers(searchedTerm);
+    
+    if (authorOrNot && mp3Link!=='NotAvailable') {
+      return (
+        <div>
+        <audio src={mp3Link} autoPlay={false} loop={false} controls />
+        
+      
         <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>Transcript</button>
         </div>
       );

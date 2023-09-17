@@ -7,11 +7,10 @@ import Author from './components/Author';
 import logo from './assets/logo_writersalmanac.png';
 import sortedAuthors from './assets/Authors_sorted.js';
 import React, { useState, useEffect} from 'react';
-import { Storage } from 'aws-amplify';
 import DOMPurify from 'dompurify';
 import ColorScroll from 'react-color-scroll';
-
-
+import axios from 'axios';
+import Blob from 'blob';
 
 function formatDate(newDate,notToday=true, separator=''){
   
@@ -28,7 +27,6 @@ function formatDate(newDate,notToday=true, separator=''){
   }  
   return fDate;
 }
-
 
 const presentDate = () => {
   const holder = formatDate(new Date(), false);
@@ -113,13 +111,20 @@ function App() {
     }
   };
   
-  
   useEffect(() => {
     async function getData() {
-     const fetchedData = await Storage.get(linkDate.toString() + '.txt', { download:true});
-     
-     fetchedData.Body.text().then(string => {
-        const splitString = string.split('####');
+    let link; 
+    if (/\d/.test(linkDate)) {
+      const dateString = linkDate.toString();
+      const year = dateString.substring(0,4);
+      const month = dateString.substring(4,6);
+      link = `${year}/${month}/` + linkDate.toString();
+    } else {
+      link = `Author/${linkDate}`;
+    }
+    axios.get('public/' + link + '.txt')
+     .then(response => {
+        const splitString = response.data.split('####');
         if (/\d/.test(linkDate)) {
           const sanitizedSplitString = splitString.map((item) => DOMPurify.sanitize(item));
           setDay(sanitizedSplitString[1].replaceAll(/[^\x20-\x7E]/g, ''));
@@ -134,8 +139,14 @@ function App() {
         }
       });
       if ( linkDate > 20090111){
-        const fetchedmp3 = await Storage.get(linkDate.toString()  + '.mp3');
-        setMP3(fetchedmp3);
+        axios.get('public/' + link + '.mp3', {
+          responseType: 'arraybuffer'
+        })
+        .then(response =>{
+          URL.revokeObjectURL(mp3);
+          const blob = new Blob([response.data]);
+          const audioUrl = URL.createObjectURL(blob);
+          setMP3(audioUrl)})
       }else{
         setMP3('NotAvailable');
       }
