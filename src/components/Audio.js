@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import '../App.css';
 import prev from '../assets/prev.png';
 import next from '../assets/next.png';
-import AudioPlayer from 'react-h5-audio-player';
-import 'react-h5-audio-player/lib/styles.css';
 import VanillaTilt from 'vanilla-tilt';
 import DOMPurify from 'dompurify';
 
@@ -18,7 +16,7 @@ function Tilt(props) {
   return <div ref={tilt} {...rest} />;
 }
 
-export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,  date }) {
+export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,  date, width }) {
   const [isShowing, setIsShowing] = useState(false);
   
   const options = {
@@ -49,11 +47,15 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
     const hasNumbers = term => /\d/.test(term);
     const authorOrNot = hasNumbers(searchedTerm);
     if (authorOrNot && mp3Link!=='NotAvailable') {
-      return (
+      return (<div>{width > 1000 ? (
         <div className="AudioStack">
         <audio className="AudioPlayer" src={mp3Link} autoPlay={false} loop={false} controls />
         <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>Transcript</button>
-        </div>
+        </div>):
+        (<div className="AudioStack">
+        <audio className="AudioPlayerSmall" src={mp3Link} autoPlay={false} loop={false} controls />
+        <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>Transcript</button>
+        </div>)}</div>
       );
     } else if(authorOrNot) {
       return(
@@ -72,8 +74,8 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
 
   return (
     <div>
-      <br></br>
-
+      {width > 1000 ? (
+      <div>
       <div className="AudioPlayerContainer">
         <div className="FormattingContainer"></div>
         <div className="wrapper">
@@ -89,10 +91,22 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
         </div>
         <div className="FormattingContainer"></div>
       </div>
-
+      {isShowing ? <p className="Transcript">{transcript}</p> : null}</div>) : 
       
-      <br></br>
-      {isShowing ? <p className="Transcript">{transcript}</p> : null}
+      (<div><div className="columnContainer">
+        <Heading searchedTerm={searchedTerm} />
+        {isShowing ? <p className="Transcript">{transcript}</p> : null}
+        <div className="rowContainer">
+            <Tilt className="boxbackwards" options={options}>
+              <button className="DateChangeButton" onClick={() => onChangeDate('back')}><img className="ButtonImage" src={prev} alt="previous button" height="100%" width="auto"></img></button>
+            </Tilt>
+            <Tilt className="box" options={options}>
+              <button className="DateChangeButton" onClick={() => onChangeDate('forward')} height="100%" width="auto"><img className="ButtonImage" src={next} alt="next button"  ></img></button>
+            </Tilt>
+        </div>
+        <div className="FormattingContainer"></div>
+      </div>
+      </div>)}
 
     </div>
   );

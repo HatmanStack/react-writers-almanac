@@ -8,6 +8,7 @@ import logo from './assets/logo_writersalmanac.png';
 import sortedAuthors from './assets/Authors_sorted.js';
 import sortedPoems from './assets/Poems_sorted.js';
 import React, { useState, useEffect} from 'react';
+import { useWindowSize } from 'react-use';
 import DOMPurify from 'dompurify';
 import ColorScroll from 'react-color-scroll';
 import axios from 'axios';
@@ -75,8 +76,8 @@ function App() {
   const [note, setNote] = useState(' ');
   const [mp3, setMP3] = useState('');
   const [clearfields, setClearFields] = useState('');
+  const { width } = useWindowSize();
   const changeAuthor = (x) =>{ 
-    
       setLinkDate(x);
   };
   
@@ -104,10 +105,8 @@ function App() {
   const calendarDate = ({calendarChangedDate}) => {
       setLinkDate(formatDate(calendarChangedDate));
   }
-
-
+  console.log({width})
   const changeDate = async (x) => {
-    
     setClearFields(linkDate);
     if (/\d/.test(linkDate)) {
       const holderDate = new Date(linkDate.substring(0, 4) + "-" + linkDate.substring(4, 6) + "-" + linkDate.substring(6));
@@ -130,7 +129,6 @@ function App() {
       const after = index === authorOrPoem.length - 1 ? authorOrPoem[0] : authorOrPoem[index + 1];
       setLinkDate( x === 'back' ? before : after);
       }
-    
   };
   
   useEffect(() => {
@@ -148,10 +146,9 @@ function App() {
         }else {
           link = `Poems/${linkDate}`;
         }
-      
     }
     
-    axios.get('https://hatmanstack-twa.s3.us-west-1.amazonaws.com/public/' + link + '.txt')
+    axios.get('https://d3k4b0pk2zn2qj.cloudfront.net/public/' + link + '.txt')
      .then(response => {
         const splitString = response.data.split('####');
         if (/\d/.test(linkDate)) {
@@ -168,7 +165,7 @@ function App() {
         }
       });
       if ( linkDate > 20090111){
-        axios.get('https://hatmanstack-twa.s3.us-west-1.amazonaws.com/public/' + linkDate + '.mp3', {
+        axios.get('https://d3k4b0pk2zn2qj.cloudfront.net/public/' + linkDate + '.mp3', {
           responseType: 'arraybuffer'
         })
         .then(response =>{
@@ -183,16 +180,27 @@ function App() {
     getData();
   }, [linkDate]);
 
+
   const Body = () => {
     if (/\d/.test(linkDate)) {
       return (
-        <div className="Container">
+        <div>
+        {width > 1000 ? (<div className="Container">
           <div className="PoemContainer">
             <Poem poemTitle={poemTitle} poem={poem} changeAuthor={changeAuthor} author={author} />
           </div>
           <div className="NoteContainer">
             <Note note={note} />
           </div>
+        </div>) :
+        (<div className="columnContainer">
+          <div >
+            <Poem poemTitle={poemTitle} poem={poem} changeAuthor={changeAuthor} author={author} />
+          </div>
+          <div >
+            <Note note={note} />
+          </div>
+        </div>)}
         </div>
       );
     } else {
@@ -208,19 +216,30 @@ function App() {
         colors={['#8f9193', '#8a9aa8', '#8293a2', '#6c8193', '#0c4b6e']}
         className='my-color-scroll' >
         
-        <header className="App-header">
-        <img className="LogoImage" src={logo} alt="LOGO"></img>
-        <div className="FormattingContainer"></div>
-        <Search className="SearchBar"  onAuthorPoemList={authorPoemList} onCalendarDate={calendarDate} linkDate={linkDate} clearfields={clearfields} />
-        <div className="holder">
-        
-          <div className="DayContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }></div>
-          <div className="DayContainer DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }></div>
+          {width > 1000 ? (
+          <div>
+          <header className="App-header">
+            <img className="LogoImage" src={logo} alt="LOGO"></img>
+            <div className="FormattingContainer"></div>
+            <Search className="SearchBar"  onAuthorPoemList={authorPoemList} onCalendarDate={calendarDate} linkDate={linkDate} clearfields={clearfields} width={width}/>
+              <div className="holder">
+                <div className="DayContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
+                <div className="DayContainer DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
+              </div>
+            </header>
+            <Audio searchedTerm={linkDate} transcript={transcript} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width}/></div>) :
+          (<div><div className="columnContainer">
+                <img className="LogoImage" src={logo} alt="LOGO"></img>
+                <div className="columnContainer"></div>
+                <Search className="SearchBar"  onAuthorPoemList={authorPoemList} onCalendarDate={calendarDate} linkDate={linkDate} clearfields={clearfields} width={width}/>
+              <div className="columnContainer">
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
+              </div>
           </div>
-        </header>
-    
-        <Audio searchedTerm={linkDate} transcript={transcript} mp3Link={mp3} onChangeDate={changeDate} date={day}/>
-        <Body/>
+            <Audio searchedTerm={linkDate} transcript={transcript} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width} /></div>)}
+          
+          <Body/>
         </ColorScroll> 
     </div>
   );

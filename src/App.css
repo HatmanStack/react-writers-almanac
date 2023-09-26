@@ -36,11 +36,13 @@ code {
   flex: 3 0 0;
 }
 .MuiAutocomplete-root{
-  width:8em;
+  width: 15em;
+  
 }
 
 .MuiAutocomplete-root .MuiFormControl-root .MuiFormLabel-root{
   color:white;
+  justify-content:center;
 }
 
 .MuiTextField-root input {
@@ -54,7 +56,7 @@ code {
 }
 
 .MuiAutocomplete-listbox{
-  width:20em;
+  width:40em;
   background:#8293a2;
 }
 
@@ -88,6 +90,7 @@ code {
   margin-left:5em;
 }
 
+
 .itemRow{
   flex-direction: row;
 }
@@ -100,7 +103,6 @@ code {
 .Container {
   display: flex;
 }
-
 
 .AuthorPoemIndexContainer {
   display: flex;
@@ -123,13 +125,10 @@ code {
 }
 
 .DateChangeButton{
-  flex: 1 1 0;
   scale: .7;
   background-color:#8293a2;
   background-repeat: no-repeat;
   border: none;
-  margin-left: 4rem;
-  margin-right: 4rem;
 }
 
 .PoemTitleButton{
@@ -185,16 +184,30 @@ code {
   display: flex;
 }
 
+.columnContainer{
+  flex-direction:column;
+  padding: .75em;
+}
+
+.rowContainer{
+  display:flex;
+  justify-content:center;
+}
+
 .AudioStack{
   display: flex;
   flex-direction: column;
 }
 
 .AudioPlayer {
-  flex: 2 0 0;
-  min-width:20em;
+  min-width:15em;
   justify-content: center;
   margin-top: 1.1em;
+}
+
+.AudioPlayerSmall {
+  margin-top: 1.1em;
+  justify-content: center;
 }
 
 .FormattingContainer{
@@ -290,7 +303,7 @@ body {
 	border-image: conic-gradient(from var(--angle), var(--c2), var(--c1) 0.1turn, var(--c1) 0.15turn, var(--c2) 0.25turn) 30;
 	animation: borderRotate var(--d) linear infinite forwards;
   transform-style: preserve-3d;
-  transform: perspective(1000px);
+  
 }
 
 .boxbackwards {
@@ -300,7 +313,6 @@ body {
 	border-image: conic-gradient(from var(--angle), var(--c2), var(--c1) 0.1turn, var(--c1) 0.15turn, var(--c2) 0.25turn) 30;
 	animation: borderRotate var(--d) linear infinite reverse;
   transform-style: preserve-3d;
-  transform: perspective(1000px);
 }
 
 
