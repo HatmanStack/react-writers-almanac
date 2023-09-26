@@ -6,11 +6,13 @@ import Search from './components/Search';
 import Author from './components/Author';
 import logo from './assets/logo_writersalmanac.png';
 import sortedAuthors from './assets/Authors_sorted.js';
+import sortedPoems from './assets/Poems_sorted.js';
 import React, { useState, useEffect} from 'react';
 import DOMPurify from 'dompurify';
 import ColorScroll from 'react-color-scroll';
 import axios from 'axios';
 import Blob from 'blob';
+
 
 function formatDate(newDate,notToday=true, separator=''){
   
@@ -41,11 +43,12 @@ else {
 }};
 
 const formatAuthorDate = (dateString) => {
+  
   const monthAbbreviations = {
     Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
     Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12"
   };
-
+  
   const splitDate = dateString.trim().split(' ');
   let variance = splitDate.length === 4 ? 1 : 0;
 
@@ -73,17 +76,28 @@ function App() {
   const [mp3, setMP3] = useState('');
   const [clearfields, setClearFields] = useState('');
   const changeAuthor = (x) =>{ 
-      console.log(x);
+    
       setLinkDate(x);
   };
   
   const authorPoemList = ({query}) => {
-    
-    if(query != null && sortedAuthors.indexOf(query.label) > -1){
+    let holder;
+  
+    if(query != null){
+      if(sortedAuthors.includes(query.label)){  
         const holder = Object.keys(query).map(function (key){
           return query[key];
         });
+        console.log(holder);
         setLinkDate(holder.slice(0,1).toString());
+      }
+      if(sortedPoems.includes(query.label)){
+        const holder = Object.keys(query).map(function (key){
+          return query[key];
+        });
+        console.log(holder);
+        setLinkDate(holder.slice(0,1).toString());
+      }
     }
   }
 
@@ -101,17 +115,26 @@ function App() {
       forwardDateHolder.setDate(holderDate.getDate() + (x === 'back' ? 0 : 2));
       setLinkDate(formatDate(forwardDateHolder));
     } else {
-        const index = sortedAuthors.indexOf(linkDate);
+      let authorOrPoem;
+        if (sortedAuthors.includes(linkDate)){
+          authorOrPoem = sortedAuthors;
+        }else {
+          authorOrPoem = sortedPoems;
+        }
+      console.log(authorOrPoem)
+      const index = authorOrPoem.indexOf(linkDate);
         if (index === -1) {
           return null; 
         }
-        const before = index === 0 ? sortedAuthors[sortedAuthors.length - 1] : sortedAuthors[index - 1];
-        const after = index === sortedAuthors.length - 1 ? sortedAuthors[0] : sortedAuthors[index + 1];
-        setLinkDate( x === 'back' ? before : after);
-    }
+      const before = index === 0 ? authorOrPoem[sortedAuthors.length - 1] : authorOrPoem[index - 1];
+      const after = index === authorOrPoem.length - 1 ? authorOrPoem[0] : authorOrPoem[index + 1];
+      setLinkDate( x === 'back' ? before : after);
+      }
+    
   };
   
   useEffect(() => {
+    
     async function getData() {
     let link; 
     if (/\d/.test(linkDate)) {
@@ -120,9 +143,15 @@ function App() {
       const month = dateString.substring(4,6);
       link = `${year}/${month}/` + linkDate.toString();
     } else {
-      link = `Author/${linkDate}`;
+        if (sortedAuthors.includes(linkDate)){
+          link = `Authors/${linkDate}`;
+        }else {
+          link = `Poems/${linkDate}`;
+        }
+      
     }
-    axios.get('public/' + link + '.txt')
+    
+    axios.get('https://hatmanstack-twa.s3.us-west-1.amazonaws.com/public/' + link + '.txt')
      .then(response => {
         const splitString = response.data.split('####');
         if (/\d/.test(linkDate)) {
@@ -139,7 +168,7 @@ function App() {
         }
       });
       if ( linkDate > 20090111){
-        axios.get('public/' + link + '.mp3', {
+        axios.get('https://hatmanstack-twa.s3.us-west-1.amazonaws.com/public/' + linkDate + '.mp3', {
           responseType: 'arraybuffer'
         })
         .then(response =>{
@@ -190,7 +219,7 @@ function App() {
           </div>
         </header>
     
-        <Audio searchedTerm={linkDate}transcript={transcript} mp3Link={mp3} onChangeDate={changeDate} date={day}/>
+        <Audio searchedTerm={linkDate} transcript={transcript} mp3Link={mp3} onChangeDate={changeDate} date={day}/>
         <Body/>
         </ColorScroll> 
     </div>

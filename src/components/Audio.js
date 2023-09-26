@@ -44,10 +44,10 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
    * 
    */
 
-  const Heading = ({searchTerm}) => {
+  const Heading = ({searchedTerm}) => {
+    console.log(searchedTerm);
     const hasNumbers = term => /\d/.test(term);
     const authorOrNot = hasNumbers(searchedTerm);
-    
     if (authorOrNot && mp3Link!=='NotAvailable') {
       return (
         <div className="AudioStack">

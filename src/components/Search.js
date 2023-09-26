@@ -53,7 +53,7 @@ import list from '../assets/searchJson';
       disablePortal={false}
       options={list}
       getOptionLabel={(option) => option.label}
-      renderInput={(params) => <TextField {...params}  label="Author"  onKeyDown={handleKeyDown}  />}
+      renderInput={(params) => <TextField {...params}  label="Author / Poem"  onKeyDown={handleKeyDown}  />}
     />
     <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
     {isShowing ? 
