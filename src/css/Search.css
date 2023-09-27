@@ -1,0 +1,60 @@
+.Container {
+  display: flex;
+}
+
+.columnContainer{
+  flex-direction:column;
+  padding: .75em;
+}
+
+.rowContainer{
+  display:flex;
+  justify-content:center;
+}
+
+.FormattingContainer{
+  flex: 1 0 auto;
+}
+
+.TranscriptButton {
+  background:transparent;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+  font-weight: bold;
+  font-size: .75em;
+  color: #FFFFF6;
+  margin-right: 2em;
+}
+
+
+.MuiAutocomplete-root{
+  width: 15em;
+}
+
+.MuiAutocomplete-root .MuiFormControl-root .MuiFormLabel-root{
+  color:white;
+  justify-content:center;
+}
+
+.MuiTextField-root input {
+  color:#FFFFF6;
+  font-family: Raleway, sans-serif;
+  font-size: 1.5em;
+}
+
+.MuiAutocomplete-endAdornment{
+  visibility: hidden;
+}
+
+.MuiAutocomplete-listbox{
+  width:40em;
+  background:#8293a2;
+}
+
+.MuiAutocomplete-option{
+  margin:.1em;
+  color:#FFFFF6;
+}

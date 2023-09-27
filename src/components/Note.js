@@ -1,5 +1,5 @@
 
-import '../App.css';
+import '../css/Note.css';
 import DOMPurify from 'dompurify';
 import divider from '../assets/divider.png';
 
@@ -11,7 +11,7 @@ export default function Note({note}) {
             {notes.map((string, index) => (
             <div className="NoteText">
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(string) }} />
-                <div className="Divider">{index < notes.length - 2 && <div><br></br><img src={divider} alt="divider" width="10%" height="auto" /></div>}
+                <div>{index < notes.length - 2 && <div><br></br><img src={divider} alt="divider" width="10%" height="auto" /></div>}
                 </div>
             </div>
             ))}

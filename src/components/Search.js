@@ -6,6 +6,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
+import '../css/Search.css';
 
 import list from '../assets/searchJson';
 
@@ -77,7 +78,7 @@ import list from '../assets/searchJson';
         </div>):(
         <div className="columnContainer">
           <div className="rowContainer">
-            <div className="FormattingContainer"/>"
+            <div className="FormattingContainer"/>
               <Autocomplete
               id="clear-on-escape"
               

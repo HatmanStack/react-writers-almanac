@@ -1,4 +1,4 @@
-import './App.css';
+import './css/App.css';
 import Audio from './components/Audio';
 import Note from './components/Note';
 import Poem from './components/Poem';
@@ -72,6 +72,7 @@ function App() {
   
   const authorPoemList = ({query}) => {
     if(query != null){
+      
       const holder = Object.keys(query).map(function (key){
           return query[key];
         }).slice(0,1).toString();
@@ -79,6 +80,7 @@ function App() {
         if (sortedAuthors.includes(holder)) {
           setAuthorLabel(true);
         }else {
+          console.log('Poem');
           setAuthorLabel(false);
         }
         setLinkDate(holder);
@@ -188,7 +190,7 @@ function App() {
       );
     } else {
       return(
-      <Author setLinkDate={setLinkDate} formatAuthorDate={formatAuthorDate} authorData={authorData}/>);
+      <Author setLinkDate={setLinkDate} formatAuthorDate={formatAuthorDate} authorData={authorData} width={width}/>);
     }
   };
   
@@ -202,17 +204,18 @@ function App() {
           <div>
             <header className="App-header">
               <img className="LogoImage" src={logo} alt="LOGO"></img>
-                  <Search authorPoemList={authorPoemList} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
-                  <div className="DayContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
-                  <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
+              <div className="FormattingContainer" />
+              <Search authorPoemList={authorPoemList} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
+              <div className="DayContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
+              <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
             </header>
             <Audio searchedTerm={linkDate} transcript={transcript} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width}/>
           </div>) :
           (<div>
             <div className="columnContainer">
-                <img className="LogoImage" src={logo} alt="LOGO"></img>
+                <img className="LogoImage" src={logo} alt="LOGO" style={{ width: '20em' }} ></img>
                 <div className="columnContainer"></div>
-                <Search className="SearchBar"  authorPoemList={authorPoemList} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
+                <Search authorPoemList={authorPoemList} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
               <div className="columnContainer">
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>

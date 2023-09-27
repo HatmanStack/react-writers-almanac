@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import '../App.css';
+import '../css/Audio.css';
 import prev from '../assets/prev.png';
 import next from '../assets/next.png';
 import VanillaTilt from 'vanilla-tilt';

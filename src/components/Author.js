@@ -1,8 +1,8 @@
 import React from 'react';
 
-import '../App.css';
+import '../css/Author.css';
 
-export default function Author({ authorData, formatAuthorDate, setLinkDate }) {
+export default function Author({ authorData, formatAuthorDate, setLinkDate, width }) {
 
   const handleClick = (item) => {
     setLinkDate(formatAuthorDate(item));
@@ -18,12 +18,11 @@ export default function Author({ authorData, formatAuthorDate, setLinkDate }) {
 
     return (
       <div className="rowContainer">
-        <div className="FormattingContainer"/>
           <button className="AuthorButton" onClick={() => handleClick(secondItem)}>
             {newFirstItem}
           </button>
           <div className="PoemDate">{secondItem}</div>
-        <div className="FormattingContainer"/>
+          {width > 1000 ? (<div className="FormattingContainer"/>):null}
       </div>
     );
   });

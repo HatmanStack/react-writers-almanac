@@ -1,0 +1,22 @@
+.PoemTitle {
+  font-size: 1em;
+}
+
+.AuthorButton{
+  background:transparent;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+  font-weight: bold;
+  font-size: 1em; 
+  color: #FFFFF6;
+  flex: 2 0 0;
+  justify-content: center;
+}
+
+a {
+  color: #69b9ff;
+  text-decoration: none;
+}

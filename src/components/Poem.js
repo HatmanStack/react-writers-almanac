@@ -1,5 +1,5 @@
 import React from 'react';
-import '../App.css';
+import '../css/Poem.css';
 import DOMPurify from 'dompurify';
 
 export default function Poem({ poemTitle, poem, changeAuthor, author }) {
@@ -14,9 +14,9 @@ export default function Poem({ poemTitle, poem, changeAuthor, author }) {
           <div>
             <h2><div className="PoemTitle" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poemTitles[index]) }} /></h2>
             <button className="AuthorButton" onClick={() => changeAuthor(string)}>
-            by <span className="Author" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(string) }}/>
+            by <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(string) }}/>
             </button>
-            <div className="Author PoemBody" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poems[index]) }} />
+            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poems[index]) }} />
           </div>
         ))}
       </div>

@@ -1,0 +1,136 @@
+.AudioStack{
+  display: flex;
+  flex-direction: column;
+}
+
+.AudioPlayer {
+  min-width:15em;
+  justify-content: center;
+  margin-top: 1.1em;
+}
+
+.AudioPlayerSmall {
+  margin-top: 1.1em;
+  justify-content: center;
+}
+
+.FormattingContainer{
+  flex: 1 0 auto;
+}
+
+.rowContainer{
+  display:flex;
+  justify-content:center;
+}
+
+.TranscriptButton {
+  background:transparent;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+  font-weight: bold;
+  font-size: .75em;
+  color: #FFFFF6;
+}
+
+.Container {
+  display: flex;
+}
+
+.DateChangeButton{
+  scale: .7;
+  background-color:#8293a2;
+  background-repeat: no-repeat;
+  border: none;
+}
+
+.Transcript {
+  font-size: .75em;
+  font-style: italic;
+  margin: 1em;
+}
+
+.wrapper {
+	min-width: min(10rem, 100%);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 90deg;
+  inherits: true;
+}
+
+@property --gradX {
+  syntax: '<percentage>';
+  initial-value: 50%;
+  inherits: true;
+}
+
+@property --gradY {
+  syntax: '<percentage>';
+  initial-value: 0%;
+  inherits: true;
+}
+
+:root {
+	--d: 2500ms;
+	--angle: 90deg;
+	--gradX: 100%;
+	--gradY: 50%;
+	--c1: rgba(168, 239, 255, 1);
+	--c2: rgba(168, 239, 255, 0.1);
+}
+
+.box {
+  scale: .5;
+	border: 0.35rem solid;
+  background-color:#8293a2;
+	border-image: conic-gradient(from var(--angle), var(--c2), var(--c1) 0.1turn, var(--c1) 0.15turn, var(--c2) 0.25turn) 30;
+	animation: borderRotate var(--d) linear infinite forwards;
+  transform-style: preserve-3d;
+  
+}
+
+.boxbackwards {
+  scale: .5;
+	border: 0.35rem solid;
+  background-color:#8293a2;
+	border-image: conic-gradient(from var(--angle), var(--c2), var(--c1) 0.1turn, var(--c1) 0.15turn, var(--c2) 0.25turn) 30;
+	animation: borderRotate var(--d) linear infinite reverse;
+  transform-style: preserve-3d;
+}
+
+@keyframes borderRotate {
+	100% {
+		--angle: 420deg;
+	}
+}
+
+@keyframes borderRadial {
+	20% {
+		--gradX: 100%;
+		--gradY: 50%;
+	}
+	40% {
+		--gradX: 100%;
+		--gradY: 100%;
+	}
+	60% {
+		--gradX: 50%;
+		--gradY: 100%;
+	}
+	80% {
+		--gradX: 0%;
+		--gradY: 50%;
+	}
+	100% {
+		--gradX: 50%;
+		--gradY: 0%;
+	}
+}
