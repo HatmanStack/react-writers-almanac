@@ -9,29 +9,40 @@ import dayjs from 'dayjs';
 
 import list from '../assets/searchJson';
 
-  export default function Search({onAuthorPoemList, onCalendarDate, linkDate, clearfields, width}) {
+
+
+  export default function Search({authorPoemList, calendarDate, linkDate, width}) {
     const [isShowing, setIsShowing] = useState(false);
     const [query, updateQuery] = useState('');
+    const [year, setYear] = useState('');
+    const [month, setMonth] = useState('');
+    const [day, setDay] = useState('');
     
     const calendarChange = (e) => {
-      setIsShowing(false); 
-      const calendarChangedDate = e.$d
-      onCalendarDate({calendarChangedDate});
+      if (year !== e.$y) {
+        setYear(e.$y);
+      } else if (month !== e.$M) { 
+        setMonth(e.$M);
+      } else if (day !== e.$D) {
+        setDay(e.$D);
+        setIsShowing(false);
+        const calendarChangedDate = e.$d
+        calendarDate({calendarChangedDate});
+      }
+      setYear(e.$y);
+      setMonth(e.$M);
+      setDay(e.$D);
     }
-
-    useEffect(() => {
-      setIsShowing(false);
-      }, [clearfields])
 
     const handleKeyDown = (event) => {
       console.log("handleKeyDown")
         if (event.key === 'Enter') {    
           setIsShowing(false);     
-          onAuthorPoemList({query});
+          authorPoemList({query});
         }
         if (event.key === 'Escape'){
           setIsShowing(false);     
-          onAuthorPoemList({query});
+          authorPoemList({query});
         }
       };
 
@@ -46,41 +57,45 @@ import list from '../assets/searchJson';
      
     return(
       <div>{width > 1000 ? (
-      <div className="Container">
-      
-      <Autocomplete
-      id="clear-on-escape"
-      onInputChange={(e) => updateQuery(e.target.value)}
-      onChange={(event, value) => updateQuery(value)}
-      clearOnEscape
-      disablePortal={false}
-      options={list}
-      getOptionLabel={(option) => option.label}
-      renderInput={(params) => <TextField {...params}  label="Author / Poem"  onKeyDown={handleKeyDown}  />}
-    />
-    <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
-    {isShowing ? 
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DateCalendar  onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
-    </LocalizationProvider>: null}
-    </div>):(
-    <div className="columnContainer">
-      <Autocomplete
-      id="clear-on-escape"
-      onInputChange={(e) => updateQuery(e.target.value)}
-      onChange={(event, value) => updateQuery(value)}
-      clearOnEscape
-      disablePortal={false}
-      options={list}
-      getOptionLabel={(option) => option.label}
-      renderInput={(params) => <TextField {...params}  label="Author / Poem"  onKeyDown={handleKeyDown}  />}
-    />
-    <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
-    {isShowing ? 
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DateCalendar  onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
-    </LocalizationProvider>: null}
-    </div>)}
-    </div>
-    );
-    };
+        <div className="Container">
+          <Autocomplete
+          id="clear-on-escape"
+          
+          onInputChange={(e) => updateQuery(e.target.value)}
+          onChange={(event, value) => updateQuery(value)}
+          clearOnEscape
+          disablePortal={false}
+          options={list}
+          getOptionLabel={(option) => option.label}
+          renderInput={(params) => <TextField {...params}  label="Author / Poem"  onKeyDown={handleKeyDown}  />}
+          />
+          <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
+          {isShowing ? (<LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DateCalendar  onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
+            </LocalizationProvider>): 
+          (null)}
+        </div>):(
+        <div className="columnContainer">
+          <div className="rowContainer">
+            <div className="FormattingContainer"/>"
+              <Autocomplete
+              id="clear-on-escape"
+              
+              onInputChange={(e) => updateQuery(e.target.value)}
+              onChange={(event, value) => updateQuery(value)}
+              clearOnEscape
+              disablePortal={false}
+              options={list}
+              getOptionLabel={(option) => option.label}
+              renderInput={(params) => <TextField {...params}  label="Author / Poem"  onKeyDown={handleKeyDown}  />}
+              />
+            <div className="FormattingContainer"/>
+          </div>
+          <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
+          {isShowing ? (<LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DateCalendar  onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
+          </LocalizationProvider>): (null)}
+        </div>)}
+      </div>
+      );
+  };

@@ -28,16 +28,12 @@ code {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
-  margin-left: 3em;
+  justify-content: space-around;
+  margin:1em;
 }
 
-.SearchBar{
-  flex: 3 0 0;
-}
 .MuiAutocomplete-root{
   width: 15em;
-  
 }
 
 .MuiAutocomplete-root .MuiFormControl-root .MuiFormLabel-root{
@@ -66,20 +62,16 @@ code {
 }
 
 .LogoImage {
-  flex: 0 2 2;
+  flex: 0 5 auto;
   width: 20em;
 }
 
-.holder{
-  display:flex;
-  justify-content:right;
-  margin:3em;
-}
 .DayContainer{
-  flex: 3 0 auto;
-  margin: .25em;
   font-size: 1em;
 }
+
+
+
 .DateContainer {
   margin-right:3em;
 }
@@ -88,11 +80,6 @@ code {
 .PoemContainer {
   flex: 1 0 0;
   margin-left:5em;
-}
-
-
-.itemRow{
-  flex-direction: row;
 }
 
 .NoteContainer {
@@ -114,10 +101,6 @@ code {
   font-size: .75em;
   font-style: italic;
   margin: 1em;
-}
-
-.rhap_container .rhap_additional-controls {
-  display: none; 
 }
 
 .ButtonImage{
@@ -165,7 +148,6 @@ code {
   margin:2em;
   justify-content: left;
   align-items: left;
-  flex: 1 0 auto;
 }
 
 .TranscriptButton {
@@ -178,10 +160,6 @@ code {
   font-weight: bold;
   font-size: .75em;
   color: #FFFFF6;
-}
-
-.AudioPlayerContainer{
-  display: flex;
 }
 
 .columnContainer{
@@ -224,11 +202,6 @@ code {
 .PoemText {
   text-align: left;
   padding-left: 2em; 
-}
-
-.ToBuy {
-  font-size: .5em;
-  text-decoration: none;
 }
 
 .PoemTitle {

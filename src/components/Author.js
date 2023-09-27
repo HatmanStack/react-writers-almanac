@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 
 import '../App.css';
 
@@ -17,12 +17,13 @@ export default function Author({ authorData, formatAuthorDate, setLinkDate }) {
     const secondItem = items.length > 1 ? items[1] : firstItem;
 
     return (
-      <div className="AuthorPoemIndexContainer ">
-        <button className="AuthorButton" onClick={() => handleClick(secondItem)}>
-          {newFirstItem}
-        </button>
-        <div className="PoemDate">{secondItem}</div>
-        <div className="PoemFormatContainer"></div>
+      <div className="rowContainer">
+        <div className="FormattingContainer"/>
+          <button className="AuthorButton" onClick={() => handleClick(secondItem)}>
+            {newFirstItem}
+          </button>
+          <div className="PoemDate">{secondItem}</div>
+        <div className="FormattingContainer"/>
       </div>
     );
   });
