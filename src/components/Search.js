@@ -20,6 +20,7 @@ import list from '../assets/searchJson';
     const [day, setDay] = useState('');
     
     const calendarChange = (e) => {
+      /**
       if (year !== e.$y) {
         setYear(e.$y);
       } else if (month !== e.$M) { 
@@ -32,7 +33,9 @@ import list from '../assets/searchJson';
       }
       setYear(e.$y);
       setMonth(e.$M);
-      setDay(e.$D);
+      setDay(e.$D);**/
+      const calendarChangedDate = e.$d
+      calendarDate({calendarChangedDate});
     }
 
     const handleKeyDown = (event) => {

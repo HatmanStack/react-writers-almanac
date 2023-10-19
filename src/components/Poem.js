@@ -10,12 +10,11 @@ export default function Poem({ poemTitle, poem, changeAuthor, author }) {
   
     return (
       <div>
-        {authors.map((string, index) => (
+        {poemTitles.map((string, index) => (
           <div>
             <h2><div className="PoemTitle" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poemTitles[index]) }} /></h2>
-            <button className="AuthorButton" onClick={() => changeAuthor(string)}>
-            by <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(string) }}/>
-            </button>
+            {poemTitles.length > 1 && authors.length == 1 && index != 0 ? null : (<button className="AuthorButton" onClick={() => changeAuthor(string)}>
+            by <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(authors[index]) }}/></button>)}
             <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poems[index]) }} />
           </div>
         ))}

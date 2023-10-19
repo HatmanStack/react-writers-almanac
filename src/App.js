@@ -132,7 +132,7 @@ function App() {
           }
       }
       
-      axios.get('https://d3k4b0pk2zn2qj.cloudfront.net/public/' + link + '.txt')
+      axios.get('https://hatmanstack-twa.s3.us-west-1.amazonaws.com/public/' + link + '.txt')
        .then(response => {
           const splitString = response.data.split('####');
           if (/\d/.test(linkDate)) {
@@ -149,7 +149,7 @@ function App() {
           }
         });
         if ( linkDate > 20090111){
-          axios.get('https://d3k4b0pk2zn2qj.cloudfront.net/public/' + linkDate + '.mp3', {
+          axios.get('https://hatmanstack-twa.s3.us-west-1.amazonaws.com/public/' + linkDate + '.mp3', {
             responseType: 'arraybuffer'
           })
           .then(response =>{
