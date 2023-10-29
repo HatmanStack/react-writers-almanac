@@ -64,15 +64,15 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
       <div className="Container">
         <div className="FormattingContainer"></div>
         <div className="wrapper">
-          <Tilt className="boxbackwards" options={options}>
+          <div className="boxbackwards" options={options}>
             <button className="DateChangeButton" onClick={() => onChangeDate('back')}><img className="ButtonImage" src={prev} alt="previous button" height="100%" width="auto"></img></button>
-          </Tilt>
+          </div>
         </div>
         <Heading searchedTerm={searchedTerm} />
         <div className="wrapper">
-          <Tilt className="box" options={options}>
+          <div className="box" options={options}>
             <button className="DateChangeButton" onClick={() => onChangeDate('forward')} height="100%" width="auto"><img className="ButtonImage" src={next} alt="next button"  ></img></button>
-          </Tilt>
+          </div>
         </div>
         <div className="FormattingContainer"></div>
       </div>
@@ -84,12 +84,12 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
             <Heading searchedTerm={searchedTerm} />
           {isShowing ? <p className="Transcript">{transcript}</p> : null}
           <div className="rowContainer">
-              <Tilt className="boxbackwards" options={options}>
+              <div className="boxbackwards" options={options}>
                 <button className="DateChangeButton" onClick={() => onChangeDate('back')}><img className="ButtonImage" src={prev} alt="previous button" height="100%" width="auto"></img></button>
-              </Tilt>
-              <Tilt className="box" options={options}>
+              </div>
+              <div className="box" options={options}>
                 <button className="DateChangeButton" onClick={() => onChangeDate('forward')} height="100%" width="auto"><img className="ButtonImage" src={next} alt="next button"  ></img></button>
-              </Tilt>
+              </div>
           </div>
         <div className="FormattingContainer"></div>
       </div>

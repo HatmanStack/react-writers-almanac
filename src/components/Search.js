@@ -10,32 +10,35 @@ import '../css/Search.css';
 
 import list from '../assets/searchJson';
 
-
-
   export default function Search({authorPoemList, calendarDate, linkDate, width}) {
     const [isShowing, setIsShowing] = useState(false);
     const [query, updateQuery] = useState('');
     const [year, setYear] = useState('');
     const [month, setMonth] = useState('');
     const [day, setDay] = useState('');
+    const [muiDefense, setMuiDefense] = useState(false);
     
     const calendarChange = (e) => {
-      /**
       if (year !== e.$y) {
         setYear(e.$y);
-      } else if (month !== e.$M) { 
-        setMonth(e.$M);
-      } else if (day !== e.$D) {
-        setDay(e.$D);
-        setIsShowing(false);
-        const calendarChangedDate = e.$d
-        calendarDate({calendarChangedDate});
       }
-      setYear(e.$y);
-      setMonth(e.$M);
-      setDay(e.$D);**/
-      const calendarChangedDate = e.$d
-      calendarDate({calendarChangedDate});
+      if (month !== e.$M) { 
+        setMonth(e.$M);
+      } 
+      if ((day !== e.$D ) || (day === e.$D && month !== e.$M ) ) {
+        if (muiDefense || (year === e.$y)){
+          setIsShowing(false);
+          const calendarChangedDate = e.$d
+          calendarDate({calendarChangedDate});
+          setYear(e.$y);
+          setMonth(e.$M);
+          setDay(e.$D);
+          setMuiDefense(false);
+        } else {
+          setMuiDefense(true);
+        }
+      }
+      console.log(e.$M)
     }
 
     const handleKeyDown = (event) => {

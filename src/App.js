@@ -15,6 +15,7 @@ import axios from 'axios';
 import Blob from 'blob';
 
 function formatDate(date, notToday = true, separator = '') {
+  console.log(date);
   let day = date.getDate();
   let month = date.getMonth() + 1; 
   let year = date.getFullYear();
@@ -209,7 +210,7 @@ function App() {
               <div className="DayContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
               <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
             </header>
-            <Audio searchedTerm={linkDate} transcript={transcript} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width}/>
+            <Audio searchedTerm={linkDate} transcript={transcript} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width} />
           </div>) :
           (<div>
             <div className="columnContainer">
