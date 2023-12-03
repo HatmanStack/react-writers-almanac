@@ -36,7 +36,7 @@ const presentDate = () => {
   const year = today.substring(0, 4);
   let updatedYear;
   if (year === '2023') {
-    updatedYear = '2017';
+    updatedYear = '2000';
   } else if (year === '2024') {
     updatedYear = '1996';
   } else {
@@ -133,7 +133,7 @@ function App() {
           }
       }
       
-      axios.get('https://hatmanstack-twa.s3.us-west-1.amazonaws.com/public/' + link + '.txt')
+      axios.get('https://garrison-twa.s3.us-west-1.amazonaws.com/public/' + link + '.txt')
        .then(response => {
           const splitString = response.data.split('####');
           if (/\d/.test(linkDate)) {
@@ -150,7 +150,7 @@ function App() {
           }
         });
         if ( linkDate > 20090111){
-          axios.get('https://hatmanstack-twa.s3.us-west-1.amazonaws.com/public/' + linkDate + '.mp3', {
+          axios.get('https://garrison-twa.s3.us-west-1.amazonaws.com/public/' + link + '.mp3', {
             responseType: 'arraybuffer'
           })
           .then(response =>{
