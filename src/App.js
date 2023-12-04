@@ -133,7 +133,7 @@ function App() {
           }
       }
       
-      axios.get('https://garrison-twa.s3.us-west-1.amazonaws.com/public/' + link + '.txt')
+      axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.txt')
        .then(response => {
           const splitString = response.data.split('####');
           if (/\d/.test(linkDate)) {
@@ -150,12 +150,12 @@ function App() {
           }
         });
         if ( linkDate > 20090111){
-          axios.get('https://garrison-twa.s3.us-west-1.amazonaws.com/public/' + link + '.mp3', {
+          axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.mp3', {
             responseType: 'arraybuffer'
           })
           .then(response =>{
             URL.revokeObjectURL(mp3);
-            const blob = new Blob([response.data]);
+            const blob = new window.Blob([response.data]);
             const audioUrl = URL.createObjectURL(blob);
             setMP3(audioUrl)})
         }else{

@@ -6,6 +6,8 @@ todolist
 /amplify
 /.pnp
 .pnp.js
+/archive
+/.vscode
 scp.txt
 
 # testing
