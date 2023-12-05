@@ -15,7 +15,6 @@ import axios from 'axios';
 import Blob from 'blob';
 
 function formatDate(date, notToday = true, separator = '') {
-  console.log(date);
   let day = date.getDate();
   let month = date.getMonth() + 1; 
   let year = date.getFullYear();
@@ -72,18 +71,11 @@ function App() {
   const [authorLabel, setAuthorLabel] = useState(true);
   
   const authorPoemList = ({query}) => {
-    if(query != null){
-      
+    if(query != null){  
       const holder = Object.keys(query).map(function (key){
           return query[key];
         }).slice(0,1).toString();
       if(sortedAuthors.includes(holder) || sortedPoems.includes(holder)){
-        if (sortedAuthors.includes(holder)) {
-          setAuthorLabel(true);
-        }else {
-          console.log('Poem');
-          setAuthorLabel(false);
-        }
         setLinkDate(holder);
       }
     }
@@ -97,7 +89,6 @@ function App() {
       setLinkDate(formatDate(x.calendarChangedDate));
   }
   
-  console.log({width})
   const changeDate = async (x) => {
     if (/\d/.test(linkDate)) {
       const holderDate = new Date(linkDate.substring(0, 4) + "-" + linkDate.substring(4, 6) + "-" + linkDate.substring(6));
@@ -106,9 +97,9 @@ function App() {
       setLinkDate(formatDate(forwardDateHolder));
     }else {
       let sortedList = sortedPoems;
-        if (authorLabel){
-          sortedList = sortedAuthors;
-        }
+      if (sortedAuthors.includes(linkDate)) {
+        sortedList = sortedAuthors;
+      }
       const index = sortedList.indexOf(linkDate);
         if (index === -1) {
           return null; 
@@ -127,12 +118,10 @@ function App() {
         const year = dateString.substring(0,4);
         const month = dateString.substring(4,6);
         link = `${year}/${month}/` + linkDate.toString();
-      } else {
-          if (authorLabel){
-            link = `Authors/${linkDate}`;
-          }
+      } 
+      if (sortedAuthors.includes(linkDate)) {
+          link = `Authors/${linkDate}`;
       }
-      
       axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.txt')
        .then(response => {
           const splitString = response.data.split('####');

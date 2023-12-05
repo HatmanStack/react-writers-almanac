@@ -15,6 +15,7 @@ export default function Author({ authorData, formatAuthorDate, setLinkDate, widt
     const firstItem = items[0]; 
     const newFirstItem = firstItem.replaceAll(/[^\x20-\x7E]/g, '');
     const secondItem = items.length > 1 ? items[1] : firstItem;
+    
 
     return (
       <div className="rowContainer">

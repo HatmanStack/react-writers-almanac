@@ -38,11 +38,9 @@ import list from '../assets/searchJson';
           setMuiDefense(true);
         }
       }
-      console.log(e.$M)
     }
 
     const handleKeyDown = (event) => {
-      console.log("handleKeyDown")
         if (event.key === 'Enter') {    
           setIsShowing(false);     
           authorPoemList({query});
