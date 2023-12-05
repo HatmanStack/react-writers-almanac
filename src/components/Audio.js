@@ -3,7 +3,6 @@ import '../css/Audio.css';
 import prev from '../assets/prev.png';
 import next from '../assets/next.png';
 import VanillaTilt from 'vanilla-tilt';
-import DOMPurify from 'dompurify';
 
 function Tilt(props) {
   const { options, ...rest } = props;

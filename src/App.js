@@ -123,8 +123,8 @@ function App() {
           link = `Authors/${linkDate}`;
       }
       axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.txt')
-       .then(response => {
-          const splitString = response.data.split('####');
+       .then(response => {   
+        const splitString = response.data.split('####');
           if (/\d/.test(linkDate)) {
             const sanitizedSplitString = splitString.map((item) => DOMPurify.sanitize(item));
             setDay(sanitizedSplitString[1].replaceAll(/[^\x20-\x7E]/g, ''));
@@ -134,6 +134,9 @@ function App() {
             setAuthor(sanitizedSplitString[6].replaceAll(/[^\x20-\x7E]/g, ''));
             setPoem(sanitizedSplitString[7].replaceAll('\\', '').replaceAll(/[^\x20-\x7E]/g, ''));
             setNote(sanitizedSplitString[8].replaceAll(/[^\x20-\x7E]/g, ''));
+            if (/&amp;#233;/.test(sanitizedSplitString[7])){
+              setPoem(sanitizedSplitString[7].replaceAll(/&amp;#233;/g, 'é')) // Hardcoded Look for something in DOMPurify to resolve
+            }
           } else {
             setAuthorData(splitString);
           }
