@@ -36,7 +36,7 @@ const presentDate = () => {
   const year = today.substring(0, 4);
   let updatedYear;
   if (year === '2023') {
-    updatedYear = '2000';
+    updatedYear = '2006';
   } else if (year === '2024') {
     updatedYear = '1996';
   } else {
