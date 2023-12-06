@@ -12,6 +12,7 @@ import { useWindowSize } from 'react-use';
 import DOMPurify from 'dompurify';
 import ColorScroll from 'react-color-scroll';
 import axios from 'axios';
+import ParticlesComponent from './components/Particles.js';
 import Blob from 'blob';
 
 function formatDate(date, notToday = true, separator = '') {
@@ -196,6 +197,7 @@ function App() {
           {width > 1000 ? (
           <div>
             <header className="App-header">
+              <ParticlesComponent></ParticlesComponent>
               <img className="LogoImage" src={logo} alt="LOGO"></img>
               <div className="FormattingContainer" />
               <Search authorPoemList={authorPoemList} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
