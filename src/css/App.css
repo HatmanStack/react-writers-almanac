@@ -1,20 +1,44 @@
 .Container {
   display: flex;
+  
 }
 
 .PoemContainer {
   flex: 1 0 0;
   margin-left:5em;
+  z-index: 1;
+  background-color: #8293a2;
+  border-radius: 3rem 0 0 3rem;
+  display:flex;
+  padding: 1rem;
+  
 }
 
 .NoteContainer {
   flex: 1 3 0;
   margin-right: 5em;
+  z-index: 1;
+  background-color: #8293a2;
+  border-radius: 0 3rem 3rem 0;
+  display:flex;
+  padding: 1rem;
+  
+}
+
+.Transcript {
+  font-size: .75em;
+  font-style: italic;
+  padding: 1.5em;
+  z-index: 1;
+  background-color: #8293a2;
+  color: #FFFFF6;
+  border-radius: 1rem;
 }
 
 .columnContainer{
   flex-direction:column;
   padding: .75em;
+  
 }
 
 .App-header {
@@ -36,21 +60,37 @@
 .LogoImage {
   flex: 1 3 0;
   width: 35%;
+  z-index: 1;
+  background-color: #8293a2;
+  border-radius: 3rem;
+  display:flex;
+  padding: 1rem;
+}
+
+.StyleContainer{
+  z-index: 1;
+  background-color: #8293a2;
+  border-radius: 3rem;
+  display:flex;
+  padding: 1rem;
+  
 }
 
 .DayContainer{
   flex: 0 3 auto;
-  
+  margin: 1rem;
 }
 
 .DateContainer {
   flex: 1 0 auto;
   margin-right:3em;
+  margin: 1rem;
 }
 
 .columnContainer{
   flex-direction:column;
   padding: .75em;
+  
 }
 
 

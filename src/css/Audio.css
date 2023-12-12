@@ -32,7 +32,8 @@
   outline: none;
   font-weight: bold;
   font-size: .75em;
-  color: #FFFFF6;
+  color: #8293a2;
+  z-index: 1;
 }
 
 .Container {
@@ -46,11 +47,11 @@
   border: none;
 }
 
-.Transcript {
-  font-size: .75em;
-  font-style: italic;
-  margin: 1em;
+audio::-webkit-media-controls-panel {
+  background-color: #8293a2;
 }
+
+
 
 @property --angle {
   syntax: '<angle>';

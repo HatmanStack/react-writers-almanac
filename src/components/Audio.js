@@ -15,8 +15,7 @@ function Tilt(props) {
   return <div ref={tilt} {...rest} />;
 }
 
-export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate, width }) {
-  const [isShowing, setIsShowing] = useState(false);
+export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, changeTranscript, isShowing }) {
   
   const options = {
     scale: 1.3,
@@ -31,7 +30,7 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
       return (<div>{width > 1000 ? (
         <div className="AudioStack">
           <audio className="AudioPlayer" src={mp3Link} autoPlay={false} loop={false} controls />
-            <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>Transcript</button>
+            <button className="TranscriptButton" onClick={() => changeTranscript()}>Transcript</button>
         </div>):
         (<div className="AudioStack">
           <div className="rowContainer">
@@ -39,7 +38,7 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
               <audio className="AudioPlayerSmall" src={mp3Link} autoPlay={false} loop={false} controls />
             <div className="FormattingContainer"/>
           </div>
-        <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>Transcript</button>
+        <button className="TranscriptButton" onClick={() => changeTranscript()}>Transcript</button>
         </div>)}</div>
       );
     } else if(isAuthor) {
@@ -75,13 +74,12 @@ export default function Audio({ searchedTerm, transcript, mp3Link, onChangeDate,
         </div>
         <div className="FormattingContainer"></div>
       </div>
-      {isShowing ? <p className="Transcript">{transcript}</p> : null}</div>) : 
+      </div>) : 
       
       (<div>
         <div className="columnContainer">
           <div className="FormattingContainer"/>
             <Heading searchedTerm={searchedTerm} />
-          {isShowing ? <p className="Transcript">{transcript}</p> : null}
           <div className="rowContainer">
               <div className="boxbackwards" options={options}>
                 <button className="DateChangeButton" onClick={() => onChangeDate('back')}><img className="ButtonImage" src={prev} alt="previous button" height="100%" width="auto"></img></button>

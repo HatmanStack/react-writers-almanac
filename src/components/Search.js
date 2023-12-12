@@ -65,7 +65,6 @@ import list from '../assets/searchJson';
         <div className="Container">
           <Autocomplete
           id="clear-on-escape"
-          
           onInputChange={(e) => updateQuery(e.target.value)}
           onChange={(event, value) => updateQuery(value)}
           clearOnEscape
@@ -74,9 +73,9 @@ import list from '../assets/searchJson';
           getOptionLabel={(option) => option.label}
           renderInput={(params) => <TextField {...params}  label="Author / Poem"  onKeyDown={handleKeyDown}  />}
           />
-          <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
+          <button className="CalendarButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
           {isShowing ? (<LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateCalendar  onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
+            <DateCalendar onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
             </LocalizationProvider>): 
           (null)}
         </div>):(
@@ -85,7 +84,6 @@ import list from '../assets/searchJson';
             <div className="FormattingContainer"/>
               <Autocomplete
               id="clear-on-escape"
-              
               onInputChange={(e) => updateQuery(e.target.value)}
               onChange={(event, value) => updateQuery(value)}
               clearOnEscape
@@ -98,7 +96,7 @@ import list from '../assets/searchJson';
           </div>
           <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
           {isShowing ? (<LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DateCalendar  onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
+          <DateCalendar onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
           </LocalizationProvider>): (null)}
         </div>)}
       </div>

@@ -10,39 +10,45 @@
 .rowContainer{
   display:flex;
   justify-content:center;
+  z-index: 1;
 }
 
 .FormattingContainer{
   flex: 1 0 auto;
 }
 
-.TranscriptButton {
+.CalendarButton {
   background:transparent;
-  background-repeat: no-repeat;
   border: none;
   cursor: pointer;
   overflow: hidden;
   outline: none;
   font-weight: bold;
   font-size: .75em;
-  color: #FFFFF6;
-  margin-right: 2em;
+  color: #fffff6;
+  z-index: 1;
 }
 
+.MuiDateCalendar-root{
+  z-index: 1;
+  text-decoration-color: black;
+}
 
 .MuiAutocomplete-root{
   width: 15em;
 }
 
 .MuiAutocomplete-root .MuiFormControl-root .MuiFormLabel-root{
-  color:white;
+  color:fffff6;
   justify-content:center;
+  z-index: 1;
 }
 
 .MuiTextField-root input {
-  color:#FFFFF6;
+  color:#fffff6;
   font-family: Raleway, sans-serif;
   font-size: 1.5em;
+  z-index: 1;
 }
 
 .MuiAutocomplete-endAdornment{
@@ -56,5 +62,5 @@
 
 .MuiAutocomplete-option{
   margin:.1em;
-  color:#FFFFF6;
+  color:#8293a2;
 }

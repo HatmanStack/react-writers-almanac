@@ -1,9 +1,10 @@
-.rowContainer{
+.SearchedRowContainer{
   display:flex;
   justify-content:center;
+  
 }
 
-.AuthorButton{
+.SearchedAuthorButton{
   background:transparent;
   background-repeat: no-repeat;
   border: none;
@@ -15,14 +16,25 @@
   color: #FFFFF6;
   flex: 2 0 0;
   justify-content: center;
+  z-index: 1;
+  background-color: #8293a2;
+  border-radius: 3rem;
+  display:flex;
+  padding: 1rem;
 }
 
-.PoemDate{
+.SearchedPoemDate{
   margin:1em;
   justify-content: left;
   align-items: left;
+  z-index: 1;
+  background-color: #8293a2;
+  border-radius: 3rem;
+  display:flex;
+  padding: 1rem;
 }
 
 .FormattingContainer{
   flex: 1 0 auto;
+  
 }

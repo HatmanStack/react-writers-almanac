@@ -70,6 +70,7 @@ function App() {
   const [mp3, setMP3] = useState('');
   const { width } = useWindowSize();
   const [authorLabel, setAuthorLabel] = useState(true);
+  const [isShowing, setIsShowing] = useState(false);
   
   const authorPoemList = ({query}) => {
     if(query != null){  
@@ -84,6 +85,12 @@ function App() {
 
   const changeAuthor = (x) =>{ 
       setLinkDate(x);
+  }
+
+  const changeTranscript = (x) => {
+    console.log(x);
+    
+      setIsShowing(!isShowing);
   }
   
   const calendarDate = (x) => {
@@ -164,6 +171,8 @@ function App() {
       return (
         <div>
           {width > 1000 ? (
+            <div >
+            {isShowing ? ( <div className="Transcript">{transcript}</div>) : (null)}
             <div className="Container">
               <div className="PoemContainer">
                 <Poem poemTitle={poemTitle} poem={poem} changeAuthor={changeAuthor} author={author} />
@@ -171,7 +180,11 @@ function App() {
               <div className="NoteContainer">
                 <Note note={note} />
               </div>
+            </div>
+            
             </div>) : (
+              <div>
+              {isShowing ? ( <p className="Transcript">{transcript}</p>) : (null)}
           <div className="columnContainer">
             <div >
               <Poem poemTitle={poemTitle} poem={poem} changeAuthor={changeAuthor} author={author} />
@@ -179,6 +192,8 @@ function App() {
             <div >
               <Note note={note} />
             </div>
+          </div>
+          
           </div>)}
         </div>
       );
@@ -192,19 +207,23 @@ function App() {
   return (
     <div className="App">
       <ColorScroll
-        colors={['#8f9193', '#8a9aa8', '#8293a2', '#6c8193', '#0c4b6e']}
+        colors={['#ffffff', '#808080', '#8293a2']}
         className='my-color-scroll' >
+          <ParticlesComponent></ParticlesComponent>
           {width > 1000 ? (
           <div>
             <header className="App-header">
-              <ParticlesComponent></ParticlesComponent>
+              
               <img className="LogoImage" src={logo} alt="LOGO"></img>
               <div className="FormattingContainer" />
+              <div className="StyleContainer">
               <Search authorPoemList={authorPoemList} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
               <div className="DayContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
               <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
+              </div>
             </header>
-            <Audio searchedTerm={linkDate} transcript={transcript} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width} />
+            <Audio searchedTerm={linkDate} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width} changeTranscript={changeTranscript} />
+            
           </div>) :
           (<div>
             <div className="columnContainer">
@@ -216,9 +235,11 @@ function App() {
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
               </div>
             </div>
-            <Audio searchedTerm={linkDate} transcript={transcript} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width} />
+            <Audio searchedTerm={linkDate} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width} changeTranscript={changeTranscript}/>
           </div>)}
+          
         <Body/>
+        
       </ColorScroll> 
     </div>
   );
