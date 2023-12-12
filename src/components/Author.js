@@ -19,11 +19,11 @@ export default function Author({ authorData, formatAuthorDate, setLinkDate, widt
 
     return (
       <div className="SearchedRowContainer">
+        {width > 1000 ? null:(<div className="SearchedFormattingContainer"/>)}
           <button className="SearchedAuthorButton" onClick={() => handleClick(secondItem)}>
             {newFirstItem}
           </button>
           <div className="SearchedPoemDate">{secondItem}</div>
-          {width > 1000 ? (<div className="FormattingContainer"/>):null}
       </div>
     );
   });

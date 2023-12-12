@@ -94,7 +94,7 @@ import list from '../assets/searchJson';
               />
             <div className="FormattingContainer"/>
           </div>
-          <button className="TranscriptButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
+          <button className="CalendarButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
           {isShowing ? (<LocalizationProvider dateAdapter={AdapterDayjs}>
           <DateCalendar onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
           </LocalizationProvider>): (null)}

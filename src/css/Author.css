@@ -5,22 +5,18 @@
 }
 
 .SearchedAuthorButton{
-  background:transparent;
-  background-repeat: no-repeat;
   border: none;
-  cursor: pointer;
-  overflow: hidden;
-  outline: none;
   font-weight: bold;
   font-size: 1em; 
   color: #FFFFF6;
-  flex: 2 0 0;
+  cursor: pointer;
+  margin: 1rem;
   justify-content: center;
   z-index: 1;
   background-color: #8293a2;
   border-radius: 3rem;
   display:flex;
-  padding: 1rem;
+  align-items: center;
 }
 
 .SearchedPoemDate{

@@ -183,16 +183,18 @@ function App() {
             </div>
             
             </div>) : (
-              <div>
+              <div className="columnContainer">
+              
               {isShowing ? ( <p className="Transcript">{transcript}</p>) : (null)}
-          <div className="columnContainer">
-            <div >
+              
+            <div className="PoemContainer-column">
               <Poem poemTitle={poemTitle} poem={poem} changeAuthor={changeAuthor} author={author} />
             </div>
-            <div >
+            <div className="NoteContainer-column">
               <Note note={note} />
             </div>
-          </div>
+            
+          
           
           </div>)}
         </div>
@@ -226,13 +228,17 @@ function App() {
             
           </div>) :
           (<div>
-            <div className="columnContainer">
+            
+            <div className="App-header-column">
                 <img className="LogoImage" src={logo} alt="LOGO" style={{ width: '20em' }} ></img>
-                <div className="columnContainer"></div>
+                
+                <div className="StyleContainer-column">
                 <Search authorPoemList={authorPoemList} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
-              <div className="columnContainer">
+                
+              
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
+              
               </div>
             </div>
             <Audio searchedTerm={linkDate} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width} changeTranscript={changeTranscript}/>
