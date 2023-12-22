@@ -34,3 +34,29 @@ To use the app, simply visit http://localhost:3000 in your browser. The original
 ## License
 
 The code for this project is licensed under the MIT License.  Any and all content included is the property of Praire Home Productions and should not be used without their express written consent.
+
+## ToDo
+
+- [ ] Rework Data After Eliminating Default Padding/Margin 
+    - [ ] 1993 - 1997 
+    - [ ] 1998 - 2003 
+    - [X] 2004 - 2007 
+    - [ ] 2008 - 2011 
+    - [ ] 2012 - 2017 
+- [ ] Unicode issue when going to utf-8 from whatever was scraped 
+        for special characters é ñ ö
+- [ ] Audio for 1993 - 2008
+- [ ] Consider Adding more recent TWA entries 2018 - ~2022
+- [ ] X-vector Speech Embeddings for other voice options
+- [ ] Calendar should open to Current Day
+- [ ] Build Author Bios
+    - [ ] Begin Gathering Author Permissions for Poems
+        - [ ] Publisher Info
+        - [ ] Contact Info
+    - [ ] Poetry Foundation scrape
+    - [ ] Make Author Info Editable with shared Account Access s3
+- [ ] Replace broken links to booksite.com with Repaired links for Author/Book purchase
+- [ ] Phantom Container in App.js
+- [ ] Multiple Authors on Day - Rework Author Button to link to Correct Author not First
+
+
