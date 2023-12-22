@@ -62,7 +62,7 @@ import list from '../assets/searchJson';
      
     return(
       <div>{width > 1000 ? (
-        <div className="Container">
+        <div className="SearchContainer">
           <Autocomplete
           id="clear-on-escape"
           onInputChange={(e) => updateQuery(e.target.value)}
@@ -79,9 +79,7 @@ import list from '../assets/searchJson';
             </LocalizationProvider>): 
           (null)}
         </div>):(
-        <div className="columnContainer">
-          <div className="rowContainer">
-            <div className="FormattingContainer"/>
+        <div className="SearchColumnContainer">            
               <Autocomplete
               id="clear-on-escape"
               onInputChange={(e) => updateQuery(e.target.value)}
@@ -92,8 +90,6 @@ import list from '../assets/searchJson';
               getOptionLabel={(option) => option.label}
               renderInput={(params) => <TextField {...params}  label="Author / Poem"  onKeyDown={handleKeyDown}  />}
               />
-            <div className="FormattingContainer"/>
-          </div>
           <button className="CalendarButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
           {isShowing ? (<LocalizationProvider dateAdapter={AdapterDayjs}>
           <DateCalendar onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>

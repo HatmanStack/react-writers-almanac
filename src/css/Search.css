@@ -1,20 +1,10 @@
-.Container {
+.SearchContainer {
   display: flex;
 }
 
-.columnContainer{
+.SearchColumnContainer{
   flex-direction:column;
   padding: .75em;
-}
-
-.rowContainer{
-  display:flex;
-  justify-content:center;
-  z-index: 1;
-}
-
-.FormattingContainer{
-  flex: 1 0 auto;
 }
 
 .CalendarButton {

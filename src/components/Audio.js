@@ -2,18 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import '../css/Audio.css';
 import prev from '../assets/prev.png';
 import next from '../assets/next.png';
-import VanillaTilt from 'vanilla-tilt';
-
-function Tilt(props) {
-  const { options, ...rest } = props;
-  const tilt = useRef(null);
-
-  useEffect(() => {
-    VanillaTilt.init(tilt.current, options);
-  }, [options]);
-
-  return <div ref={tilt} {...rest} />;
-}
 
 export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, changeTranscript, isShowing }) {
   
@@ -30,7 +18,7 @@ export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, chan
       return (<div>{width > 1000 ? (
         <div className="AudioStack">
           <audio className="AudioPlayer" src={mp3Link} autoPlay={false} loop={false} controls />
-            <button className="TranscriptButton" onClick={() => changeTranscript()}>Transcript</button>
+          <button className="TranscriptButton" onClick={() => changeTranscript()}>Transcript</button>
         </div>):
         (<div className="AudioStack">
           <div className="rowContainer">
@@ -43,7 +31,7 @@ export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, chan
       );
     } else if(isAuthor) {
       return(
-        <div>
+        <div className="SearchedTerm">
           <h3>{searchedTerm}</h3>
         </div>
       );

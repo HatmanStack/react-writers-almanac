@@ -172,8 +172,9 @@ function App() {
         <div>
           {width > 1000 ? (
             <div >
-            {isShowing ? ( <div className="Transcript">{transcript}</div>) : (null)}
-            <div className="Container">
+            {isShowing ? ( <div className="TranscriptFlex"><div className="Transcript">{transcript}</div></div>) : (null)}
+            
+            <div className="PoemAndNoteContainer">
               <div className="PoemContainer">
                 <Poem poemTitle={poemTitle} poem={poem} changeAuthor={changeAuthor} author={author} />
               </div>
@@ -185,17 +186,14 @@ function App() {
             </div>) : (
               <div className="columnContainer">
               
-              {isShowing ? ( <p className="Transcript">{transcript}</p>) : (null)}
+              {isShowing ? ( <div className="TranscriptFlex"><p className="Transcript">{transcript}</p></div>) : (null)}
               
-            <div className="PoemContainer-column">
+            <div className="PoemContainerColumn">
               <Poem poemTitle={poemTitle} poem={poem} changeAuthor={changeAuthor} author={author} />
             </div>
-            <div className="NoteContainer-column">
+            <div className="NoteContainerColumn">
               <Note note={note} />
             </div>
-            
-          
-          
           </div>)}
         </div>
       );
@@ -204,18 +202,14 @@ function App() {
       <Author setLinkDate={setLinkDate} formatAuthorDate={formatAuthorDate} authorData={authorData} width={width}/>);
     }
   };
-  
-  
+  //rewrite particlesComponent to not rerender unless the options change 
   return (
     <div className="App">
-      <ColorScroll
-        colors={['#ffffff', '#808080', '#8293a2']}
-        className='my-color-scroll' >
-          <ParticlesComponent></ParticlesComponent>
           {width > 1000 ? (
           <div>
-            <header className="App-header">
-              
+            
+            <ParticlesComponent/>
+              <div className="AppHeader">
               <img className="LogoImage" src={logo} alt="LOGO"></img>
               <div className="FormattingContainer" />
               <div className="StyleContainer">
@@ -223,31 +217,25 @@ function App() {
               <div className="DayContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
               <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
               </div>
-            </header>
+              </div>
             <Audio searchedTerm={linkDate} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width} changeTranscript={changeTranscript} />
             
           </div>) :
           (<div>
             
-            <div className="App-header-column">
+            <div className="AppHeaderColumn">
                 <img className="LogoImage" src={logo} alt="LOGO" style={{ width: '20em' }} ></img>
-                
                 <div className="StyleContainer-column">
                 <Search authorPoemList={authorPoemList} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
-                
-              
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
               
               </div>
             </div>
             <Audio searchedTerm={linkDate} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width} changeTranscript={changeTranscript}/>
-          </div>)}
-          
-        <Body/>
-        
-      </ColorScroll> 
-    </div>
+          </div>)}      
+          <Body/>    
+    </div>   
   );
 }
 export default App;
