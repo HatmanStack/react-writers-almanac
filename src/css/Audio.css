@@ -52,7 +52,17 @@ audio::-webkit-media-controls-panel {
   background-color: #8293a2;
 }
 
+.SearchedTerm {
+  z-index: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: #8293a2;
+  border-radius: 3rem;
+  display:flex;
+  padding-right: .5rem;
+  padding-left: .5rem;
 
+}
 
 @property --angle {
   syntax: '<angle>';

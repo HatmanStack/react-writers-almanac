@@ -42,7 +42,7 @@ export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, chan
       );
     }
   };
-
+  console.log({searchedTerm});
   return (
     <div>
       {width > 1000 ? (

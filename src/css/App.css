@@ -67,6 +67,7 @@ body {
 .ColumnContainer{
   flex-direction:column;
   padding: .75em;
+  display:flex;
 }
 
 .AppHeader {

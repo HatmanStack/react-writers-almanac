@@ -184,7 +184,7 @@ function App() {
             </div>
             
             </div>) : (
-              <div className="columnContainer">
+              <div className="ColumnContainer">
               
               {isShowing ? ( <div className="TranscriptFlex"><p className="Transcript">{transcript}</p></div>) : (null)}
               
@@ -222,7 +222,7 @@ function App() {
             
           </div>) :
           (<div>
-            
+            <ParticlesComponent/>
             <div className="AppHeaderColumn">
                 <img className="LogoImage" src={logo} alt="LOGO" style={{ width: '20em' }} ></img>
                 <div className="StyleContainer-column">
