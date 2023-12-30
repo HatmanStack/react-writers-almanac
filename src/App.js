@@ -10,10 +10,9 @@ import sortedPoems from './assets/Poems_sorted.js';
 import React, { useState, useEffect} from 'react';
 import { useWindowSize } from 'react-use';
 import DOMPurify from 'dompurify';
-import ColorScroll from 'react-color-scroll';
+
 import axios from 'axios';
 import ParticlesComponent from './components/Particles.js';
-import Blob from 'blob';
 
 function formatDate(date, notToday = true, separator = '') {
   let day = date.getDate();
@@ -69,7 +68,6 @@ function App() {
   const [note, setNote] = useState(' ');
   const [mp3, setMP3] = useState('');
   const { width } = useWindowSize();
-  const [authorLabel, setAuthorLabel] = useState(true);
   const [isShowing, setIsShowing] = useState(false);
   
   const authorPoemList = ({query}) => {
@@ -130,18 +128,18 @@ function App() {
       if (sortedAuthors.includes(linkDate)) {
           link = `Authors/${linkDate}`;
       }
-      axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.txt')
+            
+      axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.json')
        .then(response => {   
-        const splitString = response.data.split('####');
+        const splitString = response.data;
           if (/\d/.test(linkDate)) {
-            const sanitizedSplitString = splitString.map((item) => DOMPurify.sanitize(item));
-            setDay(sanitizedSplitString[1].replaceAll(/[^\x20-\x7E]/g, ''));
-            setCurrentDate(sanitizedSplitString[2].replaceAll(/[^\x20-\x7E]/g, ''));
-            setTranscript(sanitizedSplitString[4].replaceAll(/[^\x20-\x7E]/g, ''));
-            setPoemTitle(sanitizedSplitString[5].replaceAll(/[^\x20-\x7E]/g, ''));
-            setAuthor(sanitizedSplitString[6].replaceAll(/[^\x20-\x7E]/g, ''));
-            setPoem(sanitizedSplitString[7].replaceAll('\\', '').replaceAll(/[^\x20-\x7E]/g, ''));
-            setNote(sanitizedSplitString[8].replaceAll(/[^\x20-\x7E]/g, ''));
+            setDay(DOMPurify.sanitize(data.day).replaceAll(/[^\x20-\x7E]/g, ''));
+            setCurrentDate(DOMPurify.sanitize(data.full_date).replaceAll(/[^\x20-\x7E]/g, ''));
+            setTranscript(DOMPurify.sanitize(data.transcript).replaceAll(/[^\x20-\x7E]/g, ''));
+            setPoemTitle(DOMPurify.sanitize(data.poem_title).replaceAll(/[^\x20-\x7E]/g, ''));
+            setAuthor(DOMPurify.sanitize(data.poet).replaceAll(/[^\x20-\x7E]/g, ''));
+            setPoem(DOMPurify.sanitize(data.poem_text).replaceAll('\\', '').replaceAll(/[^\x20-\x7E]/g, ''));
+            setNote(DOMPurify.sanitize(data.notes).replaceAll(/[^\x20-\x7E]/g, ''));
             if (/&amp;#233;/.test(sanitizedSplitString[7])){
               setPoem(sanitizedSplitString[7].replaceAll(/&amp;#233;/g, 'é')) // Hardcoded Look for something in DOMPurify to resolve
             }
