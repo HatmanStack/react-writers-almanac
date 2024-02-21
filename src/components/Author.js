@@ -1,5 +1,4 @@
 import React from 'react';
-
 import '../css/Author.css';
 
 export default function Author({ authorData, formatAuthorDate, setLinkDate, width }) {
@@ -8,25 +7,25 @@ export default function Author({ authorData, formatAuthorDate, setLinkDate, widt
     setLinkDate(formatAuthorDate(item));
   };
 
-  const authors = Array.isArray(authorData) ? authorData : [authorData];
+  console.log({authorData});
 
-  const authorPoems = authors.map((item, index) => {
-    const items = item.split('****');
-    const firstItem = items[0]; 
-    const newFirstItem = firstItem.replaceAll(/[^\x20-\x7E]/g, '');
-    const secondItem = items.length > 1 ? items[1] : firstItem;
-    
+  return (
+    <div>
+      {authorData.date((item, index) => {
+        const firstItem = authorData.poemTitle ? authorData.poemTitle[index] : item;
+        const newFirstItem = firstItem.replaceAll(/[^\x20-\x7E]/g, '');
+        const secondItem = item;
 
-    return (
-      <div className="SearchedRowContainer">
-        {width > 1000 ? null:(<div className="SearchedFormattingContainer"/>)}
-          <button className="SearchedAuthorButton" onClick={() => handleClick(secondItem)}>
-            {newFirstItem}
-          </button>
-          <div className="SearchedPoemDate">{secondItem}</div>
-      </div>
-    );
-  });
-
-  return <div>{authorPoems}</div>;
+        return (
+          <div className="SearchedRowContainer" key={index}>
+            {width > 1000 ? null:(<div className="SearchedFormattingContainer"/>)}
+              <button className="SearchedAuthorButton" onClick={() => handleClick(newFirstItem)}>
+                {secondItem}
+              </button>
+              <div className="SearchedPoemDate">{secondItem}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }

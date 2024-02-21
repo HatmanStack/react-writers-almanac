@@ -1,3 +1,4 @@
+
 import './css/App.css';
 import Audio from './components/Audio';
 import Note from './components/Note';
@@ -37,7 +38,7 @@ const presentDate = () => {
   if (year === '2023') {
     updatedYear = '2006';
   } else if (year === '2024') {
-    updatedYear = '1996';
+    updatedYear = '2007';
   } else {
     updatedYear = '2014';
   }
@@ -117,8 +118,10 @@ function App() {
   };
   
   useEffect(() => {
+    console.log(`link ${linkDate}}`)
     async function getData() {
-      let link = `Poems/${linkDate}`; 
+      let link = `poems/${linkDate}`; 
+      
       if (/\d/.test(linkDate)) {
         const dateString = linkDate.toString();
         const year = dateString.substring(0,4);
@@ -126,25 +129,27 @@ function App() {
         link = `${year}/${month}/` + linkDate.toString();
       } 
       if (sortedAuthors.includes(linkDate)) {
-          link = `Authors/${linkDate}`;
+          link = `authors/${linkDate}`;
       }
-            
-      axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.json')
+      
+      axios.get('/holder/' + link + '.json')
        .then(response => {   
-        const splitString = response.data;
+        const data = response.data;
+        console.log(data);
           if (/\d/.test(linkDate)) {
-            setDay(DOMPurify.sanitize(data.day).replaceAll(/[^\x20-\x7E]/g, ''));
-            setCurrentDate(DOMPurify.sanitize(data.full_date).replaceAll(/[^\x20-\x7E]/g, ''));
+            setDay(DOMPurify.sanitize(data.dayofweek).replaceAll(/[^\x20-\x7E]/g, ''));
+            setCurrentDate(DOMPurify.sanitize(data.date).replaceAll(/[^\x20-\x7E]/g, ''));
             setTranscript(DOMPurify.sanitize(data.transcript).replaceAll(/[^\x20-\x7E]/g, ''));
-            setPoemTitle(DOMPurify.sanitize(data.poem_title).replaceAll(/[^\x20-\x7E]/g, ''));
-            setAuthor(DOMPurify.sanitize(data.poet).replaceAll(/[^\x20-\x7E]/g, ''));
-            setPoem(DOMPurify.sanitize(data.poem_text).replaceAll('\\', '').replaceAll(/[^\x20-\x7E]/g, ''));
+            setPoemTitle(DOMPurify.sanitize(data.poemtitle).replaceAll(/[^\x20-\x7E]/g, ''));
+            setAuthor(DOMPurify.sanitize(data.author).replaceAll(/[^\x20-\x7E]/g, ''));
+            setPoem(DOMPurify.sanitize(data.poem).replaceAll('\\', '').replaceAll(/[^\x20-\x7E]/g, ''));
             setNote(DOMPurify.sanitize(data.notes).replaceAll(/[^\x20-\x7E]/g, ''));
-            if (/&amp;#233;/.test(sanitizedSplitString[7])){
-              setPoem(sanitizedSplitString[7].replaceAll(/&amp;#233;/g, 'é')) // Hardcoded Look for something in DOMPurify to resolve
+            if (/&amp;#233;/.test(data.poem)){
+              setPoem(data.poem.replaceAll(/&amp;#233;/g, 'é')) // Hardcoded Look for something in DOMPurify to resolve
             }
           } else {
-            setAuthorData(splitString);
+            console.log(data);
+            setAuthorData(data);
           }
         });
         if ( linkDate > 20090111){
@@ -168,6 +173,10 @@ function App() {
     if (/\d/.test(linkDate)) {
       return (
         <div>
+           {(() => {
+        console.log(`Poem ${linkDate}`);
+        return null;
+      })()}
           {width > 1000 ? (
             <div >
             {isShowing ? ( <div className="TranscriptFlex"><div className="Transcript">{transcript}</div></div>) : (null)}
@@ -196,8 +205,13 @@ function App() {
         </div>
       );
     } else {
-      return(
-      <Author setLinkDate={setLinkDate} formatAuthorDate={formatAuthorDate} authorData={authorData} width={width}/>);
+      return(<>
+        {(() => {
+          console.log(`Author ${linkDate}`);
+          return null;
+        })()}
+      <Author setLinkDate={setLinkDate} formatAuthorDate={formatAuthorDate} authorData={authorData} width={width}/>
+      </>);
     }
   };
   //rewrite particlesComponent to not rerender unless the options change 

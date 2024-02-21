@@ -1,5 +1,6 @@
+/* eslint-disable react/prop-types */
 
-import React, { useState, useEffect, useRef} from 'react';
+import React, { useState, } from 'react';
 import { Autocomplete } from "@material-ui/lab";
 import { TextField } from "@material-ui/core";
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -10,7 +11,7 @@ import '../css/Search.css';
 
 import list from '../assets/searchJson';
 
-  export default function Search({authorPoemList, calendarDate, linkDate, width}) {
+  export default function Search({authorPoemList, calendarDate, width}) {
     const [isShowing, setIsShowing] = useState(false);
     const [query, updateQuery] = useState('');
     const [year, setYear] = useState('');
@@ -97,4 +98,4 @@ import list from '../assets/searchJson';
         </div>)}
       </div>
       );
-  };
+  }

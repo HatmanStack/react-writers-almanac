@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+/* eslint-disable react/no-unknown-property */
+/* eslint-disable react/prop-types */
+import React from 'react';
 import '../css/Audio.css';
 import prev from '../assets/prev.png';
 import next from '../assets/next.png';
 
-export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, changeTranscript, isShowing }) {
+export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, changeTranscript }) {
   
   const options = {
     scale: 1.3,

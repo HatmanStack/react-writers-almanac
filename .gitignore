@@ -3,6 +3,7 @@ yarn.lock
 todolist
 # dependencies
 /node_modules
+/public/holder
 /amplify
 /.pnp
 .pnp.js
