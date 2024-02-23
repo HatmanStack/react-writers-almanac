@@ -5,7 +5,7 @@ import '../css/Audio.css';
 import prev from '../assets/prev.png';
 import next from '../assets/next.png';
 
-export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, changeTranscript }) {
+export default function Audio({isShowingContentbyDate, searchedTerm, mp3Link, shiftContentByAuthorOrDate, width, changeTranscript }) {
   
   const options = {
     scale: 1.3,
@@ -13,10 +13,8 @@ export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, chan
     max: 20
   };
   
-  const Heading = ({searchedTerm}) => {
-    const hasNumbers = term => /\d/.test(term);
-    const isAuthor = !hasNumbers(searchedTerm);
-    if (!isAuthor && mp3Link !== 'NotAvailable') {
+  const Heading = () => {
+    if (isShowingContentbyDate && mp3Link !== 'NotAvailable') {
       return (<div>{width > 1000 ? (
         <div className="AudioStack">
           <audio className="AudioPlayer" src={mp3Link} autoPlay={false} loop={false} controls />
@@ -31,7 +29,7 @@ export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, chan
         <button className="TranscriptButton" onClick={() => changeTranscript()}>Transcript</button>
         </div>)}</div>
       );
-    } else if(isAuthor) {
+    }else if(!isShowingContentbyDate) {
       return(
         <div className="SearchedTerm">
           <h3>{searchedTerm}</h3>
@@ -42,7 +40,7 @@ export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, chan
         <div>
         </div>
       );
-    }
+    }   
   };
   
   return (
@@ -53,13 +51,13 @@ export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, chan
         <div className="FormattingContainer"></div>
         <div className="wrapper">
           <div className="boxbackwards" options={options}>
-            <button className="DateChangeButton" onClick={() => onChangeDate('back')}><img className="ButtonImage" src={prev} alt="previous button" height="100%" width="auto"></img></button>
+            <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('back')}><img className="ButtonImage" src={prev} alt="previous button" height="100%" width="auto"></img></button>
           </div>
         </div>
-        <Heading searchedTerm={searchedTerm} />
+        <Heading  />
         <div className="wrapper">
           <div className="box" options={options}>
-            <button className="DateChangeButton" onClick={() => onChangeDate('forward')} height="100%" width="auto"><img className="ButtonImage" src={next} alt="next button"  ></img></button>
+            <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('forward')} height="100%" width="auto"><img className="ButtonImage" src={next} alt="next button"  ></img></button>
           </div>
         </div>
         <div className="FormattingContainer"></div>
@@ -69,13 +67,13 @@ export default function Audio({ searchedTerm, mp3Link, onChangeDate, width, chan
       (<div>
         <div className="columnContainer">
           <div className="FormattingContainer"/>
-            <Heading searchedTerm={searchedTerm} />
+            <Heading />
           <div className="rowContainer">
               <div className="boxbackwards" options={options}>
-                <button className="DateChangeButton" onClick={() => onChangeDate('back')}><img className="ButtonImage" src={prev} alt="previous button" height="100%" width="auto"></img></button>
+                <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('back')}><img className="ButtonImage" src={prev} alt="previous button" height="100%" width="auto"></img></button>
               </div>
               <div className="box" options={options}>
-                <button className="DateChangeButton" onClick={() => onChangeDate('forward')} height="100%" width="auto"><img className="ButtonImage" src={next} alt="next button"  ></img></button>
+                <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('forward')} height="100%" width="auto"><img className="ButtonImage" src={next} alt="next button"  ></img></button>
               </div>
           </div>
         <div className="FormattingContainer"></div>

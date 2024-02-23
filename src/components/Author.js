@@ -2,29 +2,29 @@
 import React from 'react';
 import '../css/Author.css';
 
-export default function Author({ authorData, formatAuthorDate, setLinkDate, width }) {
+export default function Author({ setIsShowingContentByDate, authorData, formatAuthorDate, setLinkDate, width }) {
 
   const handleClick = (item) => {
     setLinkDate(formatAuthorDate(item));
+    setIsShowingContentByDate(true);
   };
 
   return (
     <div>
-      {authorData.map((item, index) => {
-        const firstItem = item.poemTitle ? item.poemTitle : item.date;
-        const newFirstItem = firstItem.replaceAll(/[^\x20-\x7E]/g, '');
-        const secondItem = item.date;
-
+      {Array.isArray(authorData) ? authorData.map((item, index) => {
+        
         return (
           <div className="SearchedRowContainer" key={index}>
             {width > 1000 ? null:(<div className="SearchedFormattingContainer"/>)}
-              <button className="SearchedAuthorButton" onClick={() => handleClick(newFirstItem)}>
-                {secondItem}
+              <button className="SearchedAuthorButton" onClick={() => handleClick(item.date)}>
+                {item.date}
               </button>
-              <div className="SearchedPoemDate">{secondItem}</div>
+              {item.title && item.date ? (
+                <div className="SearchedPoemDate">{item.title.replaceAll(/[^\x20-\x7E]/g, '')}</div>
+              ) : null}
           </div>
         );
-      })}
+      }): null}
     </div>
   );
 }

@@ -4,20 +4,20 @@ import React from 'react';
 import '../css/Poem.css';
 import DOMPurify from 'dompurify';
 
-export default function Poem({ poemTitle, poem, changeAuthor, author }) {
-    
-  const authors = author.split('****');
-  const poemTitles = poemTitle.split('****');
-  const poems = poem.split('****');
+export default function Poem({ poemTitle, poem, setSearchedTerm, author }) {
 
+    console.log(poemTitle ? poemTitle.length : 0);
     return (
       <div>
-        {poemTitles.map((string, index) => (
+        {poemTitle && poemTitle.map((string, index) => (
           <div>
-            <h2><div className="PoemTitle" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poemTitles[index]) }} /></h2>
-            {poemTitles.length > 1 && authors.length == 1 && index != 0 ? null : (<button className="AuthorButton" onClick={() => changeAuthor(authors[index])}>
-            by <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(authors[index]) }}/></button>)}
-            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poems[index]) }} />
+            <h2><button className="PoemTitle AuthorButton" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poemTitle[index]).replaceAll(/[^\x20-\x7E]/g, '')
+           }} onClick={() => setSearchedTerm(poemTitle[index])} /></h2>
+            {poemTitle.length > 1 && author.length == 1 && index != 0 ? null : (<button className="AuthorButton" onClick={() => setSearchedTerm(author[index])}>
+            by <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(author[index]).replaceAll(/[^\x20-\x7E]/g, '')
+           }}/></button>)}
+            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poem[index]).replaceAll(/[^\x20-\x7E]/g, '')
+           }} />
           </div>
         ))}
       </div>

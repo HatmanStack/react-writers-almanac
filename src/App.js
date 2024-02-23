@@ -59,34 +59,29 @@ const formatAuthorDate = (dateString) => {
 
 function App() {
   const [linkDate, setLinkDate] = useState(presentDate);
-  const [day, setDay] = useState(' ');
-  const [date, setCurrentDate] = useState(' ');
-  const [transcript, setTranscript] = useState(' ');
-  const [poemTitle, setPoemTitle] = useState(' ');
-  const [poem, setPoem] = useState(' ');
-  const [author, setAuthor] = useState(' ');
-  const [authorData, setAuthorData] = useState('');
-  const [note, setNote] = useState(' ');
-  const [mp3, setMP3] = useState('');
+  const [day, setDay] = useState();
+  const [date, setCurrentDate] = useState();
+  const [transcript, setTranscript] = useState();
+  const [poemTitle, setPoemTitle] = useState();
+  const [poem, setPoem] = useState();
+  const [author, setAuthor] = useState();
+  const [authorData, setAuthorData] = useState();
+  const [note, setNote] = useState();
+  const [mp3, setMP3] = useState();
   const { width } = useWindowSize();
   const [isShowing, setIsShowing] = useState(false);
   const [searchedTerm, setSearchedTerm] = useState('');
-  const [writersAlamanac, setWritersAlamanac] = useState(true);
-  
+  const [isShowingContentByDate , setIsShowingContentByDate ] = useState(true);
+
   const searchedTermWrapper = (x) => {
     if(x != null){  
       const holder = Object.keys(x).map(function (key){
           return x[key];
         }).slice(0,1).toString();
-        console.log(`holder ${holder}`);
       if(sortedAuthors.includes(holder) || sortedPoems.includes(holder)){
         setSearchedTerm(holder);
       }
     }
-  }
-
-  const changeAuthor = (x) =>{ 
-      setLinkDate(x);
   }
 
   const changeTranscript = (x) => {
@@ -97,38 +92,40 @@ function App() {
       setLinkDate(formatDate(x.calendarChangedDate));
   }
   
-  const changeDate = async (x) => {
-    if (/\d/.test(linkDate)) {
+  const shiftContentByAuthorOrDate = async (x) => {
+    console.log(searchedTerm)
+    if (isShowingContentByDate ) {
       const holderDate = new Date(linkDate.substring(0, 4) + "-" + linkDate.substring(4, 6) + "-" + linkDate.substring(6));
       const forwardDateHolder = new Date(holderDate);
       forwardDateHolder.setDate(holderDate.getDate() + (x === 'back' ? 0 : 2));
       setLinkDate(formatDate(forwardDateHolder));
     }else {
       let sortedList = sortedPoems;
-      if (sortedAuthors.includes(linkDate)) {
+      if (sortedAuthors.includes(searchedTerm)) {
         sortedList = sortedAuthors;
       }
-      const index = sortedList.indexOf(linkDate);
+      const index = sortedList.indexOf(searchedTerm);
         if (index === -1) {
           return null; 
         }
       const before = index === 0 ? sortedList[sortedAuthors.length - 1] : sortedList[index - 1];
       const after = index === sortedList.length - 1 ? sortedList[0] : sortedList[index + 1];
-      setLinkDate( x === 'back' ? before : after);
+      setSearchedTerm( x === 'back' ? before : after);
+      
       }
   };
 
   useEffect(() => {  
-    setWritersAlamanac(false);
+    setIsShowingContentByDate (false);
     async function getData() {
-      let link = `poems/${searchedTerm}`; 
+      let link = `poem/${searchedTerm}`; 
       if (sortedAuthors.includes(searchedTerm)) {
-        link = `authors/${searchedTerm}`;
+        link = `author/${searchedTerm}`;
       }
       axios.get('/holder/' + link + '.json')
        .then(response => {   
         const data = response.data;
-        console.log(data);
+        console.log(data)
         setAuthorData(data);
       });
     }
@@ -136,7 +133,7 @@ function App() {
   }, [searchedTerm]);
   
   useEffect(() => {
-    setWritersAlamanac(true);
+    setIsShowingContentByDate (true);
     async function getData() {
       let link = linkDate;
       if (/\d/.test(linkDate)) {
@@ -148,18 +145,19 @@ function App() {
       axios.get('/holder/' + link + '.json')
        .then(response => {   
         const data = response.data;
-          if (/\d/.test(linkDate)) {
-            setDay(DOMPurify.sanitize(data.dayofweek).replaceAll(/[^\x20-\x7E]/g, ''));
-            setCurrentDate(DOMPurify.sanitize(data.date).replaceAll(/[^\x20-\x7E]/g, ''));
-            setTranscript(DOMPurify.sanitize(data.transcript).replaceAll(/[^\x20-\x7E]/g, ''));
-            setPoemTitle(DOMPurify.sanitize(data.poemtitle).replaceAll(/[^\x20-\x7E]/g, ''));
-            setAuthor(DOMPurify.sanitize(data.author).replaceAll(/[^\x20-\x7E]/g, ''));
-            setPoem(DOMPurify.sanitize(data.poem).replaceAll('\\', '').replaceAll(/[^\x20-\x7E]/g, ''));
-            setNote(DOMPurify.sanitize(data.notes).replaceAll(/[^\x20-\x7E]/g, ''));
-            if (/&amp;#233;/.test(data.poem)){
-              setPoem(data.poem.replaceAll(/&amp;#233;/g, 'é')) // Hardcoded Look for something in DOMPurify to resolve
-            }
-          } 
+        
+        console.log(data.poemTitle)  
+        setDay(data.dayofweek);
+        setCurrentDate(data.date);
+        setTranscript(data.transcript);
+        setPoemTitle(data.poemtitle);
+        setAuthor(data.author);
+        setPoem(data.poem);
+        setNote(data.notes);
+        if (/&amp;#233;/.test(data.poem)){
+          setPoem(data.poem.replaceAll(/&amp;#233;/g, 'é')) // Hardcoded Look for something in DOMPurify to resolve
+        }
+          
         });
         if ( linkDate > 20090111){
           axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.mp3', {
@@ -179,7 +177,7 @@ function App() {
 
 
   const Body = () => {
-    if (writersAlamanac) {
+    if (isShowingContentByDate ) {
       return (
         <div>
           {width > 1000 ? (
@@ -188,7 +186,7 @@ function App() {
             
             <div className="PoemAndNoteContainer">
               <div className="PoemContainer">
-                <Poem poemTitle={poemTitle} poem={poem} changeAuthor={changeAuthor} author={author} />
+                <Poem poemTitle={poemTitle} poem={poem} setSearchedTerm={setSearchedTerm} author={author} />
               </div>
               <div className="NoteContainer">
                 <Note note={note} />
@@ -201,7 +199,7 @@ function App() {
               {isShowing ? ( <div className="TranscriptFlex"><p className="Transcript">{transcript}</p></div>) : (null)}
               
             <div className="PoemContainerColumn">
-              <Poem poemTitle={poemTitle} poem={poem} changeAuthor={changeAuthor} author={author} />
+              <Poem poemTitle={poemTitle} poem={poem} setSearchedTerm={setSearchedTerm} author={author} />
             </div>
             <div className="NoteContainerColumn">
               <Note note={note} />
@@ -211,11 +209,8 @@ function App() {
       );
     } else {
       return(<>
-        {(() => {
-          console.log(`Author ${searchedTerm}`);
-          return null;
-        })()}
-      <Author setLinkDate={setLinkDate} formatAuthorDate={formatAuthorDate} authorData={authorData} width={width}/>
+      {authorData && 
+        <Author setIsShowingContentByDate={setIsShowingContentByDate} authorData={authorData} formatAuthorDate={formatAuthorDate} setLinkDate={setLinkDate} width={width}/>}
       </>);
     }
   };
@@ -234,7 +229,7 @@ function App() {
               <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
               </div>
               </div>
-            <Audio searchedTerm={linkDate} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width} changeTranscript={changeTranscript} />
+            <Audio isShowingContentbyDate={isShowingContentByDate} searchedTerm={searchedTerm} mp3Link={mp3} shiftContentByAuthorOrDate={shiftContentByAuthorOrDate} date={day} width={width} changeTranscript={changeTranscript} />
             
           </div>) :
           (<div>
@@ -242,13 +237,13 @@ function App() {
             <div className="AppHeaderColumn">
                 <img className="LogoImage" src={logo} alt="LOGO" style={{ width: '20em' }} ></img>
                 <div className="StyleContainer-column">
-                <Search authorPoemList={authorPoemList} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
+                <Search searchedTermWrapper={searchedTermWrapper} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
               
               </div>
             </div>
-            <Audio searchedTerm={linkDate} mp3Link={mp3} onChangeDate={changeDate} date={day} width={width} changeTranscript={changeTranscript}/>
+            <Audio isShowingContentbyDate={isShowingContentByDate} searchedTerm={searchedTerm} mp3Link={mp3} shiftContentByAuthorOrDate={shiftContentByAuthorOrDate} date={day} width={width} changeTranscript={changeTranscript}/>
           </div>)}      
           <Body/>    
     </div>   
