@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React from 'react';
 import '../css/Author.css';
 
@@ -7,14 +8,12 @@ export default function Author({ authorData, formatAuthorDate, setLinkDate, widt
     setLinkDate(formatAuthorDate(item));
   };
 
-  console.log({authorData});
-
   return (
     <div>
-      {authorData.date((item, index) => {
-        const firstItem = authorData.poemTitle ? authorData.poemTitle[index] : item;
+      {authorData.map((item, index) => {
+        const firstItem = item.poemTitle ? item.poemTitle : item.date;
         const newFirstItem = firstItem.replaceAll(/[^\x20-\x7E]/g, '');
-        const secondItem = item;
+        const secondItem = item.date;
 
         return (
           <div className="SearchedRowContainer" key={index}>

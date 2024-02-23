@@ -70,14 +70,17 @@ function App() {
   const [mp3, setMP3] = useState('');
   const { width } = useWindowSize();
   const [isShowing, setIsShowing] = useState(false);
+  const [searchedTerm, setSearchedTerm] = useState('');
+  const [writersAlamanac, setWritersAlamanac] = useState(true);
   
-  const authorPoemList = ({query}) => {
-    if(query != null){  
-      const holder = Object.keys(query).map(function (key){
-          return query[key];
+  const searchedTermWrapper = (x) => {
+    if(x != null){  
+      const holder = Object.keys(x).map(function (key){
+          return x[key];
         }).slice(0,1).toString();
+        console.log(`holder ${holder}`);
       if(sortedAuthors.includes(holder) || sortedPoems.includes(holder)){
-        setLinkDate(holder);
+        setSearchedTerm(holder);
       }
     }
   }
@@ -87,8 +90,6 @@ function App() {
   }
 
   const changeTranscript = (x) => {
-    console.log(x);
-    
       setIsShowing(!isShowing);
   }
   
@@ -116,26 +117,37 @@ function App() {
       setLinkDate( x === 'back' ? before : after);
       }
   };
+
+  useEffect(() => {  
+    setWritersAlamanac(false);
+    async function getData() {
+      let link = `poems/${searchedTerm}`; 
+      if (sortedAuthors.includes(searchedTerm)) {
+        link = `authors/${searchedTerm}`;
+      }
+      axios.get('/holder/' + link + '.json')
+       .then(response => {   
+        const data = response.data;
+        console.log(data);
+        setAuthorData(data);
+      });
+    }
+    getData();
+  }, [searchedTerm]);
   
   useEffect(() => {
-    console.log(`link ${linkDate}}`)
+    setWritersAlamanac(true);
     async function getData() {
-      let link = `poems/${linkDate}`; 
-      
+      let link = linkDate;
       if (/\d/.test(linkDate)) {
         const dateString = linkDate.toString();
         const year = dateString.substring(0,4);
         const month = dateString.substring(4,6);
         link = `${year}/${month}/` + linkDate.toString();
       } 
-      if (sortedAuthors.includes(linkDate)) {
-          link = `authors/${linkDate}`;
-      }
-      
       axios.get('/holder/' + link + '.json')
        .then(response => {   
         const data = response.data;
-        console.log(data);
           if (/\d/.test(linkDate)) {
             setDay(DOMPurify.sanitize(data.dayofweek).replaceAll(/[^\x20-\x7E]/g, ''));
             setCurrentDate(DOMPurify.sanitize(data.date).replaceAll(/[^\x20-\x7E]/g, ''));
@@ -147,10 +159,7 @@ function App() {
             if (/&amp;#233;/.test(data.poem)){
               setPoem(data.poem.replaceAll(/&amp;#233;/g, 'é')) // Hardcoded Look for something in DOMPurify to resolve
             }
-          } else {
-            console.log(data);
-            setAuthorData(data);
-          }
+          } 
         });
         if ( linkDate > 20090111){
           axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.mp3', {
@@ -170,13 +179,9 @@ function App() {
 
 
   const Body = () => {
-    if (/\d/.test(linkDate)) {
+    if (writersAlamanac) {
       return (
         <div>
-           {(() => {
-        console.log(`Poem ${linkDate}`);
-        return null;
-      })()}
           {width > 1000 ? (
             <div >
             {isShowing ? ( <div className="TranscriptFlex"><div className="Transcript">{transcript}</div></div>) : (null)}
@@ -207,7 +212,7 @@ function App() {
     } else {
       return(<>
         {(() => {
-          console.log(`Author ${linkDate}`);
+          console.log(`Author ${searchedTerm}`);
           return null;
         })()}
       <Author setLinkDate={setLinkDate} formatAuthorDate={formatAuthorDate} authorData={authorData} width={width}/>
@@ -219,13 +224,12 @@ function App() {
     <div className="App">
           {width > 1000 ? (
           <div>
-            
             <ParticlesComponent/>
               <div className="AppHeader">
               <img className="LogoImage" src={logo} alt="LOGO"></img>
               <div className="FormattingContainer" />
               <div className="StyleContainer">
-              <Search authorPoemList={authorPoemList} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
+              <Search searchedTermWrapper={searchedTermWrapper} calendarDate={calendarDate} linkDate={linkDate} width={width}/>
               <div className="DayContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day) } }/>
               <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
               </div>

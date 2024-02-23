@@ -11,7 +11,7 @@ import '../css/Search.css';
 
 import list from '../assets/searchJson';
 
-  export default function Search({authorPoemList, calendarDate, width}) {
+  export default function Search({searchedTermWrapper, calendarDate, width}) {
     const [isShowing, setIsShowing] = useState(false);
     const [query, updateQuery] = useState('');
     const [year, setYear] = useState('');
@@ -43,12 +43,12 @@ import list from '../assets/searchJson';
 
     const handleKeyDown = (event) => {
         if (event.key === 'Enter') {    
-          setIsShowing(false);     
-          authorPoemList({query});
+          setIsShowing(false); 
+          searchedTermWrapper(query);
         }
         if (event.key === 'Escape'){
           setIsShowing(false);     
-          authorPoemList({query});
+          searchedTermWrapper(query);
         }
       };
 
