@@ -65,6 +65,7 @@ function App() {
   const [poemTitle, setPoemTitle] = useState();
   const [poem, setPoem] = useState();
   const [author, setAuthor] = useState();
+  const [poemByline, setPoemByline] = useState(); 
   const [authorData, setAuthorData] = useState();
   const [note, setNote] = useState();
   const [mp3, setMP3] = useState();
@@ -84,10 +85,6 @@ function App() {
     }
   }
 
-  const changeTranscript = (x) => {
-      setIsShowing(!isShowing);
-  }
-  
   const calendarDate = (x) => {
       setLinkDate(formatDate(x.calendarChangedDate));
   }
@@ -151,6 +148,8 @@ function App() {
         setCurrentDate(data.date);
         setTranscript(data.transcript);
         setPoemTitle(data.poemtitle);
+        setPoemByline(data.poembyline);
+        console.log(data.poembyline)
         setAuthor(data.author);
         setPoem(data.poem);
         setNote(data.notes);
@@ -186,7 +185,7 @@ function App() {
             
             <div className="PoemAndNoteContainer">
               <div className="PoemContainer">
-                <Poem poemTitle={poemTitle} poem={poem} setSearchedTerm={setSearchedTerm} author={author} />
+                <Poem poemTitle={poemTitle} poem={poem} setSearchedTerm={setSearchedTerm} author={author} poemByline={poemByline}/>
               </div>
               <div className="NoteContainer">
                 <Note note={note} />
@@ -199,7 +198,7 @@ function App() {
               {isShowing ? ( <div className="TranscriptFlex"><p className="Transcript">{transcript}</p></div>) : (null)}
               
             <div className="PoemContainerColumn">
-              <Poem poemTitle={poemTitle} poem={poem} setSearchedTerm={setSearchedTerm} author={author} />
+              <Poem poemTitle={poemTitle} poem={poem} setSearchedTerm={setSearchedTerm} author={author} poemByline={poemByline}/>
             </div>
             <div className="NoteContainerColumn">
               <Note note={note} />
@@ -229,7 +228,8 @@ function App() {
               <div className="DateContainer" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date) } }/>
               </div>
               </div>
-            <Audio isShowingContentbyDate={isShowingContentByDate} searchedTerm={searchedTerm} mp3Link={mp3} shiftContentByAuthorOrDate={shiftContentByAuthorOrDate} date={day} width={width} changeTranscript={changeTranscript} />
+            <Audio isShowingContentbyDate={isShowingContentByDate} searchedTerm={searchedTerm} mp3Link={mp3} 
+              shiftContentByAuthorOrDate={shiftContentByAuthorOrDate} date={day} width={width} setIsShowing={setIsShowing} isShowing={isShowing} />
             
           </div>) :
           (<div>
@@ -243,7 +243,8 @@ function App() {
               
               </div>
             </div>
-            <Audio isShowingContentbyDate={isShowingContentByDate} searchedTerm={searchedTerm} mp3Link={mp3} shiftContentByAuthorOrDate={shiftContentByAuthorOrDate} date={day} width={width} changeTranscript={changeTranscript}/>
+            <Audio isShowingContentbyDate={isShowingContentByDate} searchedTerm={searchedTerm} mp3Link={mp3} 
+              shiftContentByAuthorOrDate={shiftContentByAuthorOrDate} date={day} width={width} setIsShowing={setIsShowing} isShowing={isShowing}/>
           </div>)}      
           <Body/>    
     </div>   

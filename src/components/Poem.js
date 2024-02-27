@@ -4,9 +4,9 @@ import React from 'react';
 import '../css/Poem.css';
 import DOMPurify from 'dompurify';
 
-export default function Poem({ poemTitle, poem, setSearchedTerm, author }) {
+export default function Poem({ poemTitle, poem, setSearchedTerm, author, poemByline }) {
 
-    console.log(poemTitle ? poemTitle.length : 0);
+    console.log(poemByline);
     return (
       <div>
         {poemTitle && poemTitle.map((string, index) => (
@@ -18,9 +18,10 @@ export default function Poem({ poemTitle, poem, setSearchedTerm, author }) {
            }}/></button>)}
             <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poem[index]).replaceAll(/[^\x20-\x7E]/g, '')
            }} />
+          {index === poemTitle.length - 1 && <div className="PoemByline" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poemByline).replaceAll(/[^\x20-\x7E]/g, '')}}/>}
           </div>
         ))}
-      </div>
+       </div>
     );
   }
   
