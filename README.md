@@ -39,10 +39,10 @@ The code for this project is licensed under the MIT License.  Any and all conten
 
 - [ ] Rework Data After Eliminating Default Padding/Margin 
     - [ ] 1993 - 1997 
-    - [ ] 1998 - 2003 
-    - [X] 2004 - 2007 
-    - [ ] 2008 - 2011 
-    - [ ] 2012 - 2017 
+    - [ ] 1998 - 2002 
+    - [X] 2003 - 2007 
+    - [X] 2008 - 2011 
+    - [X] 2012 - 2017 
 - [ ] Unicode issue when going to utf-8 from whatever was scraped 
         for special characters é ñ ö
 - [ ] Audio for 1993 - 2008

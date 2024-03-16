@@ -6,7 +6,7 @@ import DOMPurify from 'dompurify';
 
 export default function Poem({ poemTitle, poem, setSearchedTerm, author, poemByline }) {
 
-    console.log(poemByline);
+   
     return (
       <div>
         {poemTitle && poemTitle.map((string, index) => (
@@ -15,9 +15,9 @@ export default function Poem({ poemTitle, poem, setSearchedTerm, author, poemByl
            }} onClick={() => setSearchedTerm(poemTitle[index])} /></h2>
             {poemTitle.length > 1 && author.length == 1 && index != 0 ? null : (<button className="AuthorButton" onClick={() => setSearchedTerm(author[index])}>
             by <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(author[index]).replaceAll(/[^\x20-\x7E]/g, '')
-           }}/></button>)}
+           }}/></button>)}<br/><br/>
             <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poem[index]).replaceAll(/[^\x20-\x7E]/g, '')
-           }} />
+           }} /><br/><br/>
           {index === poemTitle.length - 1 && <div className="PoemByline" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(poemByline).replaceAll(/[^\x20-\x7E]/g, '')}}/>}
           </div>
         ))}

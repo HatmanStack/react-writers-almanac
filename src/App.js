@@ -38,7 +38,7 @@ const presentDate = () => {
   if (year === '2023') {
     updatedYear = '2006';
   } else if (year === '2024') {
-    updatedYear = '2007';
+    updatedYear = '2013';
   } else {
     updatedYear = '2014';
   }
@@ -90,7 +90,7 @@ function App() {
   }
   
   const shiftContentByAuthorOrDate = async (x) => {
-    console.log(searchedTerm)
+    
     if (isShowingContentByDate ) {
       const holderDate = new Date(linkDate.substring(0, 4) + "-" + linkDate.substring(4, 6) + "-" + linkDate.substring(6));
       const forwardDateHolder = new Date(holderDate);
@@ -119,10 +119,10 @@ function App() {
       if (sortedAuthors.includes(searchedTerm)) {
         link = `author/${searchedTerm}`;
       }
-      axios.get('/holder/' + link + '.json')
+      axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.json')
        .then(response => {   
         const data = response.data;
-        console.log(data)
+        
         setAuthorData(data);
       });
     }
@@ -139,17 +139,17 @@ function App() {
         const month = dateString.substring(4,6);
         link = `${year}/${month}/` + linkDate.toString();
       } 
-      axios.get('/holder/' + link + '.json')
+      axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.json')
        .then(response => {   
         const data = response.data;
         
-        console.log(data.poemTitle)  
+        
         setDay(data.dayofweek);
         setCurrentDate(data.date);
         setTranscript(data.transcript);
         setPoemTitle(data.poemtitle);
         setPoemByline(data.poembyline);
-        console.log(data.poembyline)
+        
         setAuthor(data.author);
         setPoem(data.poem);
         setNote(data.notes);

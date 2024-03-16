@@ -9,8 +9,9 @@ function ParticlesComponent() {
         await loadSlim(engine);
     }, []);
 
+    // eslint-disable-next-line no-unused-vars
     const particlesLoaded = useCallback(async container => {
-        await console.log(container);
+        console.log('particlesLoaded');
     }, []);
 
   return (
