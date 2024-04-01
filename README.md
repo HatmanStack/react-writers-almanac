@@ -37,25 +37,27 @@ The code for this project is licensed under the MIT License.  Any and all conten
 
 ## ToDo
 
-- [ ] Rework Data After Eliminating Default Padding/Margin 
-    - [ ] 1993 - 1997 
-    - [ ] 1998 - 2002 
+- [X] Rework Data After Eliminating Default Padding/Margin 
+    - [X] 1993 - 1997 
+    - [X] 1998 - 2002 
     - [X] 2003 - 2007 
     - [X] 2008 - 2011 
     - [X] 2012 - 2017 
-- [ ] Unicode issue when going to utf-8 from whatever was scraped 
+- [X] Unicode issue when going to utf-8 from whatever was scraped 
         for special characters é ñ ö
 - [ ] Audio for 1993 - 2008
 - [ ] Consider Adding more recent TWA entries 2018 - ~2022
 - [ ] X-vector Speech Embeddings for other voice options
 - [ ] Calendar should open to Current Day
-- [ ] Build Author Bios
+- Build Author Bios
+    - [ ] Build Author Bios
     - [ ] Begin Gathering Author Permissions for Poems
         - [ ] Publisher Info
         - [ ] Contact Info
-    - [ ] Poetry Foundation scrape
+    - [X] Poetry Foundation scrape
     - [ ] Make Author Info Editable with shared Account Access s3
 - [ ] Replace broken links to booksite.com with Repaired links for Author/Book purchase
+- [ ] Check all links for broken or redirects
 - [ ] Phantom Container in App.js
 - [ ] Multiple Authors on Day - Rework Author Button to link to Correct Author not First
 

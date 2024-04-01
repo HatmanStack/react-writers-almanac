@@ -1,6 +1,7 @@
 .NoteText {
   font-size: .75em;
   margin: 2em;
+  text-wrap: pretty;
 }
 
 a {
