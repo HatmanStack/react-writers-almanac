@@ -88,7 +88,7 @@ const Audio = memo(function Audio({
                 controls
               />
               <button
-                className="bg-transparent border-none cursor-pointer overflow-hidden outline-none font-bold text-xs text-app-container z-10"
+                className="bg-transparent border-none cursor-pointer overflow-hidden font-bold text-xs text-app-container z-10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                 onClick={() => setIsShowing(!isShowing)}
                 aria-label={`${isShowing ? 'Hide' : 'Show'} transcript`}
                 aria-expanded={isShowing}
@@ -110,7 +110,7 @@ const Audio = memo(function Audio({
                 <div className="flex-[1_0_auto]" />
               </div>
               <button
-                className="bg-transparent border-none cursor-pointer overflow-hidden outline-none font-bold text-xs text-app-container z-10"
+                className="bg-transparent border-none cursor-pointer overflow-hidden font-bold text-xs text-app-container z-10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                 onClick={() => setIsShowing(!isShowing)}
                 aria-label={`${isShowing ? 'Hide' : 'Show'} transcript`}
                 aria-expanded={isShowing}
