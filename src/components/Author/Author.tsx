@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import type { AuthorProps } from './types';
 import { useAuthorQuery } from '../../hooks/queries/useAuthorQuery';
 import type { AuthorSource, PoemItem } from '../../types/author';
@@ -25,6 +25,35 @@ function Author({
 }: AuthorProps) {
   // Fetch author data using TanStack Query
   const { data: authorData, isLoading, error, refetch } = useAuthorQuery(authorName);
+
+  // Extract biography from available sources (prefer Poetry Foundation) - memoized
+  // Must be called before early returns to follow Rules of Hooks
+  const biography = useMemo(() => {
+    if (!authorData) return undefined;
+    const poetryFoundation = authorData['poetry foundation'] as AuthorSource | undefined;
+    const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
+    return poetryFoundation?.biography || wikipedia?.biography;
+  }, [authorData]);
+
+  // Extract poems list - memoized array transformation
+  // Must be called before early returns to follow Rules of Hooks
+  const poems = useMemo(() => {
+    if (!authorData) return [];
+    const poetryFoundation = authorData['poetry foundation'] as AuthorSource | undefined;
+    const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
+    const poemsData = poetryFoundation?.poems || wikipedia?.poems;
+
+    if (!Array.isArray(poemsData)) {
+      return [];
+    }
+
+    return poemsData.map(item => {
+      if (typeof item === 'string') {
+        return { date: item, title: undefined };
+      }
+      return item as PoemItem;
+    });
+  }, [authorData]);
 
   /**
    * Handle click on a poem date - switches to date view and loads that poem
@@ -72,23 +101,6 @@ function Author({
         </div>
       </div>
     );
-  }
-
-  // Extract biography from available sources (prefer Poetry Foundation)
-  const poetryFoundation = authorData['poetry foundation'] as AuthorSource | undefined;
-  const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
-  const biography = poetryFoundation?.biography || wikipedia?.biography;
-
-  // Extract poems list - check if it's an array
-  let poems: PoemItem[] = [];
-  const poemsData = poetryFoundation?.poems || wikipedia?.poems;
-  if (Array.isArray(poemsData)) {
-    poems = poemsData.map(item => {
-      if (typeof item === 'string') {
-        return { date: item, title: undefined };
-      }
-      return item as PoemItem;
-    });
   }
 
   return (

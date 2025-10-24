@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import divider from '../../assets/divider.png';
 import { useAppStore } from '../../store/useAppStore';
 import { sanitizeHtml } from '../../utils';
@@ -20,8 +20,10 @@ const Note = memo(function Note() {
   // Get note from Zustand store
   const note = useAppStore(state => state.note);
 
-  // Normalize note to array (handle both string and string[])
-  const noteArray = Array.isArray(note) ? note : note ? [note] : [];
+  // Normalize note to array (handle both string and string[]) - memoized
+  const noteArray = useMemo(() => {
+    return Array.isArray(note) ? note : note ? [note] : [];
+  }, [note]);
 
   if (noteArray.length === 0) {
     return null;
