@@ -31,7 +31,7 @@ function NavButton({ direction, imageSrc, altText, reverse = false, onClick }: N
         onClick={() => onClick(direction)}
         aria-label={`Navigate to ${direction === 'back' ? 'previous' : 'next'} content`}
       >
-        <img className="ButtonImage" src={imageSrc} alt={altText} />
+        <img className="ButtonImage" src={imageSrc} alt={altText} loading="lazy" />
       </button>
     </div>
   );

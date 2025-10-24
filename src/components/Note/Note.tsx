@@ -41,7 +41,7 @@ const Note = memo(function Note() {
           {index < noteArray.length - 1 && (
             <div>
               <br />
-              <img src={divider} alt="divider" className="w-[10%] h-auto" />
+              <img src={divider} alt="divider" className="w-[10%] h-auto" loading="lazy" />
             </div>
           )}
         </div>
