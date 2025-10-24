@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useCallback } from 'react';
 import type { AuthorProps } from './types';
 import { useAuthorQuery } from '../../hooks/queries/useAuthorQuery';
 import type { AuthorSource, PoemItem } from '../../types/author';
@@ -57,11 +57,15 @@ function Author({
 
   /**
    * Handle click on a poem date - switches to date view and loads that poem
+   * Memoized to prevent unnecessary re-renders of child buttons
    */
-  const handleClick = (date: string): void => {
-    setLinkDate(formatAuthorDate(date));
-    setIsShowingContentByDate(true);
-  };
+  const handleClick = useCallback(
+    (date: string): void => {
+      setLinkDate(formatAuthorDate(date));
+      setIsShowingContentByDate(true);
+    },
+    [setLinkDate, formatAuthorDate, setIsShowingContentByDate]
+  );
 
   // Loading state
   if (isLoading) {

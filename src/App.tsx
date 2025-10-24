@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useEffect, useMemo } from 'react';
+import { lazy, Suspense, useState, useEffect, useMemo, useCallback } from 'react';
 import Note from './components/Note/Note';
 import Poem from './components/Poem';
 import Search from './components/Search';
@@ -143,38 +143,47 @@ function App() {
     };
   }, []);
 
-  const searchedTermWrapper = (query: string): void => {
-    if (query && (sortedAuthors.includes(query) || sortedPoems.includes(query))) {
-      setSearchTerm(query);
-    }
-  };
-
-  const calendarDate = (x: CalendarDateChange): void => {
-    setLinkDate(formatDate(x.calendarChangedDate));
-  };
-
-  const shiftContentByAuthorOrDate = async (x: string): Promise<void> => {
-    if (isShowingContentByDate) {
-      const holderDate = new Date(
-        linkDate.substring(0, 4) + '-' + linkDate.substring(4, 6) + '-' + linkDate.substring(6)
-      );
-      const forwardDateHolder = new Date(holderDate);
-      forwardDateHolder.setDate(holderDate.getDate() + (x === 'back' ? 0 : 2));
-      setLinkDate(formatDate(forwardDateHolder));
-    } else {
-      let sortedList = sortedPoems;
-      if (sortedAuthors.includes(searchTerm)) {
-        sortedList = sortedAuthors;
+  const searchedTermWrapper = useCallback(
+    (query: string): void => {
+      if (query && (sortedAuthors.includes(query) || sortedPoems.includes(query))) {
+        setSearchTerm(query);
       }
-      const index = sortedList.indexOf(searchTerm);
-      if (index === -1) {
-        return;
+    },
+    [setSearchTerm]
+  );
+
+  const calendarDate = useCallback(
+    (x: CalendarDateChange): void => {
+      setLinkDate(formatDate(x.calendarChangedDate));
+    },
+    [setLinkDate]
+  );
+
+  const shiftContentByAuthorOrDate = useCallback(
+    async (x: string): Promise<void> => {
+      if (isShowingContentByDate) {
+        const holderDate = new Date(
+          linkDate.substring(0, 4) + '-' + linkDate.substring(4, 6) + '-' + linkDate.substring(6)
+        );
+        const forwardDateHolder = new Date(holderDate);
+        forwardDateHolder.setDate(holderDate.getDate() + (x === 'back' ? 0 : 2));
+        setLinkDate(formatDate(forwardDateHolder));
+      } else {
+        let sortedList = sortedPoems;
+        if (sortedAuthors.includes(searchTerm)) {
+          sortedList = sortedAuthors;
+        }
+        const index = sortedList.indexOf(searchTerm);
+        if (index === -1) {
+          return;
+        }
+        const before = index === 0 ? sortedList[sortedList.length - 1] : sortedList[index - 1];
+        const after = index === sortedList.length - 1 ? sortedList[0] : sortedList[index + 1];
+        setSearchTerm(x === 'back' ? before : after);
       }
-      const before = index === 0 ? sortedList[sortedList.length - 1] : sortedList[index - 1];
-      const after = index === sortedList.length - 1 ? sortedList[0] : sortedList[index + 1];
-      setSearchTerm(x === 'back' ? before : after);
-    }
-  };
+    },
+    [isShowingContentByDate, linkDate, searchTerm, setLinkDate, setSearchTerm]
+  );
 
   // Author data is now fetched by the Author component using TanStack Query
   // No need for local author data fetching here
