@@ -1863,10 +1863,22 @@ npm uninstall @material-ui/core @material-ui/lab
 npm install @mui/material@latest @mui/icons-material@latest
 ```
 
-**Testing**: MUI v5 components import correctly.
+**Common Breaking Changes to Watch For**:
+1. **Import paths**: `@material-ui/core` → `@mui/material`
+2. **Button props**: Some size/variant values changed
+3. **Theme structure**: `theme.palette.type` → `theme.palette.mode`
+4. **Icon imports**: `@material-ui/icons` → `@mui/icons-material`
+5. **Styled components**: Use `@emotion/styled` (already installed)
+6. **AutoComplete**: Props and behavior changes in DatePicker/AutoComplete
+
+**Testing**:
+- MUI v5 components import correctly
+- DatePicker and AutoComplete components render
+- No console warnings about deprecated props
 
 **Documentation to Reference**:
 - MUI Migration: https://mui.com/material-ui/migration/migration-v4/
+- MUI v5 Breaking Changes: https://mui.com/material-ui/migration/migration-v4/#main-content
 
 **Commit Message**: `deps: upgrade to Material-UI v5, remove v4`
 
@@ -1891,13 +1903,42 @@ npm install @mui/material@latest @mui/icons-material@latest
 2. Extend theme with custom colors
 3. Add font families
 4. Configure responsive breakpoints
+5. **IMPORTANT**: Configure CSS layer ordering for Tailwind + MUI compatibility
 
-**Testing**: Custom colors and fonts available as Tailwind classes.
+**Tailwind + MUI Integration**:
+Add to `src/index.css` to prevent CSS conflicts:
+```css
+@layer tailwind-base, mui, tailwind-components, tailwind-utilities;
+
+@layer tailwind-base {
+  @tailwind base;
+}
+
+@layer tailwind-components {
+  @tailwind components;
+}
+
+@layer tailwind-utilities {
+  @tailwind utilities;
+}
+```
+
+This ensures:
+- MUI styles have correct specificity
+- Tailwind utilities can override MUI when needed
+- No unexpected style conflicts between frameworks
+
+**Testing**:
+- Custom colors and fonts available as Tailwind classes
+- MUI components (DatePicker, AutoComplete) render correctly
+- No CSS specificity conflicts
 
 **Documentation to Reference**:
 - Tailwind Theme: https://tailwindcss.com/docs/theme
+- Tailwind with CSS Frameworks: https://tailwindcss.com/docs/using-with-preprocessors#using-post-css-as-your-preprocessor
+- MUI + Tailwind: https://mui.com/material-ui/integrations/interoperability/#tailwind-css
 
-**Commit Message**: `config: add Tailwind theme with app colors and fonts`
+**Commit Message**: `config: add Tailwind theme with MUI compatibility`
 
 ---
 
@@ -3593,7 +3634,15 @@ EOF
 
 **Buffer**: Each estimate includes 20% buffer for unexpected issues.
 
-**Total**: ~1,050,000 tokens across 87 tasks in 9 phases.
+**Realistic Overhead**: Additional 50-100% added for:
+- Debugging and troubleshooting
+- AWS configuration issues
+- Dependency conflicts
+- Performance optimization iterations
+- Multiple test/fix cycles
+- Documentation reading
+
+**Total**: ~1,500,000-2,000,000 tokens across 93+ tasks in 10 phases (0-9).
 
 ---
 
