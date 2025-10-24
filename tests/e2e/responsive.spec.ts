@@ -95,9 +95,6 @@ test.describe('Responsive Design', () => {
     // Test clicking next button
     await nav.goToNextDay();
 
-    // Wait for navigation
-    await page.waitForTimeout(1000);
-
     // Verify poem still visible after navigation
     const poem = page.locator('h1, h2').first();
     await expect(poem).toBeVisible();
@@ -115,9 +112,7 @@ test.describe('Responsive Design', () => {
     // Test tap on next button
     const nextButton = page.getByRole('button', { name: /next/i });
     await nextButton.tap();
-
-    // Wait for navigation
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
 
     // Verify navigation worked
     const poem = page.locator('h1, h2').first();
@@ -140,9 +135,6 @@ test.describe('Responsive Design', () => {
     if (hasHamburger) {
       // Click hamburger to open menu
       await hamburger.click();
-
-      // Wait for menu to open
-      await page.waitForTimeout(500);
 
       // Verify menu is visible
       const menu = page.locator('[role="menu"], nav');
@@ -237,7 +229,7 @@ test.describe('Responsive Design', () => {
 
       // Test navigation
       await nextButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('networkidle');
 
       // Verify still functional after navigation
       const poemAfter = page.locator('h1, h2').first();
