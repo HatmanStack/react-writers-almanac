@@ -160,4 +160,39 @@ describe('Audio Component', () => {
       expect(audioElement).toHaveAttribute('src', mockMp3Url);
     });
   });
+
+  describe('Memory Leak Prevention', () => {
+    it('should cleanup blob URL when component unmounts', () => {
+      const mockBlobUrl = 'blob:http://localhost:3000/test-blob';
+      (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockBlobUrl);
+
+      // Spy on URL.revokeObjectURL
+      const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL');
+
+      const { unmount } = render(<Audio {...defaultProps} />);
+
+      // Unmount component to trigger cleanup
+      unmount();
+
+      // Verify revokeObjectURL was called with the blob URL
+      expect(revokeObjectURLSpy).toHaveBeenCalledWith(mockBlobUrl);
+
+      revokeObjectURLSpy.mockRestore();
+    });
+
+    it('should not call revokeObjectURL for non-blob URLs', () => {
+      const mockHttpUrl = 'https://example.com/audio.mp3';
+      (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockHttpUrl);
+
+      const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL');
+
+      const { unmount } = render(<Audio {...defaultProps} />);
+      unmount();
+
+      // Should NOT revoke HTTP URLs
+      expect(revokeObjectURLSpy).not.toHaveBeenCalled();
+
+      revokeObjectURLSpy.mockRestore();
+    });
+  });
 });

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, memo } from 'react';
 import type { AudioProps, NavigationDirection } from './types';
 import { useAppStore } from '../../store/useAppStore';
 import prev from '../../assets/prev.png';
@@ -45,8 +45,12 @@ function NavButton({ direction, imageSrc, altText, reverse = false, onClick }: N
  * - Provides prev/next navigation with animated buttons
  * - Toggle transcript visibility
  * - Responsive design for desktop and mobile
+ *
+ * Performance:
+ * - Wrapped in React.memo to prevent unnecessary re-renders
+ * - Only re-renders when props change
  */
-export default function Audio({
+const Audio = memo(function Audio({
   isShowingContentbyDate,
   searchedTerm,
   shiftContentByAuthorOrDate,
@@ -56,6 +60,15 @@ export default function Audio({
 }: AudioProps) {
   // Get MP3 URL from store
   const mp3Url = useAppStore(state => state.mp3Url);
+
+  // Cleanup blob URLs when component unmounts or mp3Url changes to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (mp3Url && mp3Url.startsWith('blob:')) {
+        URL.revokeObjectURL(mp3Url);
+      }
+    };
+  }, [mp3Url]);
 
   // Memoize the heading content to prevent unnecessary re-renders
   const heading = useMemo(() => {
@@ -169,4 +182,6 @@ export default function Audio({
       )}
     </div>
   );
-}
+});
+
+export default Audio;
