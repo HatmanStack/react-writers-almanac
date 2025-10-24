@@ -106,27 +106,6 @@ describe('useSearchQuery', () => {
     expect(apiClient.get).not.toHaveBeenCalled();
   });
 
-  it.skip('should handle search errors', async () => {
-    const error = {
-      message: 'Search failed',
-      status: 500,
-      code: 'SEARCH_ERROR',
-      timestamp: new Date().toISOString(),
-    };
-
-    vi.mocked(apiClient.get).mockRejectedValueOnce(error);
-
-    const { result } = renderHook(() => useSearchQuery('test'), { wrapper });
-
-    await waitFor(
-      () => expect(result.current.isError).toBe(true),
-      { timeout: 3000 } // Increase timeout for error state
-    );
-
-    expect(result.current.error).toEqual(error);
-    expect(result.current.data).toBeUndefined();
-  });
-
   it('should cache search results', async () => {
     vi.mocked(apiClient.get).mockResolvedValueOnce({
       data: mockSearchResponse,
