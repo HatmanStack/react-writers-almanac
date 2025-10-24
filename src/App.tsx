@@ -89,8 +89,6 @@ function App() {
     poemTitle,
     poem,
     author,
-    note,
-    mp3Url,
     searchTerm,
     isShowingContentByDate,
     setCurrentDate: storeSetCurrentDate,
@@ -107,8 +105,6 @@ function App() {
       poemTitle: state.poemTitle,
       poem: state.poem,
       author: state.author,
-      note: state.note,
-      mp3Url: state.mp3Url,
       searchTerm: state.searchTerm,
       isShowingContentByDate: state.isShowingContentByDate,
       setCurrentDate: state.setCurrentDate,
@@ -217,7 +213,8 @@ function App() {
           })
           .then(response => {
             // Cleanup old blob URL before creating new one
-            if (mp3Url && mp3Url.startsWith('blob:')) {
+            const currentMp3Url = useAppStore.getState().mp3Url;
+            if (currentMp3Url && currentMp3Url.startsWith('blob:')) {
               cleanup();
             }
             const blob = new window.Blob([response.data]);
@@ -255,11 +252,6 @@ function App() {
     if (author === undefined) return undefined;
     return Array.isArray(author) ? author : [author];
   }, [author]);
-
-  const normalizedNote = useMemo(() => {
-    if (note === undefined) return undefined;
-    return Array.isArray(note) ? note : [note];
-  }, [note]);
 
   const body = useMemo(() => {
     if (isShowingContentByDate) {
@@ -336,11 +328,9 @@ function App() {
     normalizedPoem,
     normalizedAuthor,
     poemByline,
-    normalizedNote,
     searchTerm,
     setSearchTerm,
     toggleViewMode,
-    formatAuthorDate,
     setLinkDate,
   ]);
   //rewrite particlesComponent to not rerender unless the options change
