@@ -68,10 +68,11 @@ describe('API Client', () => {
       try {
         await testClient.get('/test');
         expect.fail('Should have thrown error');
-      } catch (error: any) {
-        expect(error.code).toBe('NETWORK_ERROR');
-        expect(error.status).toBe(0);
-        expect(error.message).toBeTruthy();
+      } catch (error) {
+        const apiError = error as { code: string; status: number; message: string };
+        expect(apiError.code).toBe('NETWORK_ERROR');
+        expect(apiError.status).toBe(0);
+        expect(apiError.message).toBeTruthy();
       }
     });
 
