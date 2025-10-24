@@ -96,4 +96,7 @@ export type AppStore = ContentSlice & SearchSlice & AudioSlice;
  * StateCreator type for slice pattern.
  * Used when creating individual slices that will be combined.
  */
-export type SliceCreator<T> = (set: (partial: Partial<AppStore>) => void, get: () => AppStore) => T;
+export type SliceCreator<T> = (
+  set: (partial: Partial<AppStore> | ((state: AppStore) => Partial<AppStore>)) => void,
+  get: () => AppStore
+) => T;
