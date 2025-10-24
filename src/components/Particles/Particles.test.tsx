@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
-import { axe, toHaveNoViolations } from 'jest-axe';
-
-expect.extend(toHaveNoViolations);
+import { axe } from 'vitest-axe';
 
 // Mock react-use
 vi.mock('react-use', () => ({
@@ -191,7 +189,7 @@ describe('Particles Component', () => {
       });
       const { container } = render(<ParticlesComponent />);
       const results = await axe(container);
-      expect(results).toHaveNoViolations();
+      expect(results.violations).toEqual([]);
     });
 
     it('should have no axe violations in mobile view', async () => {
@@ -201,7 +199,7 @@ describe('Particles Component', () => {
       });
       const { container } = render(<ParticlesComponent />);
       const results = await axe(container);
-      expect(results).toHaveNoViolations();
+      expect(results.violations).toEqual([]);
     });
   });
 });

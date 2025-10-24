@@ -1,12 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { axe, toHaveNoViolations } from 'jest-axe';
+import { axe } from 'vitest-axe';
 import Author from './Author';
 import { useAuthorQuery } from '../../hooks/queries/useAuthorQuery';
 import type { Author as AuthorType } from '../../types/author';
-
-expect.extend(toHaveNoViolations);
 
 // Mock DOMPurify
 vi.mock('dompurify', () => ({
@@ -339,7 +337,7 @@ describe('Author Component', () => {
     it('should have no axe violations when showing author with biography', async () => {
       const { container } = renderWithQuery(<Author {...defaultProps} />);
       const results = await axe(container);
-      expect(results).toHaveNoViolations();
+      expect(results.violations).toEqual([]);
     });
 
     it('should have no axe violations in loading state', async () => {
@@ -351,13 +349,13 @@ describe('Author Component', () => {
       });
       const { container } = renderWithQuery(<Author {...defaultProps} />);
       const results = await axe(container);
-      expect(results).toHaveNoViolations();
+      expect(results.violations).toEqual([]);
     });
 
     it('should have no axe violations in mobile view', async () => {
       const { container } = renderWithQuery(<Author {...defaultProps} width={500} />);
       const results = await axe(container);
-      expect(results).toHaveNoViolations();
+      expect(results.violations).toEqual([]);
     });
   });
 });

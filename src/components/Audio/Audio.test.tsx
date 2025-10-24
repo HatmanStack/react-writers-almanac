@@ -1,10 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { axe, toHaveNoViolations } from 'jest-axe';
+import { axe } from 'vitest-axe';
 import Audio from './Audio';
 import { useAppStore } from '../../store/useAppStore';
-
-expect.extend(toHaveNoViolations);
 
 // Mock the store
 vi.mock('../../store/useAppStore');
@@ -207,7 +205,7 @@ describe('Audio Component', () => {
     it.skip('should have no axe violations when rendered with audio', async () => {
       const { container } = render(<Audio {...defaultProps} />);
       const results = await axe(container);
-      expect(results).toHaveNoViolations();
+      expect(results.violations).toEqual([]);
     });
 
     it('should have no axe violations in search mode (no audio)', async () => {
@@ -216,13 +214,13 @@ describe('Audio Component', () => {
         <Audio {...defaultProps} isShowingContentbyDate={false} searchedTerm="Test Search" />
       );
       const results = await axe(container);
-      expect(results).toHaveNoViolations();
+      expect(results.violations).toEqual([]);
     });
 
     it.skip('should have no axe violations in mobile view', async () => {
       const { container } = render(<Audio {...defaultProps} width={500} />);
       const results = await axe(container);
-      expect(results).toHaveNoViolations();
+      expect(results.violations).toEqual([]);
     });
   });
 });
