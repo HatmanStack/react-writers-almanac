@@ -192,6 +192,9 @@ function App() {
     if (!isShowingContentByDate) {
       toggleViewMode();
     }
+
+    const abortController = new AbortController();
+
     async function getData() {
       let link = linkDate;
       if (/\d/.test(linkDate)) {
@@ -201,7 +204,9 @@ function App() {
         link = `${year}/${month}/` + linkDate.toString();
       }
       axios
-        .get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.json')
+        .get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.json', {
+          signal: abortController.signal,
+        })
         .then(response => {
           const data = response.data;
 
@@ -228,7 +233,9 @@ function App() {
             transcript: data.transcript,
           });
         })
-        .catch(() => {
+        .catch(error => {
+          // Don't update state if request was aborted
+          if (axios.isCancel(error)) return;
           // Set fallback state to prevent undefined errors on fetch failure
           setPoemData({ poem: [], poemTitle: [], note: '' });
           setAuthorData({ author: [] });
@@ -238,6 +245,7 @@ function App() {
         axios
           .get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.mp3', {
             responseType: 'arraybuffer',
+            signal: abortController.signal,
           })
           .then(response => {
             // Cleanup old blob URL before creating new one
@@ -249,7 +257,9 @@ function App() {
             const audioUrl = URL.createObjectURL(blob);
             setAudioData({ mp3Url: audioUrl });
           })
-          .catch(() => {
+          .catch(error => {
+            // Don't update state if request was aborted
+            if (axios.isCancel(error)) return;
             // Set unavailable status on audio fetch failure
             setAudioData({ mp3Url: 'NotAvailable' });
           });
@@ -258,6 +268,11 @@ function App() {
       }
     }
     getData();
+
+    // Cleanup: abort pending requests when effect re-runs or component unmounts
+    return () => {
+      abortController.abort();
+    };
   }, [
     linkDate,
     isShowingContentByDate,
