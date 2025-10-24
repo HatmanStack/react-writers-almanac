@@ -18,8 +18,11 @@ const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/c
 // Initialize S3 client
 const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
 
-// Configuration
-const BUCKET_NAME = process.env.S3_BUCKET || 'writers-almanac-bucket';
+// Configuration - S3_BUCKET is required
+const BUCKET_NAME = process.env.S3_BUCKET;
+if (!BUCKET_NAME) {
+  throw new Error('S3_BUCKET environment variable is required');
+}
 const AUTHORS_PREFIX = 'authors/by-name/';
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
