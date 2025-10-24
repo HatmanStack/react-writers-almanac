@@ -50,21 +50,15 @@ test.describe('Audio Playback', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Wait for audio to be ready
-    await page.waitForTimeout(1000);
-
     // Click play button
     await audioHelpers.clickPlay();
 
-    // Wait a moment for playback to start
-    await page.waitForTimeout(500);
-
     // Verify play button changed to pause button (or audio state changed)
     const pauseButton = page.getByRole('button', { name: /pause/i });
-    const pauseExists = await pauseButton.isVisible().catch(() => false);
+    const pauseExists = await pauseButton.isVisible();
 
-    // Either pause button exists or audio is in playing state
-    expect(pauseExists).toBeTruthy();
+    // Pause button should exist after clicking play
+    expect(pauseExists).toBe(true);
   });
 
   test('should pause playback when pause button is clicked', async ({ page }) => {
@@ -77,22 +71,15 @@ test.describe('Audio Playback', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Wait for audio to be ready
-    await page.waitForTimeout(1000);
-
     // Start playback
     await audioHelpers.clickPlay();
-    await page.waitForTimeout(500);
 
     // Click pause
     await audioHelpers.clickPause();
-    await page.waitForTimeout(300);
 
     // Verify play button is visible again (or audio is paused)
     const playButton = page.getByRole('button', { name: /play/i });
-    const playExists = await playButton.isVisible().catch(() => false);
-
-    expect(playExists).toBeTruthy();
+    await expect(playButton).toBeVisible();
   });
 
   test('should display audio controls (play/pause, seek bar)', async ({ page }) => {
@@ -100,9 +87,6 @@ test.describe('Audio Playback', () => {
 
     // Navigate to home page
     await nav.goToHome();
-
-    // Wait for audio player to load
-    await page.waitForTimeout(1000);
 
     // Check for play button
     const playButton = page.getByRole('button', { name: /play/i });
@@ -120,29 +104,21 @@ test.describe('Audio Playback', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Wait for page to load
-    await page.waitForTimeout(1000);
-
     // Look for transcript button
     const transcriptButton = page.getByRole('button', { name: /transcript|show text|view text/i });
-    const buttonExists = await transcriptButton.isVisible().catch(() => false);
+    const buttonExists = await transcriptButton.isVisible();
 
     if (buttonExists) {
       // Click transcript button
       await audioHelpers.toggleTranscript();
 
-      // Wait for transcript to appear
-      await page.waitForTimeout(500);
-
       // Verify transcript content is visible
       const transcript = page.getByText(/writer.*almanac|poem|today/i);
-      const transcriptVisible = await transcript.isVisible().catch(() => false);
-
-      expect(transcriptVisible).toBeDefined();
+      await expect(transcript.first()).toBeVisible();
     } else {
       // Transcript might be always visible or not implemented
-      // Just verify test doesn't crash
-      expect(buttonExists).toBeDefined();
+      // Page should still be functional
+      expect(page.url()).toContain('localhost');
     }
   });
 
@@ -155,9 +131,6 @@ test.describe('Audio Playback', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Wait for page to load
-    await page.waitForTimeout(1000);
-
     // Audio player might still be visible but show error state
     // or might not be visible at all
     // Just verify page doesn't crash
@@ -168,7 +141,7 @@ test.describe('Audio Playback', () => {
     const hasError = await errorMsg.isVisible().catch(() => false);
 
     // Either shows error or handles gracefully
-    expect(hasError !== undefined).toBeTruthy();
+    expect(hasError).toBeDefined();
   });
 
   test('should show audio player for dates after 2009-01-11 only', async ({ page }) => {
@@ -176,9 +149,6 @@ test.describe('Audio Playback', () => {
 
     // Navigate to home page (default date is 2024-01-01)
     await nav.goToHome();
-
-    // Wait for page to load
-    await page.waitForTimeout(1000);
 
     // Audio should be available for 2024 dates
     const audio = page.locator('audio');
@@ -195,18 +165,12 @@ test.describe('Audio Playback', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Wait for initial load
-    await page.waitForTimeout(1000);
-
     // Get initial audio source
     const audio = audioHelpers.getAudioElement();
     const initialSrc = await audio.getAttribute('src');
 
     // Navigate to next day
     await nav.goToNextDay();
-
-    // Wait for new audio to load
-    await page.waitForTimeout(1000);
 
     // Get new audio source
     const newSrc = await audio.getAttribute('src');
@@ -224,16 +188,13 @@ test.describe('Audio Playback', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Wait for audio metadata to load
-    await page.waitForTimeout(2000);
-
     // Look for duration display (usually in format MM:SS)
     const durationDisplay = page.getByText(/\d{1,2}:\d{2}/);
     const hasDuration = await durationDisplay.isVisible().catch(() => false);
 
     // Duration might be displayed or might not
     // Just verify we don't crash
-    expect(hasDuration !== undefined).toBeTruthy();
+    expect(hasDuration).toBeDefined();
   });
 
   test('should allow seeking within audio track', async ({ page }) => {
@@ -246,9 +207,6 @@ test.describe('Audio Playback', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Wait for audio to be ready
-    await page.waitForTimeout(1000);
-
     // Get audio element
     const audio = audioHelpers.getAudioElement();
 
@@ -256,9 +214,6 @@ test.describe('Audio Playback', () => {
     await audio.evaluate((el: HTMLAudioElement) => {
       el.currentTime = 10;
     });
-
-    // Wait for seek to complete
-    await page.waitForTimeout(300);
 
     // Verify currentTime was updated
     const currentTime = await audio.evaluate((el: HTMLAudioElement) => el.currentTime);
@@ -271,9 +226,6 @@ test.describe('Audio Playback', () => {
 
     // Navigate to home page
     await nav.goToHome();
-
-    // Wait for audio to load
-    await page.waitForTimeout(1000);
 
     // Audio should NOT auto-play (browsers block this)
     await audioHelpers.expectAudioPaused();
@@ -293,12 +245,8 @@ test.describe('Audio Playback', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Wait for audio
-    await page.waitForTimeout(1000);
-
     // Start playback
     await audioHelpers.clickPlay();
-    await page.waitForTimeout(1000);
 
     // Get current time
     const audio = audioHelpers.getAudioElement();
@@ -306,11 +254,10 @@ test.describe('Audio Playback', () => {
 
     // Toggle transcript (if button exists)
     const transcriptButton = page.getByRole('button', { name: /transcript/i });
-    const buttonExists = await transcriptButton.isVisible().catch(() => false);
+    const buttonExists = await transcriptButton.isVisible();
 
     if (buttonExists) {
       await audioHelpers.toggleTranscript();
-      await page.waitForTimeout(500);
 
       // Get current time after toggle
       const timeAfter = await audio.evaluate((el: HTMLAudioElement) => el.currentTime);
@@ -319,7 +266,7 @@ test.describe('Audio Playback', () => {
       expect(timeAfter).toBeGreaterThanOrEqual(timeBefore);
     } else {
       // No transcript button, test passes
-      expect(true).toBeTruthy();
+      expect(page.url()).toContain('localhost');
     }
   });
 
@@ -331,9 +278,6 @@ test.describe('Audio Playback', () => {
 
     // Navigate to home page
     await nav.goToHome();
-
-    // Wait for page to handle error
-    await page.waitForTimeout(1500);
 
     // Page should still be functional
     expect(page.url()).toContain('localhost');
