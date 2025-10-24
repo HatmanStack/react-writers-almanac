@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { InternalAxiosRequestConfig } from 'axios';
 import { useSearchQuery } from './useSearchQuery';
 import { apiClient } from '../../api/client';
 import type { SearchResponse } from '../../types/api';
@@ -54,7 +55,7 @@ describe('useSearchQuery', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {} as any,
+      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result } = renderHook(() => useSearchQuery('billy'), { wrapper });
@@ -79,7 +80,7 @@ describe('useSearchQuery', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {} as any,
+      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result } = renderHook(() => useSearchQuery('billy', 20), { wrapper });
@@ -112,7 +113,7 @@ describe('useSearchQuery', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {} as any,
+      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result: result1 } = renderHook(() => useSearchQuery('billy'), { wrapper });
@@ -142,7 +143,7 @@ describe('useSearchQuery', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {} as any,
+      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result } = renderHook(() => useSearchQuery('xyz'), { wrapper });

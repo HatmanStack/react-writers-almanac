@@ -8,8 +8,8 @@ describe('ContentSlice', () => {
 
   beforeEach(() => {
     // Create a fresh store for each test
-    // Note: We test the slice in isolation by casting to AppStore
-    useTestStore = create<ContentSlice>()((set, get) => createContentSlice(set as any, get as any));
+    // Note: We test the slice in isolation
+    useTestStore = create<ContentSlice>()((...args) => createContentSlice(...args));
   });
 
   describe('Initial State', () => {

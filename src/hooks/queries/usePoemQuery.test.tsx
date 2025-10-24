@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { InternalAxiosRequestConfig } from 'axios';
 import { usePoemQuery } from './usePoemQuery';
 import { cdnClient } from '../../api/client';
 import type { Poem } from '../../types/poem';
@@ -55,7 +56,7 @@ describe('usePoemQuery', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {} as any,
+      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result } = renderHook(() => usePoemQuery('20240101'), { wrapper });
@@ -120,7 +121,7 @@ describe('usePoemQuery', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {} as any,
+      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result: result1 } = renderHook(() => usePoemQuery('20240101'), { wrapper });

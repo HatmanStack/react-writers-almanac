@@ -12,7 +12,7 @@ describe('AudioSlice', () => {
 
   beforeEach(() => {
     // Create a fresh store for each test
-    useTestStore = create<AudioSlice>()((set, get) => createAudioSlice(set as any, get as any));
+    useTestStore = create<AudioSlice>()((...args) => createAudioSlice(...args));
 
     // Mock URL.revokeObjectURL
     global.URL.revokeObjectURL = mockRevokeObjectURL;

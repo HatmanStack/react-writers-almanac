@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { InternalAxiosRequestConfig } from 'axios';
 import { useAuthorQuery } from './useAuthorQuery';
 import { cdnClient } from '../../api/client';
 import type { Author } from '../../types/author';
@@ -55,7 +56,7 @@ describe('useAuthorQuery', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {} as any,
+      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result } = renderHook(() => useAuthorQuery('billy-collins'), { wrapper });
@@ -78,7 +79,7 @@ describe('useAuthorQuery', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {} as any,
+      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result } = renderHook(() => useAuthorQuery('Billy Collins'), { wrapper });
@@ -120,7 +121,7 @@ describe('useAuthorQuery', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {} as any,
+      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result: result1 } = renderHook(() => useAuthorQuery('billy-collins'), { wrapper });

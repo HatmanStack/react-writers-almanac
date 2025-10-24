@@ -8,7 +8,7 @@ describe('SearchSlice', () => {
 
   beforeEach(() => {
     // Create a fresh store for each test
-    useTestStore = create<SearchSlice>()((set, get) => createSearchSlice(set as any, get as any));
+    useTestStore = create<SearchSlice>()((...args) => createSearchSlice(...args));
   });
 
   describe('Initial State', () => {
