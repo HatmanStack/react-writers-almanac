@@ -1,5 +1,5 @@
 import Audio from './components/Audio/Audio';
-import Note from './components/Note';
+import Note from './components/Note/Note';
 import Poem from './components/Poem';
 import Search from './components/Search';
 import Author from './components/Author/Author';

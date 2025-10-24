@@ -25,3 +25,9 @@
   --c1: rgba(168, 239, 255, 1);
   --c2: rgba(168, 239, 255, 0.1);
 }
+
+/* Global link styling */
+a {
+  color: #69b9ff;
+  text-decoration: none;
+}
