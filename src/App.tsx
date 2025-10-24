@@ -353,7 +353,7 @@ function App() {
     toggleViewMode,
     setLinkDate,
   ]);
-  //rewrite particlesComponent to not rerender unless the options change
+
   return (
     <ErrorBoundary>
       <main className="text-center text-[calc(8px+2vmin)] bg-app-bg text-app-text h-full absolute w-full">
