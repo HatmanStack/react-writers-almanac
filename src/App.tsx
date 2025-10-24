@@ -166,7 +166,7 @@ function App() {
           linkDate.substring(0, 4) + '-' + linkDate.substring(4, 6) + '-' + linkDate.substring(6)
         );
         const forwardDateHolder = new Date(holderDate);
-        forwardDateHolder.setDate(holderDate.getDate() + (x === 'back' ? 0 : 2));
+        forwardDateHolder.setDate(holderDate.getDate() + (x === 'back' ? -1 : 1));
         setLinkDate(formatDate(forwardDateHolder));
       } else {
         let sortedList = sortedPoems;
