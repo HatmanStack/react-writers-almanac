@@ -67,7 +67,7 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
     }
     if (event.key === 'Escape') {
       setIsShowing(false);
-      searchedTermWrapper(query);
+      updateQuery(''); // Clear query on Escape (don't trigger search)
     }
   };
 
