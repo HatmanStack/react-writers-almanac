@@ -87,6 +87,7 @@ const Audio = memo(function Audio({
                 autoPlay={false}
                 loop={false}
                 controls
+                preload="metadata"
               />
               <button
                 type="button"
@@ -108,6 +109,7 @@ const Audio = memo(function Audio({
                   autoPlay={false}
                   loop={false}
                   controls
+                  preload="metadata"
                 />
                 <div className="flex-[1_0_auto]" />
               </div>
