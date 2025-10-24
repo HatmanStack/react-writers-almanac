@@ -4,7 +4,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
-import '../css/Search.css';
 
 import list from '../assets/searchJson';
 
@@ -66,7 +65,7 @@ export default function Search({ searchedTermWrapper, calendarDate, width }: Sea
   return (
     <div>
       {width > 1000 ? (
-        <div className="SearchContainer">
+        <div className="flex">
           <Autocomplete
             id="clear-on-escape"
             onInputChange={(_e: any, value: string) => updateQuery(value)}
@@ -75,11 +74,45 @@ export default function Search({ searchedTermWrapper, calendarDate, width }: Sea
             disablePortal={false}
             options={list}
             getOptionLabel={(option: any) => option.label}
+            sx={{
+              width: '15em',
+              '& .MuiFormLabel-root': {
+                color: '#fffff6',
+                justifyContent: 'center',
+                zIndex: 1,
+              },
+              '& .MuiAutocomplete-endAdornment': {
+                visibility: 'hidden',
+              },
+              '& .MuiAutocomplete-listbox': {
+                width: '40em',
+                background: '#8293a2',
+              },
+              '& .MuiAutocomplete-option': {
+                margin: '.1em',
+                color: '#fffff6',
+              },
+            }}
             renderInput={params => (
-              <TextField {...params} label="Author / Poem" onKeyDown={handleKeyDown} />
+              <TextField
+                {...params}
+                label="Author / Poem"
+                onKeyDown={handleKeyDown}
+                sx={{
+                  '& input': {
+                    color: '#fffff6',
+                    fontFamily: 'Raleway, sans-serif',
+                    fontSize: '1.5em',
+                    zIndex: 1,
+                  },
+                }}
+              />
             )}
           />
-          <button className="CalendarButton" onClick={() => setIsShowing(!isShowing)}>
+          <button
+            className="bg-transparent border-none cursor-pointer overflow-hidden outline-none font-bold text-xs text-app-text z-10"
+            onClick={() => setIsShowing(!isShowing)}
+          >
             {calendarLabel()}
           </button>
           {isShowing ? (
@@ -88,12 +121,16 @@ export default function Search({ searchedTermWrapper, calendarDate, width }: Sea
                 onChange={e => calendarChange(e)}
                 maxDate={dayjs('2017-11-30')}
                 minDate={dayjs('1993-01-01')}
+                sx={{
+                  zIndex: 1,
+                  textDecorationColor: 'black',
+                }}
               ></DateCalendar>
             </LocalizationProvider>
           ) : null}
         </div>
       ) : (
-        <div className="SearchColumnContainer">
+        <div className="flex flex-col p-3">
           <Autocomplete
             id="clear-on-escape"
             onInputChange={(_e: any, value: string) => updateQuery(value)}
@@ -102,11 +139,45 @@ export default function Search({ searchedTermWrapper, calendarDate, width }: Sea
             disablePortal={false}
             options={list}
             getOptionLabel={(option: any) => option.label}
+            sx={{
+              width: '15em',
+              '& .MuiFormLabel-root': {
+                color: '#fffff6',
+                justifyContent: 'center',
+                zIndex: 1,
+              },
+              '& .MuiAutocomplete-endAdornment': {
+                visibility: 'hidden',
+              },
+              '& .MuiAutocomplete-listbox': {
+                width: '40em',
+                background: '#8293a2',
+              },
+              '& .MuiAutocomplete-option': {
+                margin: '.1em',
+                color: '#fffff6',
+              },
+            }}
             renderInput={params => (
-              <TextField {...params} label="Author / Poem" onKeyDown={handleKeyDown} />
+              <TextField
+                {...params}
+                label="Author / Poem"
+                onKeyDown={handleKeyDown}
+                sx={{
+                  '& input': {
+                    color: '#fffff6',
+                    fontFamily: 'Raleway, sans-serif',
+                    fontSize: '1.5em',
+                    zIndex: 1,
+                  },
+                }}
+              />
             )}
           />
-          <button className="CalendarButton" onClick={() => setIsShowing(!isShowing)}>
+          <button
+            className="bg-transparent border-none cursor-pointer overflow-hidden outline-none font-bold text-xs text-app-text z-10"
+            onClick={() => setIsShowing(!isShowing)}
+          >
             {calendarLabel()}
           </button>
           {isShowing ? (
@@ -115,6 +186,10 @@ export default function Search({ searchedTermWrapper, calendarDate, width }: Sea
                 onChange={e => calendarChange(e)}
                 maxDate={dayjs('2017-11-30')}
                 minDate={dayjs('1993-01-01')}
+                sx={{
+                  zIndex: 1,
+                  textDecorationColor: 'black',
+                }}
               ></DateCalendar>
             </LocalizationProvider>
           ) : null}
