@@ -72,11 +72,7 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
   };
 
   const calendarLabel = (): string => {
-    if (!isShowing) {
-      return 'Calendar';
-    } else {
-      return '';
-    }
+    return isShowing ? 'Close' : 'Calendar';
   };
 
   return (
