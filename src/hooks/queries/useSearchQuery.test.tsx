@@ -100,13 +100,6 @@ describe('useSearchQuery', () => {
     expect(apiClient.get).not.toHaveBeenCalled();
   });
 
-  it('should not fetch when query is too short (< 1 char)', () => {
-    const { result } = renderHook(() => useSearchQuery(''), { wrapper });
-
-    expect(result.current.isLoading).toBe(false);
-    expect(apiClient.get).not.toHaveBeenCalled();
-  });
-
   it('should cache search results', async () => {
     vi.mocked(apiClient.get).mockResolvedValueOnce({
       data: mockSearchResponse,
