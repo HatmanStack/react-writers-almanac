@@ -1,10 +1,22 @@
-/* eslint-disable react/prop-types */
-import React from 'react';
 import '../css/Author.css';
 
-export default function Author({ setIsShowingContentByDate, authorData, formatAuthorDate, setLinkDate, width }) {
+interface AuthorProps {
+  setIsShowingContentByDate: (isShowing: boolean) => void;
+  authorData: any;
+  formatAuthorDate: (date: string) => string;
+  setLinkDate: (date: string) => void;
+  width: number;
+}
 
-  const handleClick = (item) => {
+export default function Author({
+  setIsShowingContentByDate,
+  authorData,
+  formatAuthorDate,
+  setLinkDate,
+  width
+}: AuthorProps) {
+
+  const handleClick = (item: string): void => {
     setLinkDate(formatAuthorDate(item));
     setIsShowingContentByDate(true);
   };

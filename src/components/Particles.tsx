@@ -1,16 +1,15 @@
-import React, { useCallback } from 'react';
-import {loadSlim } from 'tsparticles-slim';
+import { useCallback } from 'react';
+import { loadSlim } from 'tsparticles-slim';
 import Particles from 'react-particles';
 import '../css/Particles.css';
 
 function ParticlesComponent() {
 
-    const particlesInit = useCallback(async engine => {
+    const particlesInit = useCallback(async (engine: any) => {
         await loadSlim(engine);
     }, []);
 
-    // eslint-disable-next-line no-unused-vars
-    const particlesLoaded = useCallback(async container => {
+    const particlesLoaded = useCallback(async () => {
         console.log('particlesLoaded');
     }, []);
 

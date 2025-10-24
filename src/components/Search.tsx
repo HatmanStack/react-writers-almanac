@@ -1,25 +1,33 @@
-/* eslint-disable react/prop-types */
-
-import React, { useState, } from 'react';
+import { useState } from 'react';
 import { Autocomplete } from "@material-ui/lab";
 import { TextField } from "@material-ui/core";
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import '../css/Search.css';
 
 import list from '../assets/searchJson';
 
-  export default function Search({searchedTermWrapper, calendarDate, width}) {
-    const [isShowing, setIsShowing] = useState(false);
-    const [query, updateQuery] = useState('');
-    const [year, setYear] = useState('');
-    const [month, setMonth] = useState('');
-    const [day, setDay] = useState('');
-    const [muiDefense, setMuiDefense] = useState(false);
-    
-    const calendarChange = (e) => {
+interface SearchProps {
+  searchedTermWrapper: (query: any) => void;
+  calendarDate: (date: any) => void;
+  width: number;
+}
+
+export default function Search({
+  searchedTermWrapper,
+  calendarDate,
+  width
+}: SearchProps) {
+  const [isShowing, setIsShowing] = useState<boolean>(false);
+  const [query, updateQuery] = useState<any>('');
+  const [year, setYear] = useState<string | number>('');
+  const [month, setMonth] = useState<string | number>('');
+  const [day, setDay] = useState<string | number>('');
+  const [muiDefense, setMuiDefense] = useState<boolean>(false);
+
+  const calendarChange = (e: any): void => {
       if (year !== e.$y) {
         setYear(e.$y);
       }
@@ -41,18 +49,18 @@ import list from '../assets/searchJson';
       }
     }
 
-    const handleKeyDown = (event) => {
-        if (event.key === 'Enter') {    
-          setIsShowing(false); 
+    const handleKeyDown = (event: React.KeyboardEvent): void => {
+        if (event.key === 'Enter') {
+          setIsShowing(false);
           searchedTermWrapper(query);
         }
-        if (event.key === 'Escape'){
-          setIsShowing(false);     
+        if (event.key === 'Escape') {
+          setIsShowing(false);
           searchedTermWrapper(query);
         }
       };
 
-    const calendarLabel= () => {
+    const calendarLabel = (): string => {
       if(!isShowing){
         return "Calendar";
       }else {
@@ -66,34 +74,34 @@ import list from '../assets/searchJson';
         <div className="SearchContainer">
           <Autocomplete
           id="clear-on-escape"
-          onInputChange={(e) => updateQuery(e.target.value)}
-          onChange={(event, value) => updateQuery(value)}
+          onInputChange={(_e: any, value: string) => updateQuery(value)}
+          onChange={(_event: any, value: any) => updateQuery(value)}
           clearOnEscape
           disablePortal={false}
           options={list}
-          getOptionLabel={(option) => option.label}
+          getOptionLabel={(option: any) => option.label}
           renderInput={(params) => <TextField {...params}  label="Author / Poem"  onKeyDown={handleKeyDown}  />}
           />
           <button className="CalendarButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
           {isShowing ? (<LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateCalendar onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
+            <DateCalendar onChange={(e) => calendarChange(e)} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
             </LocalizationProvider>): 
           (null)}
         </div>):(
         <div className="SearchColumnContainer">            
               <Autocomplete
               id="clear-on-escape"
-              onInputChange={(e) => updateQuery(e.target.value)}
-              onChange={(event, value) => updateQuery(value)}
+              onInputChange={(_e: any, value: string) => updateQuery(value)}
+              onChange={(_event: any, value: any) => updateQuery(value)}
               clearOnEscape
               disablePortal={false}
               options={list}
-              getOptionLabel={(option) => option.label}
+              getOptionLabel={(option: any) => option.label}
               renderInput={(params) => <TextField {...params}  label="Author / Poem"  onKeyDown={handleKeyDown}  />}
               />
           <button className="CalendarButton" onClick={() => setIsShowing(!isShowing)}>{calendarLabel()}</button>
           {isShowing ? (<LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DateCalendar onChange={(e) => calendarChange(e)} onKeyDown={handleKeyDown} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
+          <DateCalendar onChange={(e) => calendarChange(e)} maxDate={dayjs('2017-11-30')} minDate={dayjs('1993-01-01')}></DateCalendar>
           </LocalizationProvider>): (null)}
         </div>)}
       </div>

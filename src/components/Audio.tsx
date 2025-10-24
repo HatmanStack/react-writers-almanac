@@ -1,18 +1,27 @@
-/* eslint-disable react/no-unknown-property */
-/* eslint-disable react/prop-types */
-import React from 'react';
 import '../css/Audio.css';
 import prev from '../assets/prev.png';
 import next from '../assets/next.png';
 
-export default function Audio({isShowingContentbyDate, searchedTerm, mp3Link, shiftContentByAuthorOrDate, width, setIsShowing, isShowing }) {
-  
-  const options = {
-    scale: 1.3,
-    speed: 600,
-    max: 20
-  };
-  
+interface AudioProps {
+  isShowingContentbyDate: boolean;
+  searchedTerm: string;
+  mp3Link: string | undefined;
+  shiftContentByAuthorOrDate: (direction: string) => Promise<void>;
+  width: number;
+  setIsShowing: (isShowing: boolean) => void;
+  isShowing: boolean;
+}
+
+export default function Audio({
+  isShowingContentbyDate,
+  searchedTerm,
+  mp3Link,
+  shiftContentByAuthorOrDate,
+  width,
+  setIsShowing,
+  isShowing
+}: AudioProps) {
+
   const Heading = () => {
     if (isShowingContentbyDate && mp3Link !== 'NotAvailable') {
       return (<div>{width > 1000 ? (
@@ -50,14 +59,14 @@ export default function Audio({isShowingContentbyDate, searchedTerm, mp3Link, sh
       <div className="Container">
         <div className="FormattingContainer"></div>
         <div className="wrapper">
-          <div className="boxbackwards" options={options}>
-            <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('back')}><img className="ButtonImage" src={prev} alt="previous button" height="100%" width="auto"></img></button>
+          <div className="boxbackwards">
+            <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('back')}><img className="ButtonImage" src={prev} alt="previous button"></img></button>
           </div>
         </div>
         <Heading  />
         <div className="wrapper">
-          <div className="box" options={options}>
-            <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('forward')} height="100%" width="auto"><img className="ButtonImage" src={next} alt="next button"  ></img></button>
+          <div className="box">
+            <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('forward')}><img className="ButtonImage" src={next} alt="next button"  ></img></button>
           </div>
         </div>
         <div className="FormattingContainer"></div>
@@ -69,11 +78,11 @@ export default function Audio({isShowingContentbyDate, searchedTerm, mp3Link, sh
           <div className="FormattingContainer"/>
             <Heading />
           <div className="rowContainer">
-              <div className="boxbackwards" options={options}>
-                <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('back')}><img className="ButtonImage" src={prev} alt="previous button" height="100%" width="auto"></img></button>
+              <div className="boxbackwards">
+                <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('back')}><img className="ButtonImage" src={prev} alt="previous button"></img></button>
               </div>
-              <div className="box" options={options}>
-                <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('forward')} height="100%" width="auto"><img className="ButtonImage" src={next} alt="next button"  ></img></button>
+              <div className="box">
+                <button className="DateChangeButton" onClick={() => shiftContentByAuthorOrDate('forward')}><img className="ButtonImage" src={next} alt="next button"  ></img></button>
               </div>
           </div>
         <div className="FormattingContainer"></div>
