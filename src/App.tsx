@@ -1,4 +1,3 @@
-import './css/App.css';
 import Audio from './components/Audio';
 import Note from './components/Note';
 import Poem from './components/Poem';
@@ -281,13 +280,15 @@ function App() {
           {width > 1000 ? (
             <div>
               {isShowing ? (
-                <div className="TranscriptFlex">
-                  <div className="Transcript">{transcript}</div>
+                <div className="flex m-12">
+                  <div className="text-base p-6 z-10 bg-app-container text-app-text rounded-2xl leading-6">
+                    {transcript}
+                  </div>
                 </div>
               ) : null}
 
-              <div className="PoemAndNoteContainer">
-                <div className="PoemContainer">
+              <div className="flex flex-row">
+                <div className="flex-[1_0_0] z-10 bg-app-container rounded-l-[3rem] p-4 ml-20">
                   <Poem
                     poemTitle={normalizedPoemTitle}
                     poem={normalizedPoem}
@@ -296,20 +297,22 @@ function App() {
                     poemByline={poemByline}
                   />
                 </div>
-                <div className="NoteContainer">
+                <div className="flex-[1_3_0] z-10 bg-app-container rounded-r-[3rem] flex p-4 mr-20">
                   <Note note={normalizedNote} />
                 </div>
               </div>
             </div>
           ) : (
-            <div className="ColumnContainer">
+            <div className="flex flex-col p-3">
               {isShowing ? (
-                <div className="TranscriptFlex">
-                  <p className="Transcript">{transcript}</p>
+                <div className="flex m-12">
+                  <p className="text-base p-6 z-10 bg-app-container text-app-text rounded-2xl leading-6">
+                    {transcript}
+                  </p>
                 </div>
               ) : null}
 
-              <div className="PoemContainerColumn">
+              <div className="z-10 bg-app-container rounded-t-[3rem]">
                 <Poem
                   poemTitle={normalizedPoemTitle}
                   poem={normalizedPoem}
@@ -318,7 +321,7 @@ function App() {
                   poemByline={poemByline}
                 />
               </div>
-              <div className="NoteContainerColumn">
+              <div className="z-10 bg-app-container rounded-b-[3rem] p-4">
                 <Note note={normalizedNote} />
               </div>
             </div>
@@ -358,25 +361,29 @@ function App() {
   ]);
   //rewrite particlesComponent to not rerender unless the options change
   return (
-    <div className="App">
+    <div className="text-center text-[calc(8px+2vmin)] bg-app-bg text-app-text h-full absolute w-full">
       {width > 1000 ? (
         <div>
           <ParticlesComponent />
-          <div className="AppHeader">
-            <img className="LogoImage" src={logo} alt="LOGO"></img>
+          <div className="flex flex-row items-center justify-around m-4">
+            <img
+              className="flex-[1_3_0] w-[35%] z-10 bg-app-container rounded-[3rem] flex p-4"
+              src={logo}
+              alt="LOGO"
+            ></img>
             <div className="FormattingContainer" />
-            <div className="StyleContainer">
+            <div className="z-10 bg-app-container rounded-[3rem] flex p-4">
               <Search
                 searchedTermWrapper={searchedTermWrapper}
                 calendarDate={calendarDate}
                 width={width}
               />
               <div
-                className="DayContainer"
+                className="flex-[0_3_auto] m-4"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }}
               />
               <div
-                className="DateContainer"
+                className="flex-[1_0_auto] m-4"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
               />
             </div>
@@ -394,9 +401,13 @@ function App() {
       ) : (
         <div>
           <ParticlesComponent />
-          <div className="AppHeaderColumn">
-            <img className="LogoImage" src={logo} alt="LOGO" style={{ width: '20em' }}></img>
-            <div className="StyleContainer-column">
+          <div className="flex flex-col items-center justify-around m-4">
+            <img
+              className="flex-[1_3_0] z-10 bg-app-container rounded-[3rem] flex p-4 w-[20em]"
+              src={logo}
+              alt="LOGO"
+            ></img>
+            <div className="z-10 bg-app-container rounded-[3rem] flex p-4 flex-col">
               <Search
                 searchedTermWrapper={searchedTermWrapper}
                 calendarDate={calendarDate}
