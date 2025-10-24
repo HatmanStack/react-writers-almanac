@@ -116,9 +116,6 @@ test.describe('Search Flow', () => {
     // Search for something that returns no results
     await nav.searchAuthor('zzzzz');
 
-    // Wait a bit for search to execute
-    await page.waitForTimeout(500);
-
     // Verify no results message or empty state
     const hasNoResults = await page.getByText(/no results|not found/i).isVisible();
     const hasEmptyState = await page.locator('[role="listbox"]').count();
@@ -138,9 +135,6 @@ test.describe('Search Flow', () => {
 
     // Attempt to search
     await nav.searchAuthor('frost');
-
-    // Wait for error state
-    await page.waitForTimeout(1000);
 
     // Verify error handling (could be error message, fallback state, or just no results)
     // The app should not crash
@@ -166,7 +160,12 @@ test.describe('Search Flow', () => {
     await searchInput.clear();
 
     // Wait for results to disappear
-    await page.waitForTimeout(500);
+    await page
+      .locator('[role="listbox"]')
+      .waitFor({ state: 'hidden', timeout: 2000 })
+      .catch(() => {
+        // Listbox might already be hidden or never shown
+      });
 
     // Verify results are no longer visible
     const resultsVisible = await page.locator('[role="listbox"]').isVisible();
@@ -211,16 +210,11 @@ test.describe('Search Flow', () => {
     // Search with partial name
     await nav.searchAuthor('fro');
 
-    // Wait a bit for search
-    await page.waitForTimeout(500);
-
     // Results should still appear (mocked API returns results for "frost")
     // In real scenario, API would handle partial matching
-    const searchResults = page.locator('[role="listbox"], [data-testid="search-results"]');
-    const isVisible = await searchResults.isVisible();
-
     // Depending on implementation, either results show or minimum chars required
-    // We're just ensuring app handles it without crashing
-    expect(isVisible).toBeDefined();
+    // We're just ensuring app handles it without crashing - check that app is still running
+    const pageUrl = page.url();
+    expect(pageUrl).toContain('localhost');
   });
 });
