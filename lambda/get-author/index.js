@@ -114,7 +114,13 @@ async function streamToString(stream) {
  * @returns {Object} API Gateway response
  */
 exports.handler = async (event) => {
-  console.log('Event:', JSON.stringify(event, null, 2));
+  // Log request details (excluding sensitive headers)
+  console.log('Request:', JSON.stringify({
+    httpMethod: event.httpMethod,
+    path: event.path,
+    pathParameters: event.pathParameters,
+    queryStringParameters: event.queryStringParameters,
+  }, null, 2));
 
   // Handle OPTIONS request for CORS preflight
   if (event.httpMethod === 'OPTIONS') {
