@@ -142,7 +142,7 @@ function Author({
                   {item.date}
                 </button>
                 {item.title ? (
-                  <div className="m-4 flex justify-left items-left z-10 bg-app-container rounded-[3rem] px-4 py-4">
+                  <div className="m-4 flex justify-start items-start z-10 bg-app-container rounded-[3rem] px-4 py-4">
                     {item.title.replaceAll(/[^\x20-\x7E]/g, '')}
                   </div>
                 ) : null}
@@ -220,7 +220,7 @@ const VirtualizedPoemsList = memo(function VirtualizedPoemsList({
                   {item.date}
                 </button>
                 {item.title ? (
-                  <div className="m-4 flex justify-left items-left z-10 bg-app-container rounded-[3rem] px-4 py-4">
+                  <div className="m-4 flex justify-start items-start z-10 bg-app-container rounded-[3rem] px-4 py-4">
                     {item.title.replaceAll(/[^\x20-\x7E]/g, '')}
                   </div>
                 ) : null}
