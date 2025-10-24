@@ -124,7 +124,7 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
           />
           <button
             type="button"
-            className="bg-transparent border-none cursor-pointer overflow-hidden outline-none font-bold text-xs text-app-text z-10"
+            className="bg-transparent border-none cursor-pointer overflow-hidden font-bold text-xs text-app-text z-10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             onClick={() => setIsShowing(!isShowing)}
             aria-label={isShowing ? 'Close calendar' : 'Open calendar'}
             aria-expanded={isShowing}
@@ -192,7 +192,7 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
           />
           <button
             type="button"
-            className="bg-transparent border-none cursor-pointer overflow-hidden outline-none font-bold text-xs text-app-text z-10"
+            className="bg-transparent border-none cursor-pointer overflow-hidden font-bold text-xs text-app-text z-10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             onClick={() => setIsShowing(!isShowing)}
             aria-label={isShowing ? 'Close calendar' : 'Open calendar'}
             aria-expanded={isShowing}
