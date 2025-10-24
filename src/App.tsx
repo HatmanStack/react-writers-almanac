@@ -2,7 +2,7 @@ import Audio from './components/Audio/Audio';
 import Note from './components/Note';
 import Poem from './components/Poem';
 import Search from './components/Search';
-import Author from './components/Author';
+import Author from './components/Author/Author';
 import logo from './assets/logo_writersalmanac.png';
 import sortedAuthors from './assets/Authors_sorted.js';
 import sortedPoems from './assets/Poems_sorted.js';
