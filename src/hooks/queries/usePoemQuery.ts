@@ -7,6 +7,7 @@ import { cdnClient } from '../../api/client';
 import { CDN_ENDPOINTS } from '../../api/endpoints';
 import type { Poem } from '../../types/poem';
 import type { ApiError } from '../../types/api';
+import { getPoemErrorMessage } from './queryErrors';
 
 /**
  * Query key factory for poem queries
@@ -26,23 +27,32 @@ async function fetchPoem(date: string): Promise<Poem> {
   return response.data;
 }
 
+export interface PoemQueryOptions {
+  /** Callback fired when an error occurs */
+  onError?: (error: ApiError) => void;
+}
+
 /**
  * Hook to fetch daily poem by date
  *
  * @param date - Date in YYYYMMDD format (e.g., "20240101")
- * @returns Query result with poem data
+ * @param options - Optional configuration
+ * @returns Query result with poem data and user-friendly error message
  *
  * @example
  * ```tsx
- * const { data, isLoading, error } = usePoemQuery("20240101");
+ * const { data, isLoading, error, errorMessage } = usePoemQuery("20240101");
  *
  * if (isLoading) return <div>Loading...</div>;
- * if (error) return <div>Error: {error.message}</div>;
+ * if (error) return <div>Error: {errorMessage}</div>;
  * if (data) return <div>{data.poemtitle}</div>;
  * ```
  */
-export function usePoemQuery(date: string): UseQueryResult<Poem, ApiError> {
-  return useQuery<Poem, ApiError>({
+export function usePoemQuery(
+  date: string,
+  options?: PoemQueryOptions
+): UseQueryResult<Poem, ApiError> & { errorMessage: string | null } {
+  const query = useQuery<Poem, ApiError>({
     queryKey: poemKeys.byDate(date),
     queryFn: () => fetchPoem(date),
     enabled: !!date && date.length === 8, // Only fetch if date is valid
@@ -51,9 +61,27 @@ export function usePoemQuery(date: string): UseQueryResult<Poem, ApiError> {
     retry: (failureCount, error) => {
       // Don't retry 404s (poem doesn't exist for that date)
       if (error.status === 404) return false;
-      // Retry other errors up to 3 times
+      // Don't retry 4xx client errors
+      if (error.status >= 400 && error.status < 500) return false;
+      // Retry network errors and 5xx errors up to 3 times
       return failureCount < 3;
     },
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    meta: {
+      onError: options?.onError,
+    },
   });
+
+  // Get user-friendly error message
+  const errorMessage = query.error ? getPoemErrorMessage(query.error) : null;
+
+  // Call onError callback if provided
+  if (query.error && options?.onError) {
+    options.onError(query.error);
+  }
+
+  return {
+    ...query,
+    errorMessage,
+  };
 }
