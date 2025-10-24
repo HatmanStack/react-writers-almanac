@@ -112,7 +112,7 @@ async function fetchAuthorSlugs() {
       });
     }
 
-    continuationToken = response.IsTruncated ? response.NextContinuationToken : null;
+    continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
   } while (continuationToken);
 
   // Update cache
