@@ -23,10 +23,22 @@ export default {
             '--angle': '1turn',
           },
         },
+        'particle-pulse': {
+          '0%': {
+            filter: 'blur(5px) contrast(10) saturate(0.8)',
+          },
+          '50%': {
+            filter: 'blur(10px) contrast(20) saturate(0.8)',
+          },
+          '100%': {
+            filter: 'blur(5px) contrast(10) saturate(0.8)',
+          },
+        },
       },
       animation: {
         'border-spin': 'border-rotate 2.5s linear infinite',
         'border-spin-reverse': 'border-rotate 2.5s linear infinite reverse',
+        'particle-pulse': 'particle-pulse 2s infinite',
       },
     },
   },

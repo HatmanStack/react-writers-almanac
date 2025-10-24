@@ -10,7 +10,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useWindowSize } from 'react-use';
 import DOMPurify from 'dompurify';
 import axios from 'axios';
-import ParticlesComponent from './components/Particles';
+import ParticlesComponent from './components/Particles/Particles';
 import { useAppStore } from './store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import type { Author as AuthorData } from './types/author';
