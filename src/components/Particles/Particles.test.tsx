@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
 
 // Mock react-use
 vi.mock('react-use', () => ({
@@ -177,6 +180,28 @@ describe('Particles Component', () => {
     it('should use useWindowSize hook', () => {
       render(<ParticlesComponent />);
       expect(useWindowSize).toHaveBeenCalled();
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('should have no axe violations in desktop view', async () => {
+      (useWindowSize as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+        width: 1200,
+        height: 800,
+      });
+      const { container } = render(<ParticlesComponent />);
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+
+    it('should have no axe violations in mobile view', async () => {
+      (useWindowSize as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+        width: 800,
+        height: 600,
+      });
+      const { container } = render(<ParticlesComponent />);
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
     });
   });
 });

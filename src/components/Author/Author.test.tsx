@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { axe, toHaveNoViolations } from 'jest-axe';
 import Author from './Author';
 import { useAuthorQuery } from '../../hooks/queries/useAuthorQuery';
 import type { Author as AuthorType } from '../../types/author';
+
+expect.extend(toHaveNoViolations);
 
 // Mock DOMPurify
 vi.mock('dompurify', () => ({
@@ -329,6 +332,32 @@ describe('Author Component', () => {
     it('should pass different author names to query', () => {
       renderWithQuery(<Author {...defaultProps} authorName="Robert Frost" />);
       expect(useAuthorQuery).toHaveBeenCalledWith('Robert Frost');
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('should have no axe violations when showing author with biography', async () => {
+      const { container } = renderWithQuery(<Author {...defaultProps} />);
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+
+    it('should have no axe violations in loading state', async () => {
+      (useAuthorQuery as ReturnType<typeof vi.fn>).mockReturnValue({
+        data: undefined,
+        isLoading: true,
+        error: null,
+        refetch: vi.fn(),
+      });
+      const { container } = renderWithQuery(<Author {...defaultProps} />);
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+
+    it('should have no axe violations in mobile view', async () => {
+      const { container } = renderWithQuery(<Author {...defaultProps} width={500} />);
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
     });
   });
 });

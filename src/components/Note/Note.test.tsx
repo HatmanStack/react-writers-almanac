@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
 import Note from './Note';
 import { useAppStore } from '../../store/useAppStore';
+
+expect.extend(toHaveNoViolations);
 
 // Mock the store
 vi.mock('../../store/useAppStore');
@@ -195,6 +198,24 @@ describe('Note Component', () => {
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
       const { container } = render(<Note />);
       expect(container.firstChild).toBeNull();
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('should have no axe violations with single note', async () => {
+      const mockNote = ['This is a historical note about the day'];
+      (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockNote);
+      const { container } = render(<Note />);
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+
+    it('should have no axe violations with multiple notes', async () => {
+      const mockNotes = ['First note', 'Second note', 'Third note'];
+      (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockNotes);
+      const { container } = render(<Note />);
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
     });
   });
 });

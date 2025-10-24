@@ -60,6 +60,7 @@
     ]
   },
   "devDependencies": {
+    "@axe-core/react": "^4.11.0",
     "@tanstack/react-query-devtools": "^5.90.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@types/node": "^24.9.1",
@@ -71,12 +72,14 @@
     "@vitest/coverage-v8": "^4.0.3",
     "@vitest/ui": "^4.0.2",
     "autoprefixer": "^10.4.21",
+    "axe-core": "^4.11.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^7.0.0",
     "husky": "^9.1.7",
+    "jest-axe": "^10.0.0",
     "jsdom": "^27.0.1",
     "lint-staged": "^16.2.6",
     "postcss": "^8.5.6",
