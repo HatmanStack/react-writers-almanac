@@ -74,11 +74,7 @@ const monthAbbreviations: Record<string, string> = {
 
 const formatAuthorDate = (dateString: string): string => {
   const [month, day, year] = dateString.trim().split(' ');
-  const formattedMonth = (
-    new Date(`${monthAbbreviations[month.replace('.', '')]} ${day}, ${year}`).getMonth() + 1
-  )
-    .toString()
-    .padStart(2, '0');
+  const formattedMonth = monthAbbreviations[month.replace('.', '')] || '01';
   const formattedDay = day.replace(',', '').padStart(2, '0');
   return `${year}${formattedMonth}${formattedDay}`;
 };
