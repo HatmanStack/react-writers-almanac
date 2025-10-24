@@ -44,11 +44,10 @@ function Author({
     const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
     const poemsData = poetryFoundation?.poems || wikipedia?.poems;
 
-    if (!Array.isArray(poemsData)) {
-      return [];
-    }
+    // Normalize to array (handle single string case)
+    const poemsArray = Array.isArray(poemsData) ? poemsData : poemsData ? [poemsData] : [];
 
-    return poemsData.map(item => {
+    return poemsArray.map(item => {
       if (typeof item === 'string') {
         return { date: item, title: undefined };
       }
