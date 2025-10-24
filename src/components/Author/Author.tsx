@@ -52,7 +52,7 @@ function Author({
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           <p className="font-bold mb-4">Error loading author: {error.message}</p>
           <button
-            className="bg-app-bg text-app-text border-none font-bold text-base cursor-pointer px-4 py-2 rounded-[2rem]"
+            className="bg-app-bg text-app-text border-none font-bold text-base cursor-pointer px-4 py-2 rounded-[2rem] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             onClick={() => refetch()}
             aria-label="Retry loading author data"
           >
@@ -115,7 +115,7 @@ function Author({
             <div key={index} className="flex justify-center">
               {width <= 1000 && <div className="flex-[1_0_auto]" />}
               <button
-                className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center z-10 rounded-[3rem] px-4 py-4"
+                className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center z-10 rounded-[3rem] px-4 py-4 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                 onClick={() => handleClick(item.date)}
                 aria-label={`View poem from ${item.date}${item.title ? `: ${item.title.replaceAll(/[^\x20-\x7E]/g, '')}` : ''}`}
               >

@@ -9,7 +9,8 @@ interface ButtonProps {
   type?: 'button' | 'submit' | 'reset';
 }
 
-const baseClasses = 'cursor-pointer outline-none font-bold transition-colors duration-200';
+const baseClasses =
+  'cursor-pointer font-bold transition-colors duration-200 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500';
 
 const variantClasses: Record<NonNullable<ButtonProps['variant']>, string> = {
   primary: 'bg-app-container text-app-text hover:bg-opacity-90 px-4 py-2 rounded-lg border-none',
