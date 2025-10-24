@@ -24,7 +24,7 @@ export const createSearchSlice: SliceCreator<SearchSlice> = set => ({
    * Set the current search term
    */
   setSearchTerm: term => {
-    set({ searchTerm: term });
+    set({ searchTerm: term, isSearching: !!term });
   },
 
   /**
@@ -32,7 +32,7 @@ export const createSearchSlice: SliceCreator<SearchSlice> = set => ({
    * Replaces existing results completely
    */
   setSearchResults: results => {
-    set({ searchResults: results });
+    set({ searchResults: results, isSearching: false });
   },
 
   /**

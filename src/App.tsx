@@ -13,6 +13,7 @@ import DOMPurify from 'dompurify';
 import axios from 'axios';
 import ParticlesComponent from './components/Particles';
 import { useAppStore } from './store/useAppStore';
+import { useShallow } from 'zustand/react/shallow';
 
 function formatDate(date: Date, notToday: boolean = true, separator: string = ''): string {
   const day = date.getDate();
@@ -70,23 +71,44 @@ const formatAuthorDate = (dateString: string): string => {
 };
 
 function App() {
-  // Zustand store state
-  const currentDate = useAppStore(state => state.currentDate);
-  const storeSetCurrentDate = useAppStore(state => state.setCurrentDate);
-  const transcript = useAppStore(state => state.transcript);
-  const poemTitle = useAppStore(state => state.poemTitle);
-  const poem = useAppStore(state => state.poem);
-  const author = useAppStore(state => state.author);
-  const note = useAppStore(state => state.note);
-  const mp3Url = useAppStore(state => state.mp3Url);
-  const searchTerm = useAppStore(state => state.searchTerm);
-  const isShowingContentByDate = useAppStore(state => state.isShowingContentByDate);
-  const setPoemData = useAppStore(state => state.setPoemData);
-  const setAuthorData = useAppStore(state => state.setAuthorData);
-  const setAudioData = useAppStore(state => state.setAudioData);
-  const setSearchTerm = useAppStore(state => state.setSearchTerm);
-  const toggleViewMode = useAppStore(state => state.toggleViewMode);
-  const cleanup = useAppStore(state => state.cleanup);
+  // Zustand store state - single selector with shallow equality for performance
+  const {
+    currentDate,
+    transcript,
+    poemTitle,
+    poem,
+    author,
+    note,
+    mp3Url,
+    searchTerm,
+    isShowingContentByDate,
+    setCurrentDate: storeSetCurrentDate,
+    setPoemData,
+    setAuthorData,
+    setAudioData,
+    setSearchTerm,
+    toggleViewMode,
+    cleanup,
+  } = useAppStore(
+    useShallow(state => ({
+      currentDate: state.currentDate,
+      transcript: state.transcript,
+      poemTitle: state.poemTitle,
+      poem: state.poem,
+      author: state.author,
+      note: state.note,
+      mp3Url: state.mp3Url,
+      searchTerm: state.searchTerm,
+      isShowingContentByDate: state.isShowingContentByDate,
+      setCurrentDate: state.setCurrentDate,
+      setPoemData: state.setPoemData,
+      setAuthorData: state.setAuthorData,
+      setAudioData: state.setAudioData,
+      setSearchTerm: state.setSearchTerm,
+      toggleViewMode: state.toggleViewMode,
+      cleanup: state.cleanup,
+    }))
+  );
 
   // Local component state (not in store)
   const [linkDate, setLinkDate] = useState<string>(presentDate);
@@ -95,6 +117,16 @@ function App() {
   const [authorData, setLocalAuthorData] = useState<any>();
   const { width } = useWindowSize();
   const [isShowing, setIsShowing] = useState<boolean>(false);
+
+  // Cleanup blob URLs on component unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      const state = useAppStore.getState();
+      if (state.mp3Url?.startsWith('blob:')) {
+        state.cleanup();
+      }
+    };
+  }, []);
 
   const searchedTermWrapper = (x: any): void => {
     if (x != null) {
@@ -131,7 +163,7 @@ function App() {
       if (index === -1) {
         return;
       }
-      const before = index === 0 ? sortedList[sortedAuthors.length - 1] : sortedList[index - 1];
+      const before = index === 0 ? sortedList[sortedList.length - 1] : sortedList[index - 1];
       const after = index === sortedList.length - 1 ? sortedList[0] : sortedList[index + 1];
       setSearchTerm(x === 'back' ? before : after);
     }
@@ -153,8 +185,7 @@ function App() {
       });
     }
     getData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm]);
+  }, [searchTerm, isShowingContentByDate, toggleViewMode]);
 
   useEffect(() => {
     if (!isShowingContentByDate) {
@@ -211,8 +242,37 @@ function App() {
       }
     }
     getData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linkDate, mp3Url]);
+  }, [
+    linkDate,
+    isShowingContentByDate,
+    toggleViewMode,
+    storeSetCurrentDate,
+    setPoemData,
+    setAuthorData,
+    setAudioData,
+    cleanup,
+  ]);
+
+  // Normalize store data to arrays for components that expect arrays
+  const normalizedPoemTitle = useMemo(() => {
+    if (poemTitle === undefined) return undefined;
+    return Array.isArray(poemTitle) ? poemTitle : [poemTitle];
+  }, [poemTitle]);
+
+  const normalizedPoem = useMemo(() => {
+    if (poem === undefined) return undefined;
+    return Array.isArray(poem) ? poem : [poem];
+  }, [poem]);
+
+  const normalizedAuthor = useMemo(() => {
+    if (author === undefined) return undefined;
+    return Array.isArray(author) ? author : [author];
+  }, [author]);
+
+  const normalizedNote = useMemo(() => {
+    if (note === undefined) return undefined;
+    return Array.isArray(note) ? note : [note];
+  }, [note]);
 
   const body = useMemo(() => {
     if (isShowingContentByDate) {
@@ -229,15 +289,15 @@ function App() {
               <div className="PoemAndNoteContainer">
                 <div className="PoemContainer">
                   <Poem
-                    poemTitle={poemTitle}
-                    poem={poem}
+                    poemTitle={normalizedPoemTitle}
+                    poem={normalizedPoem}
                     setSearchedTerm={setSearchTerm}
-                    author={author}
+                    author={normalizedAuthor}
                     poemByline={poemByline}
                   />
                 </div>
                 <div className="NoteContainer">
-                  <Note note={note} />
+                  <Note note={normalizedNote} />
                 </div>
               </div>
             </div>
@@ -251,15 +311,15 @@ function App() {
 
               <div className="PoemContainerColumn">
                 <Poem
-                  poemTitle={poemTitle}
-                  poem={poem}
+                  poemTitle={normalizedPoemTitle}
+                  poem={normalizedPoem}
                   setSearchedTerm={setSearchTerm}
-                  author={author}
+                  author={normalizedAuthor}
                   poemByline={poemByline}
                 />
               </div>
               <div className="NoteContainerColumn">
-                <Note note={note} />
+                <Note note={normalizedNote} />
               </div>
             </div>
           )}
@@ -285,14 +345,16 @@ function App() {
     width,
     isShowing,
     transcript,
-    poemTitle,
-    poem,
-    author,
+    normalizedPoemTitle,
+    normalizedPoem,
+    normalizedAuthor,
     poemByline,
-    note,
+    normalizedNote,
     authorData,
     setSearchTerm,
     toggleViewMode,
+    formatAuthorDate,
+    setLinkDate,
   ]);
   //rewrite particlesComponent to not rerender unless the options change
   return (

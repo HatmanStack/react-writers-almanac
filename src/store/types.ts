@@ -14,16 +14,20 @@
 export interface ContentSlice {
   // State
   currentDate: string | undefined;
-  poem: string[] | undefined;
-  poemTitle: string[] | undefined;
-  author: string[] | undefined;
-  note: string[] | undefined;
+  poem: string | string[] | undefined;
+  poemTitle: string | string[] | undefined;
+  author: string | string[] | undefined;
+  note: string | string[] | undefined;
   isShowingContentByDate: boolean;
 
   // Actions
   setCurrentDate: (date: string | undefined) => void;
-  setPoemData: (data: { poem?: string[]; poemTitle?: string[]; note?: string[] }) => void;
-  setAuthorData: (data: { author?: string[] }) => void;
+  setPoemData: (data: {
+    poem?: string | string[];
+    poemTitle?: string | string[];
+    note?: string | string[];
+  }) => void;
+  setAuthorData: (data: { author?: string | string[] }) => void;
   toggleViewMode: () => void;
   resetContent: () => void;
 }
@@ -100,3 +104,16 @@ export type SliceCreator<T> = (
   set: (partial: Partial<AppStore> | ((state: AppStore) => Partial<AppStore>)) => void,
   get: () => AppStore
 ) => T;
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Normalizes a value to an array
+ * Handles both string and array inputs from API responses
+ */
+export function toArray<T>(value: T | T[] | undefined): T[] | undefined {
+  if (value === undefined) return undefined;
+  return Array.isArray(value) ? value : [value];
+}
