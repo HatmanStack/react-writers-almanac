@@ -1,4 +1,4 @@
-import Audio from './components/Audio';
+import Audio from './components/Audio/Audio';
 import Note from './components/Note';
 import Poem from './components/Poem';
 import Search from './components/Search';
@@ -395,7 +395,6 @@ function App() {
           <Audio
             isShowingContentbyDate={isShowingContentByDate}
             searchedTerm={searchTerm}
-            mp3Link={mp3Url}
             shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
             width={width}
             setIsShowing={setIsShowing}
@@ -432,7 +431,6 @@ function App() {
           <Audio
             isShowingContentbyDate={isShowingContentByDate}
             searchedTerm={searchTerm}
-            mp3Link={mp3Url}
             shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
             width={width}
             setIsShowing={setIsShowing}
