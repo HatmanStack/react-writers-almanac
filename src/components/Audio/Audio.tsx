@@ -52,7 +52,7 @@ function NavButton({ direction, imageSrc, altText, reverse = false, onClick }: N
  * - Only re-renders when props change
  */
 const Audio = memo(function Audio({
-  isShowingContentbyDate,
+  isShowingContentByDate,
   searchedTerm,
   shiftContentByAuthorOrDate,
   width,
@@ -75,7 +75,7 @@ const Audio = memo(function Audio({
   const heading = useMemo(() => {
     const isAvailable = mp3Url && mp3Url !== 'NotAvailable';
 
-    if (isShowingContentbyDate && isAvailable) {
+    if (isShowingContentByDate && isAvailable) {
       return (
         <div className="flex flex-col z-10">
           {width > 1000 ? (
@@ -121,7 +121,7 @@ const Audio = memo(function Audio({
           )}
         </div>
       );
-    } else if (!isShowingContentbyDate) {
+    } else if (!isShowingContentByDate) {
       return (
         <div className="z-10 flex justify-center items-center bg-app-container rounded-[3rem] px-2">
           <h3>{searchedTerm}</h3>
@@ -130,7 +130,7 @@ const Audio = memo(function Audio({
     } else {
       return <div></div>;
     }
-  }, [isShowingContentbyDate, mp3Url, width, isShowing, setIsShowing, searchedTerm]);
+  }, [isShowingContentByDate, mp3Url, width, isShowing, setIsShowing, searchedTerm]);
 
   return (
     <div>

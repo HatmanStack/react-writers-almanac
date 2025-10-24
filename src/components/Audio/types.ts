@@ -6,7 +6,7 @@ export interface AudioProps {
   /**
    * Whether the app is showing content by date (vs by search/author)
    */
-  isShowingContentbyDate: boolean;
+  isShowingContentByDate: boolean;
 
   /**
    * The current search term (shown when not in date mode)
