@@ -35,7 +35,9 @@ describe('Audio Component', () => {
   describe('Rendering', () => {
     it('should render without crashing', () => {
       render(<Audio {...defaultProps} />);
-      expect(screen.getByRole('button', { name: /previous button/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /navigate to previous content/i })
+      ).toBeInTheDocument();
     });
 
     it('should render audio player when mp3Url is available and showing content by date', () => {
@@ -75,15 +77,15 @@ describe('Audio Component', () => {
   describe('Navigation', () => {
     it('should render previous and next buttons', () => {
       render(<Audio {...defaultProps} />);
-      const prevButton = screen.getByRole('button', { name: /previous button/i });
-      const nextButton = screen.getByRole('button', { name: /next button/i });
+      const prevButton = screen.getByRole('button', { name: /navigate to previous content/i });
+      const nextButton = screen.getByRole('button', { name: /navigate to next content/i });
       expect(prevButton).toBeInTheDocument();
       expect(nextButton).toBeInTheDocument();
     });
 
     it('should call shiftContentByAuthorOrDate with "back" when previous button is clicked', () => {
       render(<Audio {...defaultProps} />);
-      const prevButton = screen.getByRole('button', { name: /previous button/i });
+      const prevButton = screen.getByRole('button', { name: /navigate to previous content/i });
       fireEvent.click(prevButton);
       expect(mockShiftContent).toHaveBeenCalledWith('back');
       expect(mockShiftContent).toHaveBeenCalledTimes(1);
@@ -91,7 +93,7 @@ describe('Audio Component', () => {
 
     it('should call shiftContentByAuthorOrDate with "forward" when next button is clicked', () => {
       render(<Audio {...defaultProps} />);
-      const nextButton = screen.getByRole('button', { name: /next button/i });
+      const nextButton = screen.getByRole('button', { name: /navigate to next content/i });
       fireEvent.click(nextButton);
       expect(mockShiftContent).toHaveBeenCalledWith('forward');
       expect(mockShiftContent).toHaveBeenCalledTimes(1);
@@ -134,8 +136,8 @@ describe('Audio Component', () => {
 
     it('should render navigation buttons in mobile layout', () => {
       render(<Audio {...defaultProps} width={800} />);
-      const prevButton = screen.getByRole('button', { name: /previous button/i });
-      const nextButton = screen.getByRole('button', { name: /next button/i });
+      const prevButton = screen.getByRole('button', { name: /navigate to previous content/i });
+      const nextButton = screen.getByRole('button', { name: /navigate to next content/i });
       expect(prevButton).toBeInTheDocument();
       expect(nextButton).toBeInTheDocument();
     });

@@ -29,6 +29,7 @@ function NavButton({ direction, imageSrc, altText, reverse = false, onClick }: N
       <button
         className="scale-[0.7] bg-app-container border-none"
         onClick={() => onClick(direction)}
+        aria-label={`Navigate to ${direction === 'back' ? 'previous' : 'next'} content`}
       >
         <img className="ButtonImage" src={imageSrc} alt={altText} />
       </button>
@@ -89,6 +90,8 @@ const Audio = memo(function Audio({
               <button
                 className="bg-transparent border-none cursor-pointer overflow-hidden outline-none font-bold text-xs text-app-container z-10"
                 onClick={() => setIsShowing(!isShowing)}
+                aria-label={`${isShowing ? 'Hide' : 'Show'} transcript`}
+                aria-expanded={isShowing}
               >
                 Transcript
               </button>
@@ -109,6 +112,8 @@ const Audio = memo(function Audio({
               <button
                 className="bg-transparent border-none cursor-pointer overflow-hidden outline-none font-bold text-xs text-app-container z-10"
                 onClick={() => setIsShowing(!isShowing)}
+                aria-label={`${isShowing ? 'Hide' : 'Show'} transcript`}
+                aria-expanded={isShowing}
               >
                 Transcript
               </button>

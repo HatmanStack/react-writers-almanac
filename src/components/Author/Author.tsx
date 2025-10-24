@@ -54,6 +54,7 @@ function Author({
           <button
             className="bg-app-bg text-app-text border-none font-bold text-base cursor-pointer px-4 py-2 rounded-[2rem]"
             onClick={() => refetch()}
+            aria-label="Retry loading author data"
           >
             Retry
           </button>
@@ -116,6 +117,7 @@ function Author({
               <button
                 className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center z-10 rounded-[3rem] px-4 py-4"
                 onClick={() => handleClick(item.date)}
+                aria-label={`View poem from ${item.date}${item.title ? `: ${item.title.replaceAll(/[^\x20-\x7E]/g, '')}` : ''}`}
               >
                 {item.date}
               </button>
