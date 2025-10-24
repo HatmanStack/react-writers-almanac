@@ -2,24 +2,12 @@
  * Tests for API client configuration and interceptors
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import axios from 'axios';
 import { cdnClient, apiClient } from './client';
 
-// Mock console methods to avoid noise in tests
-const originalConsole = { ...console };
-
 describe('API Client', () => {
-  beforeEach(() => {
-    // Suppress console logs in tests
-    console.log = vi.fn();
-    console.error = vi.fn();
-  });
-
   afterEach(() => {
-    // Restore console
-    console.log = originalConsole.log;
-    console.error = originalConsole.error;
     vi.clearAllMocks();
   });
 

@@ -39,12 +39,9 @@ export const apiClient: AxiosInstance = axios.create({
 });
 
 /**
- * Request interceptor - add request logging in development
+ * Request interceptor - passes through config
  */
 const requestInterceptor = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-  if (import.meta.env.DEV) {
-    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
-  }
   return config;
 };
 
@@ -52,9 +49,6 @@ const requestInterceptor = (config: InternalAxiosRequestConfig): InternalAxiosRe
  * Response interceptor - handle successful responses
  */
 const responseInterceptor = (response: AxiosResponse): AxiosResponse => {
-  if (import.meta.env.DEV) {
-    console.log(`[API Response] ${response.status} ${response.config.url}`);
-  }
   return response;
 };
 
@@ -71,10 +65,6 @@ const errorInterceptor = (error: AxiosError): Promise<never> => {
       timestamp: new Date().toISOString(),
     };
 
-    if (import.meta.env.DEV) {
-      console.error('[API Error]', apiError);
-    }
-
     return Promise.reject(apiError);
   }
 
@@ -86,10 +76,6 @@ const errorInterceptor = (error: AxiosError): Promise<never> => {
     details: error.response.data as Record<string, unknown>,
     timestamp: (error.response.data as any)?.timestamp || new Date().toISOString(),
   };
-
-  if (import.meta.env.DEV) {
-    console.error('[API Error]', apiError);
-  }
 
   return Promise.reject(apiError);
 };
