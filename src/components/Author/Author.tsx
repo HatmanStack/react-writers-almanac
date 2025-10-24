@@ -1,4 +1,5 @@
-import { memo, useMemo, useCallback } from 'react';
+import { memo, useMemo, useCallback, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import type { AuthorProps } from './types';
 import { useAuthorQuery } from '../../hooks/queries/useAuthorQuery';
 import type { AuthorSource, PoemItem } from '../../types/author';
@@ -124,30 +125,112 @@ function Author({
         </section>
       )}
 
-      {/* Poems list section */}
-      {poems.length > 0 && (
-        <section>
-          {poems.map((item, index) => (
-            <div key={index} className="flex justify-center">
-              {width <= 1000 && <div className="flex-[1_0_auto]" />}
-              <button
-                className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center z-10 rounded-[3rem] px-4 py-4 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                onClick={() => handleClick(item.date)}
-                aria-label={`View poem from ${item.date}${item.title ? `: ${item.title.replaceAll(/[^\x20-\x7E]/g, '')}` : ''}`}
-              >
-                {item.date}
-              </button>
-              {item.title ? (
-                <div className="m-4 flex justify-left items-left z-10 bg-app-container rounded-[3rem] px-4 py-4">
-                  {item.title.replaceAll(/[^\x20-\x7E]/g, '')}
-                </div>
-              ) : null}
-            </div>
-          ))}
-        </section>
-      )}
+      {/* Poems list section - virtualized for long lists (>50 items) */}
+      {poems.length > 0 &&
+        (poems.length > 50 ? (
+          <VirtualizedPoemsList poems={poems} width={width} handleClick={handleClick} />
+        ) : (
+          <section>
+            {poems.map((item, index) => (
+              <div key={index} className="flex justify-center">
+                {width <= 1000 && <div className="flex-[1_0_auto]" />}
+                <button
+                  className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center z-10 rounded-[3rem] px-4 py-4 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  onClick={() => handleClick(item.date)}
+                  aria-label={`View poem from ${item.date}${item.title ? `: ${item.title.replaceAll(/[^\x20-\x7E]/g, '')}` : ''}`}
+                >
+                  {item.date}
+                </button>
+                {item.title ? (
+                  <div className="m-4 flex justify-left items-left z-10 bg-app-container rounded-[3rem] px-4 py-4">
+                    {item.title.replaceAll(/[^\x20-\x7E]/g, '')}
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </section>
+        ))}
     </div>
   );
 }
+
+/**
+ * Virtualized Poems List Component
+ * Uses TanStack Virtual for efficient rendering of long lists
+ */
+interface VirtualizedPoemsListProps {
+  poems: PoemItem[];
+  width: number;
+  handleClick: (date: string) => void;
+}
+
+const VirtualizedPoemsList = memo(function VirtualizedPoemsList({
+  poems,
+  width,
+  handleClick,
+}: VirtualizedPoemsListProps) {
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  // Setup virtualizer for efficient rendering of long lists
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const rowVirtualizer = useVirtualizer({
+    count: poems.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 80, // Estimated row height in pixels
+    overscan: 5, // Number of items to render outside visible area
+  });
+
+  return (
+    <section
+      ref={parentRef}
+      style={{
+        height: '600px',
+        overflow: 'auto',
+      }}
+      aria-label="List of poems by author"
+    >
+      <div
+        style={{
+          height: `${rowVirtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {rowVirtualizer.getVirtualItems().map(virtualRow => {
+          const item = poems[virtualRow.index];
+          return (
+            <div
+              key={virtualRow.index}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: `${virtualRow.size}px`,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              <div className="flex justify-center">
+                {width <= 1000 && <div className="flex-[1_0_auto]" />}
+                <button
+                  className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center z-10 rounded-[3rem] px-4 py-4 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  onClick={() => handleClick(item.date)}
+                  aria-label={`View poem from ${item.date}${item.title ? `: ${item.title.replaceAll(/[^\x20-\x7E]/g, '')}` : ''}`}
+                >
+                  {item.date}
+                </button>
+                {item.title ? (
+                  <div className="m-4 flex justify-left items-left z-10 bg-app-container rounded-[3rem] px-4 py-4">
+                    {item.title.replaceAll(/[^\x20-\x7E]/g, '')}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+});
 
 export default memo(Author);
