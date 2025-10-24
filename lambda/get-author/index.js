@@ -50,6 +50,7 @@ function getCorsHeaders() {
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Content-Type': 'application/json',
+    'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
   };
 }
 
