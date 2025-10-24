@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '../utils';
 
 interface PoemProps {
   poemTitle: string[] | undefined;
@@ -25,7 +25,7 @@ const Poem = memo(function Poem({
               <button
                 className="text-base bg-transparent bg-no-repeat border-none cursor-pointer overflow-hidden outline-none font-bold text-app-text flex-[2_0_0] justify-center"
                 dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(poemTitle[index]).replaceAll(/[^\x20-\x7E]/g, ''),
+                  __html: sanitizeHtml(poemTitle[index], true),
                 }}
                 onClick={() => setSearchedTerm(poemTitle[index])}
                 aria-label={`Search for poem: ${poemTitle[index]}`}
@@ -40,10 +40,7 @@ const Poem = memo(function Poem({
                 by{' '}
                 <span
                   dangerouslySetInnerHTML={{
-                    __html:
-                      (author &&
-                        DOMPurify.sanitize(author[index]).replaceAll(/[^\x20-\x7E]/g, '')) ||
-                      '',
+                    __html: (author && sanitizeHtml(author[index], true)) || '',
                   }}
                 />
               </button>
@@ -52,8 +49,7 @@ const Poem = memo(function Poem({
             <br />
             <div
               dangerouslySetInnerHTML={{
-                __html:
-                  (poem && DOMPurify.sanitize(poem[index]).replaceAll(/[^\x20-\x7E]/g, '')) || '',
+                __html: (poem && sanitizeHtml(poem[index], true)) || '',
               }}
             />
             <br />
@@ -62,7 +58,7 @@ const Poem = memo(function Poem({
               <div
                 className="text-sm italic text-app-text mt-2"
                 dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(poemByline).replaceAll(/[^\x20-\x7E]/g, ''),
+                  __html: sanitizeHtml(poemByline, true),
                 }}
               />
             )}

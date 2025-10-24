@@ -3,16 +3,6 @@
  */
 
 /**
- * Individual poem item from author search results
- */
-export interface PoemItem {
-  /** Publication date of the poem */
-  date: string;
-  /** Title of the poem */
-  title?: string;
-}
-
-/**
  * Props for the Author component
  */
 export interface AuthorProps {
@@ -22,10 +12,9 @@ export interface AuthorProps {
   setIsShowingContentByDate: (isShowing: boolean) => void;
 
   /**
-   * Array of poems by this author (search results)
-   * Can be any type from the API, typed as any for flexibility
+   * Author name or slug for fetching data
    */
-  authorData: any;
+  authorName: string;
 
   /**
    * Function to format author date strings

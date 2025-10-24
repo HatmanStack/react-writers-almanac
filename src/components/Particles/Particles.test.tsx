@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 
+// Mock react-use
+vi.mock('react-use', () => ({
+  useWindowSize: vi.fn(() => ({ width: 1200, height: 800 })),
+}));
+
 // Mock tsparticles-slim
 vi.mock('tsparticles-slim', () => ({
   loadSlim: vi.fn(),
@@ -17,6 +22,7 @@ vi.mock('react-particles', () => ({
 
 import ParticlesComponent from './Particles';
 import Particles from 'react-particles';
+import { useWindowSize } from 'react-use';
 
 describe('Particles Component', () => {
   beforeEach(() => {
@@ -120,26 +126,57 @@ describe('Particles Component', () => {
       expect(callArgs.init).toBeDefined();
       expect(typeof callArgs.init).toBe('function');
     });
+  });
 
-    it('should provide loaded callback', () => {
+  describe('Responsive Behavior', () => {
+    it('should use 300 particles on desktop (width > 1000)', () => {
+      (useWindowSize as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+        width: 1200,
+        height: 800,
+      });
       render(<ParticlesComponent />);
 
       const callArgs = (Particles as any).mock.calls[0][0];
-      expect(callArgs.loaded).toBeDefined();
-      expect(typeof callArgs.loaded).toBe('function');
+      expect(callArgs.options.particles.number.value).toBe(300);
     });
 
-    it('should log when particles are loaded', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
+    it('should use 150 particles on mobile (width <= 1000)', () => {
+      (useWindowSize as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+        width: 800,
+        height: 600,
+      });
       render(<ParticlesComponent />);
 
       const callArgs = (Particles as any).mock.calls[0][0];
-      await callArgs.loaded();
+      expect(callArgs.options.particles.number.value).toBe(150);
+    });
 
-      expect(consoleSpy).toHaveBeenCalledWith('particlesLoaded');
+    it('should adjust density area based on screen size', () => {
+      // Desktop
+      (useWindowSize as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+        width: 1200,
+        height: 800,
+      });
+      const { unmount } = render(<ParticlesComponent />);
+      const desktopArgs = (Particles as any).mock.calls[0][0];
+      expect(desktopArgs.options.particles.number.density.value_area).toBe(1202.559045649142);
+      unmount();
 
-      consoleSpy.mockRestore();
+      vi.clearAllMocks();
+
+      // Mobile
+      (useWindowSize as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+        width: 800,
+        height: 600,
+      });
+      render(<ParticlesComponent />);
+      const mobileArgs = (Particles as any).mock.calls[0][0];
+      expect(mobileArgs.options.particles.number.density.value_area).toBe(800);
+    });
+
+    it('should use useWindowSize hook', () => {
+      render(<ParticlesComponent />);
+      expect(useWindowSize).toHaveBeenCalled();
     });
   });
 });

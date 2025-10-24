@@ -25,6 +25,14 @@ export interface AuthorMetadata {
 }
 
 /**
+ * Poem item with date and optional title
+ */
+export interface PoemItem {
+  date: string;
+  title?: string;
+}
+
+/**
  * Data from a single source (Poetry Foundation, Wikipedia, etc.)
  */
 export interface AuthorSource {
@@ -34,8 +42,8 @@ export interface AuthorSource {
   biography?: string;
   /** URL to author photo */
   photo?: string;
-  /** Poems by this author (if available) */
-  poems?: string | string[];
+  /** Poems by this author (if available) - can be strings or objects with date/title */
+  poems?: string | string[] | PoemItem[];
   /** Source name */
   source?: string;
   /** Source URL */

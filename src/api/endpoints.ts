@@ -4,6 +4,8 @@
  * Centralized endpoint definitions for all API calls
  */
 
+import { formatDate, slugify } from '../utils';
+
 /**
  * CDN Endpoints (CloudFront)
  * Static content served from S3 via CloudFront
@@ -77,13 +79,7 @@ export const API_ENDPOINTS = {
  * @returns Slug (e.g., "billy-collins")
  */
 export function nameToSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/-+/g, '-') // Replace multiple hyphens with single
-    .replace(/^-+|-+$/g, ''); // Trim leading/trailing hyphens
+  return slugify(name);
 }
 
 /**
@@ -93,10 +89,7 @@ export function nameToSlug(name: string): string {
  * @example formatDateToYYYYMMDD(new Date("2024-01-01")) → "20240101"
  */
 export function formatDateToYYYYMMDD(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
+  return formatDate(date);
 }
 
 /**

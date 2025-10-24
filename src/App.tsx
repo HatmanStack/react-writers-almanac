@@ -13,13 +13,17 @@ import axios from 'axios';
 import ParticlesComponent from './components/Particles/Particles';
 import { useAppStore } from './store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
-import type { Author as AuthorData } from './types/author';
+import { formatDate as formatDateUtil } from './utils';
 
+/**
+ * Format date with business logic for min/max date boundaries
+ * @param date - Date to format
+ * @param notToday - Apply min/max boundaries (default: true)
+ * @param separator - Separator character (default: '')
+ * @returns Formatted date string (YYYYMMDD or YYYY<sep>MM<sep>DD)
+ */
 function formatDate(date: Date, notToday: boolean = true, separator: string = ''): string {
-  const day = date.getDate();
-  const month = date.getMonth() + 1;
-  const year = date.getFullYear();
-  let formattedDate = `${year}${separator}${month < 10 ? `0${month}` : `${month}`}${separator}${day < 10 ? `0${day}` : `${day}`}`;
+  let formattedDate = formatDateUtil(date, separator);
   if (notToday) {
     if (Number(formattedDate) < 19930101) {
       formattedDate = '19930101';
@@ -121,7 +125,6 @@ function App() {
   const [linkDate, setLinkDate] = useState<string>(presentDate);
   const [day, setDay] = useState<string | undefined>();
   const [poemByline, setPoemByline] = useState<string | undefined>();
-  const [authorData, setLocalAuthorData] = useState<AuthorData | undefined>();
   const { width } = useWindowSize();
   const [isShowing, setIsShowing] = useState<boolean>(false);
 
@@ -168,23 +171,8 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    if (isShowingContentByDate) {
-      toggleViewMode();
-    }
-    async function getData() {
-      let link = `poem/${searchTerm}`;
-      if (sortedAuthors.includes(searchTerm)) {
-        link = `author/${searchTerm}`;
-      }
-      axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.json').then(response => {
-        const data = response.data;
-
-        setLocalAuthorData(data);
-      });
-    }
-    getData();
-  }, [searchTerm, isShowingContentByDate, toggleViewMode]);
+  // Author data is now fetched by the Author component using TanStack Query
+  // No need for local author data fetching here
 
   useEffect(() => {
     if (!isShowingContentByDate) {
@@ -298,7 +286,7 @@ function App() {
                   />
                 </div>
                 <div className="flex-[1_3_0] z-10 bg-app-container rounded-r-[3rem] flex p-4 mr-20">
-                  <Note note={normalizedNote} />
+                  <Note />
                 </div>
               </div>
             </div>
@@ -322,7 +310,7 @@ function App() {
                 />
               </div>
               <div className="z-10 bg-app-container rounded-b-[3rem] p-4">
-                <Note note={normalizedNote} />
+                <Note />
               </div>
             </div>
           )}
@@ -330,17 +318,13 @@ function App() {
       );
     } else {
       return (
-        <>
-          {authorData && (
-            <Author
-              setIsShowingContentByDate={toggleViewMode}
-              authorData={authorData}
-              formatAuthorDate={formatAuthorDate}
-              setLinkDate={setLinkDate}
-              width={width}
-            />
-          )}
-        </>
+        <Author
+          setIsShowingContentByDate={toggleViewMode}
+          authorName={searchTerm}
+          formatAuthorDate={formatAuthorDate}
+          setLinkDate={setLinkDate}
+          width={width}
+        />
       );
     }
   }, [
@@ -353,7 +337,7 @@ function App() {
     normalizedAuthor,
     poemByline,
     normalizedNote,
-    authorData,
+    searchTerm,
     setSearchTerm,
     toggleViewMode,
     formatAuthorDate,

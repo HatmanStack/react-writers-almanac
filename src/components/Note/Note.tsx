@@ -1,6 +1,7 @@
-import DOMPurify from 'dompurify';
+import { memo } from 'react';
 import divider from '../../assets/divider.png';
-import type { NoteProps } from './types';
+import { useAppStore } from '../../store/useAppStore';
+import { sanitizeHtml } from '../../utils';
 
 /**
  * Note Component - Displays historical notes with sanitized HTML content
@@ -10,22 +11,32 @@ import type { NoteProps } from './types';
  * - Removes non-ASCII characters
  * - Shows divider between multiple notes
  * - Responsive text wrapping
+ *
+ * State Management:
+ * - Uses Zustand store for note data (no prop drilling)
+ * - Wrapped in React.memo for performance
  */
-export default function Note({ note }: NoteProps) {
-  if (!note || note.length === 0) {
+const Note = memo(function Note() {
+  // Get note from Zustand store
+  const note = useAppStore(state => state.note);
+
+  // Normalize note to array (handle both string and string[])
+  const noteArray = Array.isArray(note) ? note : note ? [note] : [];
+
+  if (noteArray.length === 0) {
     return null;
   }
 
   return (
     <div>
-      {note.map((string, index) => (
+      {noteArray.map((string: string, index: number) => (
         <div key={index} className="text-xs mx-8 my-8 text-pretty">
           <div
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(string).replaceAll(/[^\x20-\x7E]/g, ''),
+              __html: sanitizeHtml(string, true),
             }}
           />
-          {index < note.length - 1 && (
+          {index < noteArray.length - 1 && (
             <div>
               <br />
               <img src={divider} alt="divider" className="w-[10%] h-auto" />
@@ -35,4 +46,6 @@ export default function Note({ note }: NoteProps) {
       ))}
     </div>
   );
-}
+});
+
+export default Note;

@@ -1,11 +1,11 @@
 /**
  * Note Component Types
+ *
+ * Note: This component gets its data from Zustand store,
+ * so it has no props. This file is kept for consistency
+ * with other components.
  */
 
-export interface NoteProps {
-  /**
-   * Array of note strings (HTML content)
-   * Each note may contain HTML that needs sanitization
-   */
-  note: string[] | undefined;
-}
+// No props needed - component uses useAppStore internally
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface NoteProps {}
