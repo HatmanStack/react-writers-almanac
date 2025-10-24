@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import DOMPurify from 'dompurify';
 
 interface PoemProps {
@@ -8,7 +9,13 @@ interface PoemProps {
   poemByline: string | undefined;
 }
 
-export default function Poem({ poemTitle, poem, setSearchedTerm, author, poemByline }: PoemProps) {
+const Poem = memo(function Poem({
+  poemTitle,
+  poem,
+  setSearchedTerm,
+  author,
+  poemByline,
+}: PoemProps) {
   return (
     <div>
       {poemTitle &&
@@ -53,7 +60,7 @@ export default function Poem({ poemTitle, poem, setSearchedTerm, author, poemByl
             <br />
             {index === poemTitle.length - 1 && poemByline && (
               <div
-                className="PoemByline"
+                className="text-sm italic text-app-text mt-2"
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(poemByline).replaceAll(/[^\x20-\x7E]/g, ''),
                 }}
@@ -63,4 +70,6 @@ export default function Poem({ poemTitle, poem, setSearchedTerm, author, poemByl
         ))}
     </div>
   );
-}
+});
+
+export default Poem;
