@@ -15,24 +15,19 @@ export class NavigationHelpers {
   }
 
   /**
-   * Navigate to a specific date
-   * @param date - Date in YYYYMMDD format (e.g., "20240101")
-   */
-  async goToDate(date: string) {
-    // This would depend on how date navigation is implemented
-    // For now, assume there's a date picker or URL parameter
-    await this.page.goto(`/?date=${date}`);
-    await this.page.waitForLoadState('networkidle');
-  }
-
-  /**
    * Search for an author
    * @param query - Search query string
    */
   async searchAuthor(query: string) {
     const searchInput = this.page.getByRole('textbox', { name: /search/i });
     await searchInput.fill(query);
-    await this.page.waitForTimeout(500); // Wait for autocomplete
+    // Wait for autocomplete dropdown to appear
+    await this.page
+      .locator('[role="listbox"]')
+      .waitFor({ state: 'visible', timeout: 3000 })
+      .catch(() => {
+        // Autocomplete might not show if no results
+      });
   }
 
   /**
@@ -66,9 +61,12 @@ export class NavigationHelpers {
    * Open the date picker
    */
   async openDatePicker() {
-    const datePicker = this.page.getByRole('button', { name: /select date|date picker/i });
+    const datePicker = this.page.getByRole('button', { name: /calendar/i });
     await datePicker.click();
-    await this.page.waitForTimeout(300); // Wait for picker to open
+    // Wait for picker dialog to be visible
+    await this.page
+      .locator('[role="dialog"], .MuiPickersPopper-root, .MuiDateCalendar-root')
+      .waitFor({ state: 'visible', timeout: 3000 });
   }
 
   /**
@@ -110,8 +108,8 @@ export class AssertionHelpers {
    * Assert that poem content is visible
    */
   async expectPoemContent() {
-    // Look for poem container or poem lines
-    const poemContent = this.page.locator('[data-testid="poem-content"]');
+    // Look for poem container using semantic selectors
+    const poemContent = this.page.locator('article, .poem, .poem-content').first();
     await poemContent.waitFor({ state: 'visible' });
   }
 
@@ -136,7 +134,7 @@ export class AssertionHelpers {
    * Assert that audio player is visible
    */
   async expectAudioPlayerVisible() {
-    const audioPlayer = this.page.locator('audio, [data-testid="audio-player"]');
+    const audioPlayer = this.page.locator('audio');
     await audioPlayer.waitFor({ state: 'visible' });
   }
 
@@ -174,7 +172,7 @@ export class AssertionHelpers {
    * Assert that search results are visible
    */
   async expectSearchResults() {
-    const results = this.page.locator('[role="listbox"], [data-testid="search-results"]');
+    const results = this.page.locator('[role="listbox"]');
     await results.waitFor({ state: 'visible' });
   }
 
