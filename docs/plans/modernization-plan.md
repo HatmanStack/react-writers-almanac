@@ -4,7 +4,7 @@
 
 This document provides a comprehensive, step-by-step plan to modernize the Writers Almanac React application. The plan transforms a JavaScript/CRA application into a modern TypeScript/Vite application with comprehensive testing, strict code quality standards, performance optimizations, and a serverless backend API.
 
-**Total Estimated Effort**: ~1,050,000 tokens across 9 phases
+**Total Estimated Effort**: ~1,500,000-2,000,000 tokens across 9 phases (realistic estimate including debugging and iterations)
 **Target Completion**: Sequential implementation with commits after each task, single PR at completion
 
 ---
@@ -104,14 +104,14 @@ npm install
 ## Phase Breakdown
 
 ### Phase 0: Preparation & Branch Setup
-**Token Estimate**: 5,000 tokens
+**Token Estimate**: 13,000 tokens
 **Duration**: Preparation phase
-**Tasks**: 2 tasks
+**Tasks**: 3 tasks
 
 ### Phase 1: Foundation - Build System & TypeScript
-**Token Estimate**: 145,000 tokens
+**Token Estimate**: 170,000 tokens
 **Duration**: Core infrastructure migration
-**Tasks**: 12 tasks
+**Tasks**: 15 tasks
 
 ### Phase 2: Data Layer & Backend API
 **Token Estimate**: 150,000 tokens
@@ -153,15 +153,15 @@ npm install
 **Duration**: Cleanup and documentation
 **Tasks**: 6 tasks
 
-**Total Estimated Tokens**: ~1,050,000 tokens across 87 tasks
+**Total Estimated Tokens**: ~1,500,000-2,000,000 tokens across 93 tasks (includes realistic debugging overhead)
 
 ---
 
 ## PHASE 0: Preparation & Branch Setup
 
-**Phase Goal**: Document current state and prepare for migration.
+**Phase Goal**: Document current state, verify environment, and confirm AWS infrastructure readiness.
 
-**Phase Token Estimate**: 5,000 tokens
+**Phase Token Estimate**: 13,000 tokens
 
 ---
 
@@ -240,13 +240,72 @@ npm run build
 
 ---
 
+### Task 0.3: Verify AWS Infrastructure Prerequisites
+**Token Estimate**: 8,000 tokens
+
+**Description**: Verify AWS infrastructure is set up and accessible before starting Phase 2 backend work.
+
+**Prerequisites to Verify**:
+1. AWS account access configured
+2. S3 bucket exists and is accessible
+3. CloudFront distribution is configured
+4. Ability to upload files to S3
+5. IAM permissions for Lambda deployment
+6. API Gateway access (if needed)
+
+**How to Verify**:
+```bash
+# Test AWS CLI access
+aws sts get-caller-identity
+
+# Verify S3 bucket access
+aws s3 ls s3://your-bucket-name/
+
+# Test file upload to S3
+echo "test" > test.txt
+aws s3 cp test.txt s3://your-bucket-name/test/
+aws s3 rm s3://your-bucket-name/test/test.txt
+rm test.txt
+
+# Verify CloudFront distribution
+aws cloudfront list-distributions
+```
+
+**Document Required Information**:
+- S3 bucket name
+- CloudFront distribution URL
+- AWS region
+- IAM role ARNs (if applicable)
+- Any existing API Gateway endpoints
+
+**Files to Create**:
+- `docs/aws-infrastructure.md` - Document all AWS resource identifiers
+
+**What to Document**:
+1. S3 bucket name and region
+2. CloudFront distribution ID and URL
+3. AWS credentials configuration method
+4. IAM roles and permissions
+5. Any existing Lambda functions
+6. API Gateway information (if exists)
+
+**Testing**: All AWS CLI commands execute successfully, resources are accessible.
+
+**Documentation to Reference**:
+- AWS CLI Configuration: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html
+- AWS S3 CLI: https://docs.aws.amazon.com/cli/latest/reference/s3/
+
+**Commit Message**: `docs: verify and document AWS infrastructure prerequisites`
+
+---
+
 ## PHASE 1: Foundation - Build System & TypeScript
 
-**Phase Goal**: Migrate from Create React App to Vite and establish TypeScript foundation.
+**Phase Goal**: Migrate from Create React App to Vite and establish TypeScript foundation with testing infrastructure.
 
-**Phase Token Estimate**: 145,000 tokens
+**Phase Token Estimate**: 170,000 tokens
 
-**Big Bang Approach**: All build configuration and core setup completed in this phase. No CRA artifacts remain.
+**Big Bang Approach**: All build configuration and core setup completed in this phase. Vite fully working before CRA removed. Testing framework (Vitest) configured early for TDD in subsequent phases.
 
 ---
 
@@ -263,23 +322,25 @@ npm run build
 - `@babel/eslint-parser`
 - `@babel/preset-react`
 
-**Dependencies to Add**:
+**Dependencies to Add** (specific versions locked for reproducibility):
 ```bash
-npm install -D vite @vitejs/plugin-react
-npm install -D typescript @types/react @types/react-dom @types/node
+npm install -D vite@5.0.12 @vitejs/plugin-react@4.2.1
+npm install -D typescript@5.3.3 @types/react@18.2.48 @types/react-dom@18.2.18 @types/node@20.11.5
 ```
 
 **How to Complete**:
 ```bash
-# Remove CRA
-npm uninstall react-scripts @babel/eslint-parser @babel/preset-react
+# Remove CRA (don't remove yet - see Task 1.8)
+# npm uninstall react-scripts @babel/eslint-parser @babel/preset-react
 
-# Install Vite
-npm install -D vite@latest @vitejs/plugin-react@latest
+# Install Vite (alongside CRA temporarily)
+npm install -D vite@5.0.12 @vitejs/plugin-react@4.2.1
 
 # Install TypeScript
-npm install -D typescript@latest @types/react@latest @types/react-dom@latest @types/node@latest
+npm install -D typescript@5.3.3 @types/react@18.2.48 @types/react-dom@18.2.18 @types/node@20.11.5
 ```
+
+**Note**: CRA (react-scripts) will be removed in Task 1.8 after Vite is proven working. This ensures the app remains deployable throughout Phase 1.
 
 **Testing**: Verify package.json has new dependencies, node_modules updated.
 
@@ -585,11 +646,20 @@ npm run preview
 - Build completes successfully
 - Preview serves built app
 
+**After Vite is Confirmed Working**:
+```bash
+# Now it's safe to remove CRA
+npm uninstall react-scripts @babel/eslint-parser @babel/preset-react
+
+# Verify package.json no longer has these dependencies
+cat package.json | grep react-scripts  # Should return nothing
+```
+
 **Documentation to Reference**:
 - Vite Troubleshooting: https://vitejs.dev/guide/troubleshooting.html
 - Vite Static Assets: https://vitejs.dev/guide/assets.html
 
-**Commit Message**: `fix: resolve Vite build and import issues`
+**Commit Message**: `fix: resolve Vite build issues and remove Create React App`
 
 ---
 
@@ -602,13 +672,13 @@ npm run preview
 - `.eslintrc.json` → `.eslintrc.cjs`
 - `package.json`
 
-**Dependencies to Install**:
+**Dependencies to Install** (specific versions):
 ```bash
-npm install -D eslint@latest
-npm install -D @typescript-eslint/parser@latest
-npm install -D @typescript-eslint/eslint-plugin@latest
-npm install -D eslint-plugin-react@latest
-npm install -D eslint-plugin-react-hooks@latest
+npm install -D eslint@8.56.0
+npm install -D @typescript-eslint/parser@6.19.0
+npm install -D @typescript-eslint/eslint-plugin@6.19.0
+npm install -D eslint-plugin-react@7.33.2
+npm install -D eslint-plugin-react-hooks@4.6.0
 ```
 
 **ESLint Configuration Requirements**:
@@ -646,11 +716,11 @@ npm install -D eslint-plugin-react-hooks@latest
 **Files to Modify**:
 - `package.json`
 
-**Dependencies to Install**:
+**Dependencies to Install** (specific versions):
 ```bash
-npm install -D prettier@latest
-npm install -D eslint-config-prettier@latest
-npm install -D eslint-plugin-prettier@latest
+npm install -D prettier@3.2.4
+npm install -D eslint-config-prettier@9.1.0
+npm install -D eslint-plugin-prettier@5.1.3
 ```
 
 **Prettier Configuration**:
@@ -677,10 +747,10 @@ npm install -D eslint-plugin-prettier@latest
 
 ---
 
-### Task 1.12: Install and Configure Husky Pre-commit Hooks
+### Task 1.12: Install and Configure Husky Pre-commit Hooks (Non-blocking)
 **Token Estimate**: 18,000 tokens
 
-**Description**: Install Husky and lint-staged for pre-commit code quality checks.
+**Description**: Install Husky and lint-staged for pre-commit code quality checks. Configure as NON-BLOCKING to allow commits during migration phases when TypeScript errors still exist.
 
 **Files to Create**:
 - `.husky/pre-commit`
@@ -688,21 +758,21 @@ npm install -D eslint-plugin-prettier@latest
 **Files to Modify**:
 - `package.json`
 
-**Dependencies to Install**:
+**Dependencies to Install** (specific versions):
 ```bash
-npm install -D husky@latest
-npm install -D lint-staged@latest
+npm install -D husky@8.0.3
+npm install -D lint-staged@15.2.0
 ```
 
 **Configuration Requirements**:
 1. Husky pre-commit hook
 2. Lint-staged to run ESLint and Prettier on staged files
-3. Type checking on commit
+3. **NON-BLOCKING**: Use --max-warnings flag to show errors but allow commits
 
 **How to Complete**:
 ```bash
 # Install husky
-npm install -D husky lint-staged
+npm install -D husky@8.0.3 lint-staged@15.2.0
 
 # Initialize husky
 npx husky init
@@ -715,19 +785,75 @@ Add to package.json:
 ```json
 "lint-staged": {
   "*.{ts,tsx}": [
-    "eslint --fix",
+    "eslint --fix --max-warnings=9999",
     "prettier --write"
   ]
 }
 ```
 
-**Testing**: Make a small change, stage it, try to commit - should run lint-staged.
+**IMPORTANT**: The `--max-warnings=9999` flag makes ESLint non-blocking. This allows commits during migration when TypeScript errors exist. This will be changed to `--max-warnings=0` in Phase 9 after all code is clean.
+
+**Testing**: Make a small change with intentional error, stage it, commit - should show warnings but allow commit.
 
 **Documentation to Reference**:
 - Husky: https://typicode.github.io/husky/
 - Lint-staged: https://github.com/okonet/lint-staged
 
-**Commit Message**: `build: add Husky pre-commit hooks with lint-staged`
+**Commit Message**: `build: add Husky pre-commit hooks with lint-staged (non-blocking)`
+
+---
+
+### Task 1.13: Install and Configure Vitest
+**Token Estimate**: 12,000 tokens
+
+**Description**: Set up Vitest testing framework for unit and integration tests. Configured early to enable TDD in subsequent phases.
+
+**Files to Create**:
+- `vitest.config.ts`
+- `src/test/setup.ts`
+
+**Files to Modify**:
+- `package.json`
+
+**Dependencies to Install** (specific versions):
+```bash
+npm install -D vitest@1.2.1
+npm install -D @vitest/ui@1.2.1
+npm install -D jsdom@23.2.0
+npm install -D @testing-library/jest-dom@6.2.0
+```
+
+**Configuration Requirements**:
+1. Configure Vitest with jsdom environment
+2. Set up test utilities
+3. Configure coverage reporting
+4. Add test scripts to package.json
+
+**How to Complete**:
+```bash
+# Install dependencies
+npm install -D vitest@1.2.1 @vitest/ui@1.2.1 jsdom@23.2.0 @testing-library/jest-dom@6.2.0
+
+# Create vitest.config.ts
+# Configure jsdom environment, coverage, and test patterns
+
+# Create src/test/setup.ts
+# Import jest-dom matchers and configure test environment
+
+# Add scripts to package.json:
+# "test": "vitest"
+# "test:ui": "vitest --ui"
+# "test:coverage": "vitest --coverage"
+```
+
+**Testing**: Run `npm test` - should start Vitest (no tests yet, that's expected).
+
+**Documentation to Reference**:
+- Vitest Config: https://vitest.dev/config/
+- Vitest React: https://vitest.dev/guide/ui.html
+- React Testing Library: https://testing-library.com/docs/react-testing-library/setup
+
+**Commit Message**: `build: configure Vitest testing framework for TDD`
 
 ---
 
