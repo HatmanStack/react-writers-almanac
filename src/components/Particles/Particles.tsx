@@ -25,7 +25,7 @@ function ParticlesComponent() {
    * Initialize tsparticles engine with slim configuration
    * Uses loadSlim instead of loadFull to reduce bundle size
    */
-  const particlesInit = useCallback(async (engine: any) => {
+  const particlesInit = useCallback(async (engine: unknown) => {
     await loadSlim(engine);
   }, []);
 
@@ -155,7 +155,7 @@ function ParticlesComponent() {
     <Particles
       id="tsparticles"
       init={particlesInit}
-      options={particlesOptions as any}
+      options={particlesOptions}
       className="absolute w-full h-[200vh] bg-[#8f9193] bg-no-repeat bg-cover bg-center animate-particle-pulse"
       aria-hidden="true"
     />

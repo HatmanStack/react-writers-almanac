@@ -11,11 +11,11 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Retry configuration
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: Error) => {
         // Don't retry 404s
-        if (error?.status === 404) return false;
+        if ('status' in error && error.status === 404) return false;
         // Don't retry 400s (client errors)
-        if (error?.status === 400) return false;
+        if ('status' in error && error.status === 400) return false;
         // Retry server errors up to 3 times
         return failureCount < 3;
       },

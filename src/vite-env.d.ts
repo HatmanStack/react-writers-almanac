@@ -18,11 +18,11 @@ declare module '*.svg' {
 }
 
 declare module '*.js' {
-  const content: any;
+  const content: unknown;
   export default content;
 }
 
 declare module '*/searchJson' {
-  const content: Array<{ label: string; [key: string]: any }>;
+  const content: Array<{ label: string; [key: string]: unknown }>;
   export default content;
 }

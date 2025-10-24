@@ -115,5 +115,5 @@ export interface ParticlesOptions {
     };
   };
   retina_detect?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }

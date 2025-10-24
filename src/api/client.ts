@@ -9,6 +9,15 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import type { ApiError } from '../types/api';
 
+/**
+ * Shape of error response data from API
+ */
+interface ApiErrorResponse {
+  message?: string;
+  code?: string;
+  timestamp?: string;
+}
+
 // Environment variables
 const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || 'https://d3vq6af2mo7fcy.cloudfront.net';
 const API_BASE_URL =
@@ -69,12 +78,13 @@ const errorInterceptor = (error: AxiosError): Promise<never> => {
   }
 
   // HTTP error response
+  const errorData = error.response.data as ApiErrorResponse;
   const apiError: ApiError = {
-    message: (error.response.data as any)?.message || error.message || 'An error occurred',
+    message: errorData?.message || error.message || 'An error occurred',
     status: error.response.status,
-    code: (error.response.data as any)?.code || 'UNKNOWN_ERROR',
+    code: errorData?.code || 'UNKNOWN_ERROR',
     details: error.response.data as Record<string, unknown>,
-    timestamp: (error.response.data as any)?.timestamp || new Date().toISOString(),
+    timestamp: errorData?.timestamp || new Date().toISOString(),
   };
 
   return Promise.reject(apiError);

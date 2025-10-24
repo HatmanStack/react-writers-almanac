@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { render } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 
@@ -92,21 +92,24 @@ describe('Particles Component', () => {
       expect(Particles).toHaveBeenCalled();
 
       // Verify that it was called with options
-      const callArgs = (Particles as any).mock.calls[0][0];
+      const mockParticles = Particles as unknown as Mock;
+      const callArgs = mockParticles.mock.calls[0][0];
       expect(callArgs.options).toBeDefined();
     });
 
     it('should configure particles with correct number', () => {
       render(<ParticlesComponent />);
 
-      const callArgs = (Particles as any).mock.calls[0][0];
+      const mockParticles = Particles as unknown as Mock;
+      const callArgs = mockParticles.mock.calls[0][0];
       expect(callArgs.options.particles.number.value).toBe(300);
     });
 
     it('should configure interactivity modes', () => {
       render(<ParticlesComponent />);
 
-      const callArgs = (Particles as any).mock.calls[0][0];
+      const mockParticles = Particles as unknown as Mock;
+      const callArgs = mockParticles.mock.calls[0][0];
       expect(callArgs.options.interactivity.events.onhover.enable).toBe(true);
       expect(callArgs.options.interactivity.events.onclick.enable).toBe(true);
     });
@@ -114,7 +117,8 @@ describe('Particles Component', () => {
     it('should enable retina detection', () => {
       render(<ParticlesComponent />);
 
-      const callArgs = (Particles as any).mock.calls[0][0];
+      const mockParticles = Particles as unknown as Mock;
+      const callArgs = mockParticles.mock.calls[0][0];
       expect(callArgs.options.retina_detect).toBe(true);
     });
   });
@@ -123,7 +127,8 @@ describe('Particles Component', () => {
     it('should provide init callback', () => {
       render(<ParticlesComponent />);
 
-      const callArgs = (Particles as any).mock.calls[0][0];
+      const mockParticles = Particles as unknown as Mock;
+      const callArgs = mockParticles.mock.calls[0][0];
       expect(callArgs.init).toBeDefined();
       expect(typeof callArgs.init).toBe('function');
     });
@@ -137,7 +142,8 @@ describe('Particles Component', () => {
       });
       render(<ParticlesComponent />);
 
-      const callArgs = (Particles as any).mock.calls[0][0];
+      const mockParticles = Particles as unknown as Mock;
+      const callArgs = mockParticles.mock.calls[0][0];
       expect(callArgs.options.particles.number.value).toBe(300);
     });
 
@@ -148,7 +154,8 @@ describe('Particles Component', () => {
       });
       render(<ParticlesComponent />);
 
-      const callArgs = (Particles as any).mock.calls[0][0];
+      const mockParticles = Particles as unknown as Mock;
+      const callArgs = mockParticles.mock.calls[0][0];
       expect(callArgs.options.particles.number.value).toBe(150);
     });
 
@@ -159,7 +166,8 @@ describe('Particles Component', () => {
         height: 800,
       });
       const { unmount } = render(<ParticlesComponent />);
-      const desktopArgs = (Particles as any).mock.calls[0][0];
+      const mockParticles = Particles as unknown as Mock;
+      const desktopArgs = mockParticles.mock.calls[0][0];
       expect(desktopArgs.options.particles.number.density.value_area).toBe(1202.559045649142);
       unmount();
 
@@ -171,7 +179,8 @@ describe('Particles Component', () => {
         height: 600,
       });
       render(<ParticlesComponent />);
-      const mobileArgs = (Particles as any).mock.calls[0][0];
+      const mockParticles = Particles as unknown as Mock;
+      const mobileArgs = mockParticles.mock.calls[0][0];
       expect(mobileArgs.options.particles.number.density.value_area).toBe(800);
     });
 
