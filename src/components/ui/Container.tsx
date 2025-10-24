@@ -1,7 +1,7 @@
-import { memo } from 'react';
+import { memo, type ReactNode } from 'react';
 
 interface ContainerProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   rounded?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
   padding?: 'none' | 'sm' | 'md' | 'lg';

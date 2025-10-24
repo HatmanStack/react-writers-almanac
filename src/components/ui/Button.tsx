@@ -1,7 +1,7 @@
-import { memo } from 'react';
+import { memo, type ReactNode } from 'react';
 
 interface ButtonProps {
-  children: React.ReactNode;
+  children: ReactNode;
   onClick?: () => void;
   variant?: 'primary' | 'secondary' | 'text';
   className?: string;
