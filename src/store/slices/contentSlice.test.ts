@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { create, type StoreApi, type UseBoundStore } from 'zustand';
+import { create, type StoreApi, type UseBoundStore, type StateCreator } from 'zustand';
 import { createContentSlice } from './contentSlice';
 import type { ContentSlice } from '../types';
 
@@ -9,7 +9,10 @@ describe('ContentSlice', () => {
   beforeEach(() => {
     // Create a fresh store for each test
     // Note: We test the slice in isolation
-    useTestStore = create<ContentSlice>()((...args) => createContentSlice(...args));
+    // Cast to StateCreator for isolated testing (slices normally access AppStore but we test in isolation)
+    const sliceCreator: StateCreator<ContentSlice> =
+      createContentSlice as unknown as StateCreator<ContentSlice>;
+    useTestStore = create(sliceCreator);
   });
 
   describe('Initial State', () => {

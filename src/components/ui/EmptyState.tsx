@@ -2,7 +2,7 @@
  * Empty state component for displaying when no data is available
  */
 
-import { ReactNode } from 'react';
+import { memo, ReactNode } from 'react';
 
 export interface EmptyStateProps {
   /** Title message */
@@ -32,7 +32,13 @@ export interface EmptyStateProps {
  * />
  * ```
  */
-export function EmptyState({ title, description, action, icon, className = '' }: EmptyStateProps) {
+export const EmptyState = memo(function EmptyState({
+  title,
+  description,
+  action,
+  icon,
+  className = '',
+}: EmptyStateProps) {
   return (
     <div
       className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center ${className}`}
@@ -71,4 +77,4 @@ export function EmptyState({ title, description, action, icon, className = '' }:
       )}
     </div>
   );
-}
+});

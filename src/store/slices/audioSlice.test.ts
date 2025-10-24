@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { create, type StoreApi, type UseBoundStore } from 'zustand';
+import { create, type StoreApi, type UseBoundStore, type StateCreator } from 'zustand';
 import { createAudioSlice } from './audioSlice';
 import type { AudioSlice } from '../types';
 
@@ -12,7 +12,10 @@ describe('AudioSlice', () => {
 
   beforeEach(() => {
     // Create a fresh store for each test
-    useTestStore = create<AudioSlice>()((...args) => createAudioSlice(...args));
+    // Cast to StateCreator for isolated testing (slices normally access AppStore but we test in isolation)
+    const sliceCreator: StateCreator<AudioSlice> =
+      createAudioSlice as unknown as StateCreator<AudioSlice>;
+    useTestStore = create(sliceCreator);
 
     // Mock URL.revokeObjectURL
     global.URL.revokeObjectURL = mockRevokeObjectURL;

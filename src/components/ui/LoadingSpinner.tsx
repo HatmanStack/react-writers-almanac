@@ -2,6 +2,8 @@
  * Reusable loading spinner component
  */
 
+import { memo } from 'react';
+
 export interface LoadingSpinnerProps {
   /** Size variant */
   size?: 'sm' | 'md' | 'lg';
@@ -23,7 +25,7 @@ export interface LoadingSpinnerProps {
  * <LoadingSpinner size="lg" label="Loading content..." />
  * ```
  */
-export function LoadingSpinner({
+export const LoadingSpinner = memo(function LoadingSpinner({
   size = 'md',
   label,
   color = 'primary',
@@ -88,4 +90,4 @@ export function LoadingSpinner({
   }
 
   return container;
-}
+});

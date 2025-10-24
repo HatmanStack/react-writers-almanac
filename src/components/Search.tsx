@@ -5,7 +5,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers';
 import dayjs, { Dayjs } from 'dayjs';
 
-import list from '../assets/searchJson';
+import listImport from '../assets/searchJson';
 
 interface CalendarDateChange {
   calendarChangedDate: Date;
@@ -15,6 +15,9 @@ interface SearchOption {
   label: string;
   [key: string]: string;
 }
+
+// Type assertion for JS import
+const list = listImport as SearchOption[];
 
 interface SearchProps {
   searchedTermWrapper: (query: string) => void;

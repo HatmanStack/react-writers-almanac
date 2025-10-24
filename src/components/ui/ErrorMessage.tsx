@@ -2,7 +2,7 @@
  * Reusable error message component with retry functionality
  */
 
-import { ReactNode } from 'react';
+import { memo, ReactNode } from 'react';
 
 export interface ErrorMessageProps {
   /** Error message to display */
@@ -33,7 +33,7 @@ export interface ErrorMessageProps {
  * />
  * ```
  */
-export function ErrorMessage({
+export const ErrorMessage = memo(function ErrorMessage({
   message,
   details,
   onRetry,
@@ -109,4 +109,4 @@ export function ErrorMessage({
       </div>
     </div>
   );
-}
+});

@@ -179,8 +179,8 @@ describe('Particles Component', () => {
         height: 600,
       });
       render(<ParticlesComponent />);
-      const mockParticles = Particles as unknown as Mock;
-      const mobileArgs = mockParticles.mock.calls[0][0];
+      const mockParticlesMobile = Particles as unknown as Mock;
+      const mobileArgs = mockParticlesMobile.mock.calls[0][0];
       expect(mobileArgs.options.particles.number.density.value_area).toBe(800);
     });
 

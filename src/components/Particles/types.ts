@@ -63,10 +63,21 @@ export interface ParticlesOptions {
     move?: {
       enable?: boolean;
       speed?: number;
-      direction?: string;
+      direction?:
+        | 'none'
+        | 'top'
+        | 'bottom'
+        | 'left'
+        | 'right'
+        | 'topLeft'
+        | 'topRight'
+        | 'bottomLeft'
+        | 'bottomRight'
+        | 'outside'
+        | 'inside';
       random?: boolean;
       straight?: boolean;
-      out_mode?: string;
+      out_mode?: 'out' | 'bounce' | 'destroy';
       bounce?: boolean;
       attract?: {
         enable?: boolean;
@@ -76,7 +87,7 @@ export interface ParticlesOptions {
     };
   };
   interactivity?: {
-    detect_on?: string;
+    detect_on?: 'parent' | 'window' | 'canvas';
     events?: {
       onhover?: {
         enable?: boolean;

@@ -1,6 +1,7 @@
 import { useCallback, memo, useMemo } from 'react';
 import { useWindowSize } from 'react-use';
 import { loadSlim } from 'tsparticles-slim';
+import type { Engine } from 'tsparticles-engine';
 import Particles from 'react-particles';
 import type { ParticlesOptions } from './types';
 
@@ -25,7 +26,7 @@ function ParticlesComponent() {
    * Initialize tsparticles engine with slim configuration
    * Uses loadSlim instead of loadFull to reduce bundle size
    */
-  const particlesInit = useCallback(async (engine: unknown) => {
+  const particlesInit = useCallback(async (engine: Engine) => {
     await loadSlim(engine);
   }, []);
 
