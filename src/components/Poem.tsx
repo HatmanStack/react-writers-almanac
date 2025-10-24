@@ -34,13 +34,18 @@ const Poem = memo(function Poem({
             {poemTitle.length > 1 && author && author.length == 1 && index != 0 ? null : (
               <button
                 className="bg-transparent bg-no-repeat border-none cursor-pointer overflow-hidden font-bold text-base text-app-text flex-[2_0_0] justify-center focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                onClick={() => author && setSearchedTerm(author[index])}
-                aria-label={author ? `Search for author: ${author[index]}` : 'Search for author'}
+                onClick={() => {
+                  const authorName = author?.[index];
+                  if (authorName) setSearchedTerm(authorName);
+                }}
+                aria-label={
+                  author?.[index] ? `Search for author: ${author[index]}` : 'Search for author'
+                }
               >
                 by{' '}
                 <span
                   dangerouslySetInnerHTML={{
-                    __html: (author && sanitizeHtml(author[index], true)) || '',
+                    __html: sanitizeHtml(author?.[index] ?? '', true),
                   }}
                 />
               </button>
@@ -49,7 +54,7 @@ const Poem = memo(function Poem({
             <br />
             <div
               dangerouslySetInnerHTML={{
-                __html: (poem && sanitizeHtml(poem[index], true)) || '',
+                __html: sanitizeHtml(poem?.[index] ?? '', true),
               }}
             />
             <br />
