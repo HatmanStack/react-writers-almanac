@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css?family=Raleway:400");
+
 .Container {
   display: flex;
   height: 100%;
@@ -137,6 +139,3 @@ body {
   margin-right:3em;
   margin: 1rem;
 }
-
-
-@import url("https://fonts.googleapis.com/css?family=Raleway:400");
