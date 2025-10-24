@@ -1,20 +1,28 @@
-import Audio from './components/Audio/Audio';
+import { lazy, Suspense, useState, useEffect, useMemo } from 'react';
 import Note from './components/Note/Note';
 import Poem from './components/Poem';
 import Search from './components/Search';
-import Author from './components/Author/Author';
 import ErrorBoundary from './components/ErrorBoundary';
+import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import logo from './assets/logo_writersalmanac.png';
-import sortedAuthors from './assets/Authors_sorted.js';
-import sortedPoems from './assets/Poems_sorted.js';
-import { useState, useEffect, useMemo } from 'react';
+import sortedAuthorsImport from './assets/Authors_sorted.js';
+import sortedPoemsImport from './assets/Poems_sorted.js';
+
+// Type assertions for JS imports
+const sortedAuthors = sortedAuthorsImport as string[];
+const sortedPoems = sortedPoemsImport as string[];
+
 import { useWindowSize } from 'react-use';
 import DOMPurify from 'dompurify';
 import axios from 'axios';
-import ParticlesComponent from './components/Particles/Particles';
 import { useAppStore } from './store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import { formatDate as formatDateUtil } from './utils';
+
+// Lazy load heavy components for code splitting
+const Audio = lazy(() => import('./components/Audio/Audio'));
+const Author = lazy(() => import('./components/Author/Author'));
+const ParticlesComponent = lazy(() => import('./components/Particles/Particles'));
 
 /**
  * Format date with business logic for min/max date boundaries
@@ -311,13 +319,15 @@ function App() {
       );
     } else {
       return (
-        <Author
-          setIsShowingContentByDate={toggleViewMode}
-          authorName={searchTerm}
-          formatAuthorDate={formatAuthorDate}
-          setLinkDate={setLinkDate}
-          width={width}
-        />
+        <Suspense fallback={<LoadingSpinner size="lg" label="Loading author..." />}>
+          <Author
+            setIsShowingContentByDate={toggleViewMode}
+            authorName={searchTerm}
+            formatAuthorDate={formatAuthorDate}
+            setLinkDate={setLinkDate}
+            width={width}
+          />
+        </Suspense>
       );
     }
   }, [
@@ -340,7 +350,9 @@ function App() {
       <main className="text-center text-[calc(8px+2vmin)] bg-app-bg text-app-text h-full absolute w-full">
         {width > 1000 ? (
           <div>
-            <ParticlesComponent />
+            <Suspense fallback={<div className="h-full w-full" />}>
+              <ParticlesComponent />
+            </Suspense>
             <header className="flex flex-row items-center justify-around m-4">
               <img
                 className="flex-[1_3_0] w-[35%] z-10 bg-app-container rounded-[3rem] flex p-4"
@@ -385,19 +397,23 @@ function App() {
                 </div>
               )}
             >
-              <Audio
-                isShowingContentbyDate={isShowingContentByDate}
-                searchedTerm={searchTerm}
-                shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
-                width={width}
-                setIsShowing={setIsShowing}
-                isShowing={isShowing}
-              />
+              <Suspense fallback={<LoadingSpinner size="md" label="Loading audio player..." />}>
+                <Audio
+                  isShowingContentbyDate={isShowingContentByDate}
+                  searchedTerm={searchTerm}
+                  shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
+                  width={width}
+                  setIsShowing={setIsShowing}
+                  isShowing={isShowing}
+                />
+              </Suspense>
             </ErrorBoundary>
           </div>
         ) : (
           <div>
-            <ParticlesComponent />
+            <Suspense fallback={<div className="h-full w-full" />}>
+              <ParticlesComponent />
+            </Suspense>
             <header className="flex flex-col items-center justify-around m-4">
               <img
                 className="flex-[1_3_0] z-10 bg-app-container rounded-[3rem] flex p-4 w-[20em]"
@@ -439,14 +455,16 @@ function App() {
                 </div>
               )}
             >
-              <Audio
-                isShowingContentbyDate={isShowingContentByDate}
-                searchedTerm={searchTerm}
-                shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
-                width={width}
-                setIsShowing={setIsShowing}
-                isShowing={isShowing}
-              />
+              <Suspense fallback={<LoadingSpinner size="md" label="Loading audio player..." />}>
+                <Audio
+                  isShowingContentbyDate={isShowingContentByDate}
+                  searchedTerm={searchTerm}
+                  shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
+                  width={width}
+                  setIsShowing={setIsShowing}
+                  isShowing={isShowing}
+                />
+              </Suspense>
             </ErrorBoundary>
           </div>
         )}
