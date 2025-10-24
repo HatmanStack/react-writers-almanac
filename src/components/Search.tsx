@@ -1,41 +1,55 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Autocomplete, TextField } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 
 import list from '../assets/searchJson';
 
+interface CalendarDateChange {
+  calendarChangedDate: Date;
+}
+
+interface SearchOption {
+  label: string;
+  [key: string]: string;
+}
+
 interface SearchProps {
-  searchedTermWrapper: (query: any) => void;
-  calendarDate: (date: any) => void;
+  searchedTermWrapper: (query: string) => void;
+  calendarDate: (date: CalendarDateChange) => void;
   width: number;
 }
 
-export default function Search({ searchedTermWrapper, calendarDate, width }: SearchProps) {
+const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }: SearchProps) {
   const [isShowing, setIsShowing] = useState<boolean>(false);
-  const [query, updateQuery] = useState<any>('');
-  const [year, setYear] = useState<string | number>('');
-  const [month, setMonth] = useState<string | number>('');
-  const [day, setDay] = useState<string | number>('');
+  const [query, updateQuery] = useState<string>('');
+  const [year, setYear] = useState<number | string>('');
+  const [month, setMonth] = useState<number | string>('');
+  const [day, setDay] = useState<number | string>('');
   const [muiDefense, setMuiDefense] = useState<boolean>(false);
 
-  const calendarChange = (e: any): void => {
-    if (year !== e.$y) {
-      setYear(e.$y);
+  const calendarChange = (e: Dayjs | null): void => {
+    if (!e) return;
+    const newYear = e.year();
+    const newMonth = e.month();
+    const newDay = e.date();
+
+    if (year !== newYear) {
+      setYear(newYear);
     }
-    if (month !== e.$M) {
-      setMonth(e.$M);
+    if (month !== newMonth) {
+      setMonth(newMonth);
     }
-    if (day !== e.$D || (day === e.$D && month !== e.$M)) {
-      if (muiDefense || year === e.$y) {
+    if (day !== newDay || (day === newDay && month !== newMonth)) {
+      if (muiDefense || year === newYear) {
         setIsShowing(false);
-        const calendarChangedDate = e.$d;
+        const calendarChangedDate = e.toDate();
         calendarDate({ calendarChangedDate });
-        setYear(e.$y);
-        setMonth(e.$M);
-        setDay(e.$D);
+        setYear(newYear);
+        setMonth(newMonth);
+        setDay(newDay);
         setMuiDefense(false);
       } else {
         setMuiDefense(true);
@@ -66,14 +80,14 @@ export default function Search({ searchedTermWrapper, calendarDate, width }: Sea
     <div>
       {width > 1000 ? (
         <div className="flex">
-          <Autocomplete
+          <Autocomplete<SearchOption>
             id="clear-on-escape"
-            onInputChange={(_e: any, value: string) => updateQuery(value)}
-            onChange={(_event: any, value: any) => updateQuery(value)}
+            onInputChange={(_e, value) => updateQuery(value)}
+            onChange={(_event, value) => updateQuery(value?.label || '')}
             clearOnEscape
             disablePortal={false}
             options={list}
-            getOptionLabel={(option: any) => option.label}
+            getOptionLabel={option => option.label}
             sx={{
               width: '15em',
               '& .MuiFormLabel-root': {
@@ -133,14 +147,14 @@ export default function Search({ searchedTermWrapper, calendarDate, width }: Sea
         </div>
       ) : (
         <div className="flex flex-col p-3">
-          <Autocomplete
+          <Autocomplete<SearchOption>
             id="clear-on-escape"
-            onInputChange={(_e: any, value: string) => updateQuery(value)}
-            onChange={(_event: any, value: any) => updateQuery(value)}
+            onInputChange={(_e, value) => updateQuery(value)}
+            onChange={(_event, value) => updateQuery(value?.label || '')}
             clearOnEscape
             disablePortal={false}
             options={list}
-            getOptionLabel={(option: any) => option.label}
+            getOptionLabel={option => option.label}
             sx={{
               width: '15em',
               '& .MuiFormLabel-root': {
@@ -201,4 +215,6 @@ export default function Search({ searchedTermWrapper, calendarDate, width }: Sea
       )}
     </div>
   );
-}
+});
+
+export default Search;

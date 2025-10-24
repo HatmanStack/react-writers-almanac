@@ -71,13 +71,6 @@ const formatAuthorDate = (dateString: string): string => {
 };
 
 /**
- * Type for search autocomplete selection
- */
-interface SearchSelection {
-  [key: string]: string;
-}
-
-/**
  * Type for calendar date change
  */
 interface CalendarDateChange {
@@ -142,17 +135,9 @@ function App() {
     };
   }, []);
 
-  const searchedTermWrapper = (x: SearchSelection | null): void => {
-    if (x != null) {
-      const holder = Object.keys(x)
-        .map(function (key) {
-          return x[key];
-        })
-        .slice(0, 1)
-        .toString();
-      if (sortedAuthors.includes(holder) || sortedPoems.includes(holder)) {
-        setSearchTerm(holder);
-      }
+  const searchedTermWrapper = (query: string): void => {
+    if (query && (sortedAuthors.includes(query) || sortedPoems.includes(query))) {
+      setSearchTerm(query);
     }
   };
 
