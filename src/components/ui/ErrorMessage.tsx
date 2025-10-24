@@ -82,11 +82,11 @@ export const ErrorMessage = memo(function ErrorMessage({
           )}
           {onRetry && (
             <button
+              type="button"
               onClick={onRetry}
               className={`mt-2 inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
                 isCompact ? 'text-xs' : 'text-sm'
               }`}
-              type="button"
             >
               <svg
                 className={`-ml-0.5 mr-1.5 ${isCompact ? 'h-3 w-3' : 'h-4 w-4'}`}
