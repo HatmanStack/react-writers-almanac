@@ -200,30 +200,40 @@ function App() {
         const month = dateString.substring(4, 6);
         link = `${year}/${month}/` + linkDate.toString();
       }
-      axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.json').then(response => {
-        const data = response.data;
+      axios
+        .get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.json')
+        .then(response => {
+          const data = response.data;
 
-        setDay(data.dayofweek);
-        storeSetCurrentDate(data.date);
-        setPoemByline(data.poembyline);
+          setDay(data.dayofweek);
+          storeSetCurrentDate(data.date);
+          setPoemByline(data.poembyline);
 
-        // Update store with poem data
-        setPoemData({
-          poem: /&amp;#233;/.test(data.poem) ? data.poem.replaceAll(/&amp;#233;/g, 'é') : data.poem,
-          poemTitle: data.poemtitle,
-          note: data.notes,
+          // Update store with poem data
+          setPoemData({
+            poem: /&amp;#233;/.test(data.poem)
+              ? data.poem.replaceAll(/&amp;#233;/g, 'é')
+              : data.poem,
+            poemTitle: data.poemtitle,
+            note: data.notes,
+          });
+
+          // Update store with author data
+          setAuthorData({
+            author: data.author,
+          });
+
+          // Update store with transcript
+          setAudioData({
+            transcript: data.transcript,
+          });
+        })
+        .catch(() => {
+          // Set fallback state to prevent undefined errors on fetch failure
+          setPoemData({ poem: [], poemTitle: [], note: '' });
+          setAuthorData({ author: [] });
+          setAudioData({ transcript: '' });
         });
-
-        // Update store with author data
-        setAuthorData({
-          author: data.author,
-        });
-
-        // Update store with transcript
-        setAudioData({
-          transcript: data.transcript,
-        });
-      });
       if (Number(linkDate) > 20090111) {
         axios
           .get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.mp3', {
@@ -238,6 +248,10 @@ function App() {
             const blob = new window.Blob([response.data]);
             const audioUrl = URL.createObjectURL(blob);
             setAudioData({ mp3Url: audioUrl });
+          })
+          .catch(() => {
+            // Set unavailable status on audio fetch failure
+            setAudioData({ mp3Url: 'NotAvailable' });
           });
       } else {
         setAudioData({ mp3Url: 'NotAvailable' });
