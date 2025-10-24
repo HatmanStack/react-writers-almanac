@@ -3,7 +3,8 @@
  *
  * - Converts to lowercase
  * - Replaces spaces and underscores with hyphens
- * - Removes all non-alphanumeric characters except hyphens
+ * - Preserves Unicode letters (café, José, etc.)
+ * - Removes special characters except letters, numbers, and hyphens
  * - Collapses multiple hyphens into single hyphen
  * - Removes leading/trailing hyphens
  *
@@ -13,6 +14,7 @@
  * @example
  * slugify('Garrison Keillor') → "garrison-keillor"
  * slugify("O'Brien, Tim") → "obrien-tim"
+ * slugify('José García') → "josé-garcía"
  * slugify('Emily Dickinson (1830-1886)') → "emily-dickinson-1830-1886"
  */
 export function slugify(str: string): string {
@@ -20,7 +22,7 @@ export function slugify(str: string): string {
     .toLowerCase()
     .trim()
     .replace(/[\s_.]+/g, '-') // Replace spaces, underscores, and dots with hyphens
-    .replace(/[^a-z0-9-]/g, '') // Remove all non-alphanumeric except hyphens
+    .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters, numbers, hyphens
     .replace(/-+/g, '-') // Collapse multiple hyphens
     .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
 }

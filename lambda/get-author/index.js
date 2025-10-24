@@ -23,15 +23,16 @@ const AUTHORS_PREFIX = 'authors/by-name/';
 
 /**
  * Convert author name to slug format
- * @param {string} name - Author name (e.g., "Billy Collins")
- * @returns {string} Slug (e.g., "billy-collins")
+ * Preserves Unicode letters (café, José, etc.)
+ * @param {string} name - Author name (e.g., "Billy Collins", "José García")
+ * @returns {string} Slug (e.g., "billy-collins", "josé-garcía")
  */
 function nameToSlug(name) {
   return name
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-    .replace(/\s+/g, '-')          // Replace spaces with hyphens
+    .replace(/[\s_.]+/g, '-')      // Replace spaces, underscores, dots with hyphens
+    .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters, numbers, hyphens
     .replace(/-+/g, '-')           // Replace multiple hyphens with single
     .replace(/^-+|-+$/g, '');      // Trim leading/trailing hyphens
 }
