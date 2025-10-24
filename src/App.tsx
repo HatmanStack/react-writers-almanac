@@ -376,16 +376,16 @@ function App() {
   ]);
   //rewrite particlesComponent to not rerender unless the options change
   return (
-    <div className="text-center text-[calc(8px+2vmin)] bg-app-bg text-app-text h-full absolute w-full">
+    <main className="text-center text-[calc(8px+2vmin)] bg-app-bg text-app-text h-full absolute w-full">
       {width > 1000 ? (
         <div>
           <ParticlesComponent />
-          <div className="flex flex-row items-center justify-around m-4">
+          <header className="flex flex-row items-center justify-around m-4">
             <img
               className="flex-[1_3_0] w-[35%] z-10 bg-app-container rounded-[3rem] flex p-4"
               src={logo}
-              alt="LOGO"
-            ></img>
+              alt="The Writer's Almanac Logo"
+            />
             <div className="FormattingContainer" />
             <div className="z-10 bg-app-container rounded-[3rem] flex p-4">
               <Search
@@ -395,14 +395,18 @@ function App() {
               />
               <div
                 className="flex-[0_3_auto] m-4"
+                role="text"
+                aria-label="Day of week"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }}
               />
               <div
                 className="flex-[1_0_auto] m-4"
+                role="text"
+                aria-label="Current date"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
               />
             </div>
-          </div>
+          </header>
           <Audio
             isShowingContentbyDate={isShowingContentByDate}
             searchedTerm={searchTerm}
@@ -416,22 +420,30 @@ function App() {
       ) : (
         <div>
           <ParticlesComponent />
-          <div className="flex flex-col items-center justify-around m-4">
+          <header className="flex flex-col items-center justify-around m-4">
             <img
               className="flex-[1_3_0] z-10 bg-app-container rounded-[3rem] flex p-4 w-[20em]"
               src={logo}
-              alt="LOGO"
-            ></img>
+              alt="The Writer's Almanac Logo"
+            />
             <div className="z-10 bg-app-container rounded-[3rem] flex p-4 flex-col">
               <Search
                 searchedTermWrapper={searchedTermWrapper}
                 calendarDate={calendarDate}
                 width={width}
               />
-              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }} />
-              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }} />
+              <div
+                role="text"
+                aria-label="Day of week"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }}
+              />
+              <div
+                role="text"
+                aria-label="Current date"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
+              />
             </div>
-          </div>
+          </header>
           <Audio
             isShowingContentbyDate={isShowingContentByDate}
             searchedTerm={searchTerm}
@@ -443,8 +455,8 @@ function App() {
           />
         </div>
       )}
-      {body}
-    </div>
+      <section aria-label="Main content">{body}</section>
+    </main>
   );
 }
 export default App;

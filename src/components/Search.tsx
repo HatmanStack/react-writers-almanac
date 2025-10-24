@@ -112,6 +112,8 @@ export default function Search({ searchedTermWrapper, calendarDate, width }: Sea
           <button
             className="bg-transparent border-none cursor-pointer overflow-hidden outline-none font-bold text-xs text-app-text z-10"
             onClick={() => setIsShowing(!isShowing)}
+            aria-label={isShowing ? 'Close calendar' : 'Open calendar'}
+            aria-expanded={isShowing}
           >
             {calendarLabel()}
           </button>
@@ -177,6 +179,8 @@ export default function Search({ searchedTermWrapper, calendarDate, width }: Sea
           <button
             className="bg-transparent border-none cursor-pointer overflow-hidden outline-none font-bold text-xs text-app-text z-10"
             onClick={() => setIsShowing(!isShowing)}
+            aria-label={isShowing ? 'Close calendar' : 'Open calendar'}
+            aria-expanded={isShowing}
           >
             {calendarLabel()}
           </button>

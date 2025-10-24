@@ -21,12 +21,14 @@ export default function Poem({ poemTitle, poem, setSearchedTerm, author, poemByl
                   __html: DOMPurify.sanitize(poemTitle[index]).replaceAll(/[^\x20-\x7E]/g, ''),
                 }}
                 onClick={() => setSearchedTerm(poemTitle[index])}
+                aria-label={`Search for poem: ${poemTitle[index]}`}
               />
             </h2>
             {poemTitle.length > 1 && author && author.length == 1 && index != 0 ? null : (
               <button
                 className="bg-transparent bg-no-repeat border-none cursor-pointer overflow-hidden outline-none font-bold text-base text-app-text flex-[2_0_0] justify-center"
                 onClick={() => author && setSearchedTerm(author[index])}
+                aria-label={author ? `Search for author: ${author[index]}` : 'Search for author'}
               >
                 by{' '}
                 <span
