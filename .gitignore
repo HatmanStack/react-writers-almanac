@@ -65,3 +65,4 @@ amplifytools.xcconfig
 **.sample
 #amplify-do-not-edit-end
 /lambda/dist/
+build/stats.html
