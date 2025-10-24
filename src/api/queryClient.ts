@@ -12,11 +12,27 @@ export const queryClient = new QueryClient({
     queries: {
       // Retry configuration
       retry: (failureCount, error: Error) => {
-        // Don't retry 404s
-        if ('status' in error && error.status === 404) return false;
-        // Don't retry 400s (client errors)
-        if ('status' in error && error.status === 400) return false;
-        // Retry server errors up to 3 times
+        // Helper to safely extract HTTP status code from different error shapes
+        const getStatus = (err: Error): number | undefined => {
+          // ApiError shape (from our interceptor - has .status directly)
+          if ('status' in err && typeof err.status === 'number') {
+            return err.status;
+          }
+          // AxiosError shape (raw axios error - has .response.status)
+          if ('response' in err && typeof err.response === 'object' && err.response !== null) {
+            const response = err.response as { status?: number };
+            return response.status;
+          }
+          return undefined;
+        };
+
+        const status = getStatus(error);
+
+        // Don't retry 404s (not found)
+        if (status === 404) return false;
+        // Don't retry 400s (bad request)
+        if (status === 400) return false;
+        // Retry server errors (5xx) and network errors up to 3 times
         return failureCount < 3;
       },
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
