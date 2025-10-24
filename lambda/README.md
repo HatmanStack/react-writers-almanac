@@ -119,14 +119,13 @@ Create an IAM role with the following policy:
     },
     {
       "Effect": "Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:ListBucket"
-      ],
-      "Resource": [
-        "arn:aws:s3:::YOUR-BUCKET-NAME/*",
-        "arn:aws:s3:::YOUR-BUCKET-NAME"
-      ]
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME"
     }
   ]
 }
