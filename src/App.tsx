@@ -13,6 +13,7 @@ import axios from 'axios';
 import ParticlesComponent from './components/Particles';
 import { useAppStore } from './store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
+import type { Author as AuthorData } from './types/author';
 
 function formatDate(date: Date, notToday: boolean = true, separator: string = ''): string {
   const day = date.getDate();
@@ -69,6 +70,20 @@ const formatAuthorDate = (dateString: string): string => {
   return `${year}${formattedMonth}${formattedDay}`;
 };
 
+/**
+ * Type for search autocomplete selection
+ */
+interface SearchSelection {
+  [key: string]: string;
+}
+
+/**
+ * Type for calendar date change
+ */
+interface CalendarDateChange {
+  calendarChangedDate: Date;
+}
+
 function App() {
   // Zustand store state - single selector with shallow equality for performance
   const {
@@ -113,7 +128,7 @@ function App() {
   const [linkDate, setLinkDate] = useState<string>(presentDate);
   const [day, setDay] = useState<string | undefined>();
   const [poemByline, setPoemByline] = useState<string | undefined>();
-  const [authorData, setLocalAuthorData] = useState<any>();
+  const [authorData, setLocalAuthorData] = useState<AuthorData | undefined>();
   const { width } = useWindowSize();
   const [isShowing, setIsShowing] = useState<boolean>(false);
 
@@ -127,7 +142,7 @@ function App() {
     };
   }, []);
 
-  const searchedTermWrapper = (x: any): void => {
+  const searchedTermWrapper = (x: SearchSelection | null): void => {
     if (x != null) {
       const holder = Object.keys(x)
         .map(function (key) {
@@ -141,7 +156,7 @@ function App() {
     }
   };
 
-  const calendarDate = (x: any): void => {
+  const calendarDate = (x: CalendarDateChange): void => {
     setLinkDate(formatDate(x.calendarChangedDate));
   };
 
