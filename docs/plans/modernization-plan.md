@@ -865,6 +865,53 @@ npm install -D vitest@1.2.1 @vitest/ui@1.2.1 jsdom@23.2.0 @testing-library/jest-
 
 **Big Bang Approach**: Complete backend migration in this phase. All data fetching uses TanStack Query by end of phase.
 
+**IMPORTANT**: Complete Task 2.0 (Environment Variables) FIRST as it's needed by all subsequent data fetching tasks.
+
+---
+
+### Task 2.0: Create Environment Variables Configuration
+**Token Estimate**: 8,000 tokens
+
+**Description**: Create environment configuration for API URLs and AWS endpoints. **COMPLETE THIS FIRST** before other Phase 2 tasks, as hooks and Lambda functions will need these URLs.
+
+**Files to Create**:
+- `.env.example`
+- `.env.local` (not committed)
+
+**Files to Modify**:
+- `.gitignore` (add `.env.local`)
+
+**Environment Variables to Define**:
+```
+VITE_API_BASE_URL=https://your-api-gateway-url.amazonaws.com/prod
+VITE_CDN_BASE_URL=https://d3vq6af2mo7fcy.cloudfront.net
+VITE_S3_BUCKET=your-bucket-name
+VITE_AWS_REGION=us-east-1
+```
+
+**How to Complete**:
+1. Create .env.example with placeholder values and comments
+2. Create .env.local with actual values from Task 0.3 (AWS verification)
+3. Add .env.local to .gitignore if not already there
+4. Document all environment variables with descriptions
+5. Note: endpoints.ts will use these in Task 2.9
+
+**Testing**:
+```bash
+# Verify env file exists
+cat .env.local
+
+# Test Vite can read variables (after dev server starts)
+npm run dev
+# In browser console: console.log(import.meta.env.VITE_CDN_BASE_URL)
+```
+
+**Documentation to Reference**:
+- Vite Env Variables: https://vitejs.dev/guide/env-and-mode.html
+- Vite Env Files: https://vitejs.dev/guide/env-and-mode.html#env-files
+
+**Commit Message**: `feat: add environment variables configuration for API URLs`
+
 ---
 
 ### Task 2.1: Design API Contract and Type Definitions
@@ -1101,6 +1148,156 @@ GET /api/search/autocomplete?q={query}
 
 ---
 
+### Task 2.7.5: Create Lambda Deployment Packages
+**Token Estimate**: 15,000 tokens
+
+**Description**: Package all Lambda functions with dependencies into zip files for manual upload to AWS Lambda.
+
+**Files to Create**:
+- `lambda/package-all.sh` (script to package all functions)
+- `lambda/README.md` (deployment instructions)
+
+**Lambda Functions to Package**:
+1. `lambda/get-author/` - Author lookup function
+2. `lambda/get-authors-by-letter/` - Authors by letter function
+3. `lambda/search-autocomplete/` - Search autocomplete function
+
+**How to Complete for Each Function**:
+
+```bash
+# For each Lambda function directory:
+cd lambda/get-author
+
+# Create package.json
+cat > package.json <<EOF
+{
+  "name": "get-author-lambda",
+  "version": "1.0.0",
+  "description": "Lambda function to fetch author data from S3",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.478.0"
+  }
+}
+EOF
+
+# Install dependencies
+npm install --production
+
+# Create deployment package
+zip -r ../get-author.zip . -x "*.git*" "*.DS_Store"
+
+# Clean up
+rm -rf node_modules
+
+cd ..
+```
+
+**Create Packaging Script** (`lambda/package-all.sh`):
+```bash
+#!/bin/bash
+set -e
+
+echo "Packaging Lambda functions..."
+
+# Array of function directories
+functions=("get-author" "get-authors-by-letter" "search-autocomplete")
+
+for func in "${functions[@]}"; do
+  echo "Packaging $func..."
+  cd "$func"
+
+  # Install dependencies
+  npm install --production
+
+  # Create zip package
+  zip -r "../${func}.zip" . -x "*.git*" "*.DS_Store" "package-lock.json"
+
+  # Clean up
+  rm -rf node_modules
+
+  cd ..
+  echo "✓ $func packaged as ${func}.zip"
+done
+
+echo "All Lambda functions packaged successfully!"
+echo "Upload zip files to AWS Lambda manually via AWS Console or CLI:"
+echo "  aws lambda update-function-code --function-name <name> --zip-file fileb://<func>.zip"
+```
+
+**Create Deployment README** (`lambda/README.md`):
+```markdown
+# Lambda Deployment Instructions
+
+## Package Functions
+
+Run the packaging script:
+\`\`\`bash
+cd lambda
+chmod +x package-all.sh
+./package-all.sh
+\`\`\`
+
+This creates:
+- get-author.zip
+- get-authors-by-letter.zip
+- search-autocomplete.zip
+
+## Manual Upload
+
+### Via AWS Console:
+1. Go to AWS Lambda console
+2. Select function
+3. Upload .zip file under "Code" tab
+4. Click "Deploy"
+
+### Via AWS CLI:
+\`\`\`bash
+aws lambda update-function-code \
+  --function-name get-author \
+  --zip-file fileb://get-author.zip
+
+aws lambda update-function-code \
+  --function-name get-authors-by-letter \
+  --zip-file fileb://get-authors-by-letter.zip
+
+aws lambda update-function-code \
+  --function-name search-autocomplete \
+  --zip-file fileb://search-autocomplete.zip
+\`\`\`
+
+## Testing
+
+Test functions via AWS Console Test tab or:
+\`\`\`bash
+aws lambda invoke \
+  --function-name get-author \
+  --payload '{"pathParameters":{"name":"billy-collins"}}' \
+  response.json
+\`\`\`
+```
+
+**Testing**:
+```bash
+# Run packaging script
+cd lambda
+./package-all.sh
+
+# Verify zip files created
+ls -lh *.zip
+
+# Test zip contents
+unzip -l get-author.zip
+```
+
+**Documentation to Reference**:
+- AWS Lambda Deployment: https://docs.aws.amazon.com/lambda/latest/dg/nodejs-package.html
+- AWS SDK for JavaScript v3: https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/
+
+**Commit Message**: `feat: create Lambda deployment packaging scripts`
+
+---
+
 ### Task 2.8: Install TanStack Query
 **Token Estimate**: 6,000 tokens
 
@@ -1316,39 +1513,6 @@ npm run dev
 - React Query DevTools: https://tanstack.com/query/latest/docs/react/devtools
 
 **Commit Message**: `test: verify API integration end-to-end`
-
----
-
-### Task 2.15: Update Environment Variables and API URLs
-**Token Estimate**: 8,000 tokens
-
-**Description**: Create environment configuration for API URLs.
-
-**Files to Create**:
-- `.env.example`
-- `.env.local` (not committed)
-
-**Files to Modify**:
-- `src/api/endpoints.ts`
-
-**Environment Variables**:
-```
-VITE_API_BASE_URL=https://your-api-gateway-url.amazonaws.com/prod
-VITE_CDN_BASE_URL=https://d3vq6af2mo7fcy.cloudfront.net
-```
-
-**How to Complete**:
-1. Create .env.example with placeholder values
-2. Create .env.local with actual values
-3. Update endpoints.ts to use import.meta.env
-4. Add .env.local to .gitignore
-
-**Testing**: URLs should be read from environment variables.
-
-**Documentation to Reference**:
-- Vite Env Variables: https://vitejs.dev/guide/env-and-mode.html
-
-**Commit Message**: `feat: add environment variables for API URLs`
 
 ---
 
@@ -3181,15 +3345,22 @@ npx prettier --write src/
 
 # Run TypeScript type check
 npm run typecheck
+
+# CRITICAL: Search for any remaining 'any' types
+grep -r ":\s*any" src/ --include="*.ts" --include="*.tsx"
+# Should return ZERO results
 ```
 
 **Fix All**:
-- ESLint errors and warnings
+- ESLint errors and warnings (change --max-warnings=9999 to --max-warnings=0 in lint-staged config)
 - Prettier formatting
 - TypeScript errors
-- Any remaining `any` types
+- **CRITICAL: Verify ZERO `any` types remain** - search codebase and replace all with proper types
 
-**Testing**: Zero ESLint errors, zero TypeScript errors.
+**Testing**:
+- Zero ESLint errors, zero ESLint warnings
+- Zero TypeScript errors
+- **Zero `any` types found in codebase**
 
 **Commit Message**: `style: fix all linting and formatting issues`
 
