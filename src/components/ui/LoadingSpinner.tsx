@@ -41,7 +41,7 @@ export const LoadingSpinner = memo(function LoadingSpinner({
 
   const borderClasses = {
     sm: 'border-2',
-    md: 'border-3',
+    md: 'border-4',
     lg: 'border-4',
   };
 
