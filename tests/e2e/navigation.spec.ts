@@ -36,9 +36,6 @@ test.describe('Date Navigation', () => {
     // Navigate to next day
     await nav.goToNextDay();
 
-    // Wait for content to update
-    await page.waitForTimeout(500);
-
     // Verify poem content changed
     const newTitle = await page.locator('h2, h1').first().textContent();
 
@@ -59,9 +56,6 @@ test.describe('Date Navigation', () => {
 
     // Navigate to previous day
     await nav.goToPreviousDay();
-
-    // Wait for content to update
-    await page.waitForTimeout(500);
 
     // Verify poem is still visible (content updated)
     await assert.expectPoemVisible();
@@ -99,9 +93,6 @@ test.describe('Date Navigation', () => {
     // Select day 15
     await nav.selectDateFromPicker(15);
 
-    // Wait for poem to load
-    await page.waitForTimeout(1000);
-
     // Verify poem loads
     await assert.expectPoemVisible();
   });
@@ -130,7 +121,6 @@ test.describe('Date Navigation', () => {
     // Navigate forward 3 times
     for (let i = 0; i < 3; i++) {
       await nav.goToNextDay();
-      await page.waitForTimeout(500);
       await assert.expectPoemVisible();
     }
 
@@ -148,7 +138,6 @@ test.describe('Date Navigation', () => {
     // Navigate backward 3 times
     for (let i = 0; i < 3; i++) {
       await nav.goToPreviousDay();
-      await page.waitForTimeout(500);
       await assert.expectPoemVisible();
     }
 
@@ -164,13 +153,8 @@ test.describe('Date Navigation', () => {
 
     // Rapidly change dates
     await nav.goToNextDay();
-    await page.waitForTimeout(200);
     await nav.goToPreviousDay();
-    await page.waitForTimeout(200);
     await nav.goToNextDay();
-
-    // Wait for final load
-    await page.waitForTimeout(500);
 
     // Verify page is still functional
     expect(page.url()).toContain('localhost');
@@ -229,9 +213,6 @@ test.describe('Date Navigation', () => {
     // Navigate to next day
     await nav.goToNextDay();
 
-    // Wait for navigation
-    await page.waitForTimeout(500);
-
     // Get new URL
     const newUrl = page.url();
 
@@ -261,7 +242,6 @@ test.describe('Date Navigation', () => {
 
     if (nextMonthExists) {
       await nextMonthButton.click();
-      await page.waitForTimeout(300);
 
       // Verify calendar updated
       const calendar = page.locator('[role="dialog"], .MuiDateCalendar-root');
