@@ -12,6 +12,7 @@ import { useWindowSize } from 'react-use';
 import DOMPurify from 'dompurify';
 import axios from 'axios';
 import ParticlesComponent from './components/Particles';
+import { useAppStore } from './store/useAppStore';
 
 function formatDate(date: Date, notToday: boolean = true, separator: string = ''): string {
   const day = date.getDate();
@@ -69,21 +70,31 @@ const formatAuthorDate = (dateString: string): string => {
 };
 
 function App() {
+  // Zustand store state
+  const currentDate = useAppStore(state => state.currentDate);
+  const storeSetCurrentDate = useAppStore(state => state.setCurrentDate);
+  const transcript = useAppStore(state => state.transcript);
+  const poemTitle = useAppStore(state => state.poemTitle);
+  const poem = useAppStore(state => state.poem);
+  const author = useAppStore(state => state.author);
+  const note = useAppStore(state => state.note);
+  const mp3Url = useAppStore(state => state.mp3Url);
+  const searchTerm = useAppStore(state => state.searchTerm);
+  const isShowingContentByDate = useAppStore(state => state.isShowingContentByDate);
+  const setPoemData = useAppStore(state => state.setPoemData);
+  const setAuthorData = useAppStore(state => state.setAuthorData);
+  const setAudioData = useAppStore(state => state.setAudioData);
+  const setSearchTerm = useAppStore(state => state.setSearchTerm);
+  const toggleViewMode = useAppStore(state => state.toggleViewMode);
+  const cleanup = useAppStore(state => state.cleanup);
+
+  // Local component state (not in store)
   const [linkDate, setLinkDate] = useState<string>(presentDate);
   const [day, setDay] = useState<string | undefined>();
-  const [date, setCurrentDate] = useState<string | undefined>();
-  const [transcript, setTranscript] = useState<string | undefined>();
-  const [poemTitle, setPoemTitle] = useState<string[] | undefined>();
-  const [poem, setPoem] = useState<string[] | undefined>();
-  const [author, setAuthor] = useState<string[] | undefined>();
   const [poemByline, setPoemByline] = useState<string | undefined>();
-  const [authorData, setAuthorData] = useState<any>();
-  const [note, setNote] = useState<string[] | undefined>();
-  const [mp3, setMP3] = useState<string | undefined>();
+  const [authorData, setLocalAuthorData] = useState<any>();
   const { width } = useWindowSize();
   const [isShowing, setIsShowing] = useState<boolean>(false);
-  const [searchedTerm, setSearchedTerm] = useState<string>('');
-  const [isShowingContentByDate, setIsShowingContentByDate] = useState<boolean>(true);
 
   const searchedTermWrapper = (x: any): void => {
     if (x != null) {
@@ -94,7 +105,7 @@ function App() {
         .slice(0, 1)
         .toString();
       if (sortedAuthors.includes(holder) || sortedPoems.includes(holder)) {
-        setSearchedTerm(holder);
+        setSearchTerm(holder);
       }
     }
   };
@@ -113,41 +124,41 @@ function App() {
       setLinkDate(formatDate(forwardDateHolder));
     } else {
       let sortedList = sortedPoems;
-      if (sortedAuthors.includes(searchedTerm)) {
+      if (sortedAuthors.includes(searchTerm)) {
         sortedList = sortedAuthors;
       }
-      const index = sortedList.indexOf(searchedTerm);
+      const index = sortedList.indexOf(searchTerm);
       if (index === -1) {
         return;
       }
       const before = index === 0 ? sortedList[sortedAuthors.length - 1] : sortedList[index - 1];
       const after = index === sortedList.length - 1 ? sortedList[0] : sortedList[index + 1];
-      setSearchedTerm(x === 'back' ? before : after);
+      setSearchTerm(x === 'back' ? before : after);
     }
   };
 
   useEffect(() => {
     if (isShowingContentByDate) {
-      setIsShowingContentByDate(false);
+      toggleViewMode();
     }
     async function getData() {
-      let link = `poem/${searchedTerm}`;
-      if (sortedAuthors.includes(searchedTerm)) {
-        link = `author/${searchedTerm}`;
+      let link = `poem/${searchTerm}`;
+      if (sortedAuthors.includes(searchTerm)) {
+        link = `author/${searchTerm}`;
       }
       axios.get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.json').then(response => {
         const data = response.data;
 
-        setAuthorData(data);
+        setLocalAuthorData(data);
       });
     }
     getData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchedTerm]);
+  }, [searchTerm]);
 
   useEffect(() => {
     if (!isShowingContentByDate) {
-      setIsShowingContentByDate(true);
+      toggleViewMode();
     }
     async function getData() {
       let link = linkDate;
@@ -161,17 +172,25 @@ function App() {
         const data = response.data;
 
         setDay(data.dayofweek);
-        setCurrentDate(data.date);
-        setTranscript(data.transcript);
-        setPoemTitle(data.poemtitle);
+        storeSetCurrentDate(data.date);
         setPoemByline(data.poembyline);
 
-        setAuthor(data.author);
-        setPoem(data.poem);
-        setNote(data.notes);
-        if (/&amp;#233;/.test(data.poem)) {
-          setPoem(data.poem.replaceAll(/&amp;#233;/g, 'é')); // Hardcoded Look for something in DOMPurify to resolve
-        }
+        // Update store with poem data
+        setPoemData({
+          poem: /&amp;#233;/.test(data.poem) ? data.poem.replaceAll(/&amp;#233;/g, 'é') : data.poem,
+          poemTitle: data.poemtitle,
+          note: data.notes,
+        });
+
+        // Update store with author data
+        setAuthorData({
+          author: data.author,
+        });
+
+        // Update store with transcript
+        setAudioData({
+          transcript: data.transcript,
+        });
       });
       if (Number(linkDate) > 20090111) {
         axios
@@ -179,18 +198,21 @@ function App() {
             responseType: 'arraybuffer',
           })
           .then(response => {
-            if (mp3) URL.revokeObjectURL(mp3);
+            // Cleanup old blob URL before creating new one
+            if (mp3Url && mp3Url.startsWith('blob:')) {
+              cleanup();
+            }
             const blob = new window.Blob([response.data]);
             const audioUrl = URL.createObjectURL(blob);
-            setMP3(audioUrl);
+            setAudioData({ mp3Url: audioUrl });
           });
       } else {
-        setMP3('NotAvailable');
+        setAudioData({ mp3Url: 'NotAvailable' });
       }
     }
     getData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linkDate, mp3]);
+  }, [linkDate, mp3Url]);
 
   const body = useMemo(() => {
     if (isShowingContentByDate) {
@@ -209,7 +231,7 @@ function App() {
                   <Poem
                     poemTitle={poemTitle}
                     poem={poem}
-                    setSearchedTerm={setSearchedTerm}
+                    setSearchedTerm={setSearchTerm}
                     author={author}
                     poemByline={poemByline}
                   />
@@ -231,7 +253,7 @@ function App() {
                 <Poem
                   poemTitle={poemTitle}
                   poem={poem}
-                  setSearchedTerm={setSearchedTerm}
+                  setSearchedTerm={setSearchTerm}
                   author={author}
                   poemByline={poemByline}
                 />
@@ -248,7 +270,7 @@ function App() {
         <>
           {authorData && (
             <Author
-              setIsShowingContentByDate={setIsShowingContentByDate}
+              setIsShowingContentByDate={toggleViewMode}
               authorData={authorData}
               formatAuthorDate={formatAuthorDate}
               setLinkDate={setLinkDate}
@@ -269,8 +291,8 @@ function App() {
     poemByline,
     note,
     authorData,
-    setSearchedTerm,
-    setLinkDate,
+    setSearchTerm,
+    toggleViewMode,
   ]);
   //rewrite particlesComponent to not rerender unless the options change
   return (
@@ -293,14 +315,14 @@ function App() {
               />
               <div
                 className="DateContainer"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date || '') }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
               />
             </div>
           </div>
           <Audio
             isShowingContentbyDate={isShowingContentByDate}
-            searchedTerm={searchedTerm}
-            mp3Link={mp3}
+            searchedTerm={searchTerm}
+            mp3Link={mp3Url}
             shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
             width={width}
             setIsShowing={setIsShowing}
@@ -319,13 +341,13 @@ function App() {
                 width={width}
               />
               <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }} />
-              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(date || '') }} />
+              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }} />
             </div>
           </div>
           <Audio
             isShowingContentbyDate={isShowingContentByDate}
-            searchedTerm={searchedTerm}
-            mp3Link={mp3}
+            searchedTerm={searchTerm}
+            mp3Link={mp3Url}
             shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
             width={width}
             setIsShowing={setIsShowing}
