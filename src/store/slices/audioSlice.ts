@@ -26,11 +26,19 @@ export const createAudioSlice: SliceCreator<AudioSlice> = (set, get) => ({
   /**
    * Set audio data (MP3 URL and/or transcript)
    * Accepts partial updates - only provided fields will be updated
+   * Automatically revokes old blob URLs to prevent memory leaks
    */
   setAudioData: data => {
-    set({
-      ...(data.mp3Url !== undefined && { mp3Url: data.mp3Url }),
-      ...(data.transcript !== undefined && { transcript: data.transcript }),
+    set(state => {
+      // Revoke old blob URL if being replaced with new mp3Url
+      if (data.mp3Url !== undefined && state.mp3Url && state.mp3Url.startsWith('blob:')) {
+        URL.revokeObjectURL(state.mp3Url);
+      }
+
+      return {
+        ...(data.mp3Url !== undefined && { mp3Url: data.mp3Url }),
+        ...(data.transcript !== undefined && { transcript: data.transcript }),
+      };
     });
   },
 
