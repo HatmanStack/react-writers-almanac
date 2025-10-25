@@ -8,7 +8,7 @@ import { sanitizeHtml } from '../../utils';
  *
  * Features:
  * - Renders HTML content safely using DOMPurify
- * - Removes non-ASCII characters
+ * - Preserves Unicode characters and international text
  * - Shows divider between multiple notes
  * - Responsive text wrapping
  *
@@ -32,10 +32,10 @@ const Note = memo(function Note() {
   return (
     <div>
       {noteArray.map((string: string, index: number) => (
-        <div key={index} className="text-xs mx-8 my-8 text-pretty">
+        <div key={`note-${index}-${string.slice(0, 20)}`} className="text-xs mx-8 my-8 text-pretty">
           <div
             dangerouslySetInnerHTML={{
-              __html: sanitizeHtml(string, true),
+              __html: sanitizeHtml(string),
             }}
           />
           {index < noteArray.length - 1 && (
