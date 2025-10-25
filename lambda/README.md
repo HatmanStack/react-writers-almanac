@@ -224,12 +224,12 @@ For each method:
 ### Get API Gateway URL
 
 After deployment, note the Invoke URL:
-```
-https://abc123xyz.execute-api.us-east-1.amazonaws.com/prod
+```text
+<https://abc123xyz.execute-api.us-east-1.amazonaws.com/prod>
 ```
 
 Update `.env.local`:
-```
+```bash
 VITE_API_BASE_URL=https://abc123xyz.execute-api.us-east-1.amazonaws.com/prod
 ```
 

@@ -61,7 +61,7 @@ npm run build
 
 ## Project Structure
 
-```
+```text
 src/
 ├── api/              # API client and endpoints
 ├── components/       # React components
