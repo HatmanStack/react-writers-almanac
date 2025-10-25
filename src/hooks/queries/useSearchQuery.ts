@@ -65,9 +65,12 @@ export function useSearchQuery(
 ): UseQueryResult<SearchResponse, ApiError> & { errorMessage: string | null } {
   const trimmedQuery = query.trim();
 
+  // Validate limit parameter to prevent API errors
+  const validatedLimit = Math.max(1, Math.min(limit, 100)); // Clamp between 1-100
+
   const queryResult = useQuery<SearchResponse, ApiError>({
-    queryKey: searchKeys.query(trimmedQuery, limit),
-    queryFn: () => fetchSearchResults(trimmedQuery, limit),
+    queryKey: searchKeys.query(trimmedQuery, validatedLimit),
+    queryFn: () => fetchSearchResults(trimmedQuery, validatedLimit),
     enabled: trimmedQuery.length >= 1, // Only search if query has at least 1 character
     staleTime: 1000 * 60 * 5, // 5 minutes - search results can be cached briefly
     gcTime: 1000 * 60 * 30, // 30 minutes
