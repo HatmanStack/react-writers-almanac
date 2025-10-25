@@ -56,7 +56,10 @@ function getCorsHeaders() {
 function errorResponse(statusCode, message, code) {
   return {
     statusCode,
-    headers: getCorsHeaders(),
+    headers: {
+      ...getCorsHeaders(),
+      'Cache-Control': 'no-store, no-cache, must-revalidate', // Never cache errors
+    },
     body: JSON.stringify({
       message,
       status: statusCode,
