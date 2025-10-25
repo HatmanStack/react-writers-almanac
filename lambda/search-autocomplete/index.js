@@ -91,14 +91,20 @@ async function fetchAuthorSlugs() {
 
   console.log('Fetching author names from S3');
   const slugs = [];
-  let continuationToken = null;
+  let continuationToken = undefined;
 
   do {
-    const command = new ListObjectsV2Command({
+    const commandParams = {
       Bucket: BUCKET_NAME,
       Prefix: AUTHORS_PREFIX,
-      ContinuationToken: continuationToken,
-    });
+    };
+
+    // Only include ContinuationToken if it's defined (not on first request)
+    if (continuationToken) {
+      commandParams.ContinuationToken = continuationToken;
+    }
+
+    const command = new ListObjectsV2Command(commandParams);
 
     const response = await s3Client.send(command);
 
