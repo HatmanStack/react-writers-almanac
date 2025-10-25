@@ -115,21 +115,20 @@ describe('Note Component', () => {
   });
 
   describe('Character Sanitization', () => {
-    it('should remove non-ASCII characters', () => {
+    it('should preserve Unicode characters for i18n support', () => {
       const noteWithNonAscii = ['Test café note'];
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(noteWithNonAscii);
       render(<Note />);
-      // The é should be removed
-      expect(screen.getByText('Test caf note')).toBeInTheDocument();
-      expect(screen.queryByText('Test café note')).not.toBeInTheDocument();
+      // Unicode characters should be preserved
+      expect(screen.getByText('Test café note')).toBeInTheDocument();
     });
 
-    it('should remove emoji and special characters', () => {
+    it('should preserve emoji and special characters for international content', () => {
       const noteWithEmoji = ['Hello 🎉 World 🌍'];
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(noteWithEmoji);
       render(<Note />);
-      // Emojis should be removed
-      expect(screen.getByText(/Hello.*World/)).toBeInTheDocument();
+      // Emojis should be preserved
+      expect(screen.getByText('Hello 🎉 World 🌍')).toBeInTheDocument();
     });
 
     it('should preserve ASCII characters including punctuation', () => {
