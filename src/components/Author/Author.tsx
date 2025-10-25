@@ -131,8 +131,8 @@ function Author({
           <VirtualizedPoemsList poems={poems} width={width} handleClick={handleClick} />
         ) : (
           <section>
-            {poems.map((item, index) => (
-              <div key={index} className="flex justify-center">
+            {poems.map(item => (
+              <div key={item.date} className="flex justify-center">
                 {width <= 1000 && <div className="flex-[1_0_auto]" />}
                 <button
                   type="button"
@@ -201,7 +201,7 @@ const VirtualizedPoemsList = memo(function VirtualizedPoemsList({
           const item = poems[virtualRow.index];
           return (
             <div
-              key={virtualRow.index}
+              key={item.date}
               style={{
                 position: 'absolute',
                 top: 0,

@@ -19,8 +19,8 @@ const Poem = memo(function Poem({
   return (
     <div>
       {poemTitle &&
-        poemTitle.map((_, index) => (
-          <div key={index}>
+        poemTitle.map((title, index) => (
+          <div key={title}>
             <h2>
               <button
                 type="button"
