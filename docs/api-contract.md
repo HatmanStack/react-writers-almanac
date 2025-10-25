@@ -225,10 +225,22 @@ All API endpoints return errors in a standard format:
 
 All API Gateway endpoints must have CORS enabled:
 
-**Headers**:
-- `Access-Control-Allow-Origin`: `*` (or specific domain)
+**Development Headers**:
+- `Access-Control-Allow-Origin`: `*`
 - `Access-Control-Allow-Methods`: `GET, OPTIONS`
-- `Access-Control-Allow-Headers`: `Content-Type, Authorization`
+- `Access-Control-Allow-Headers`: `Content-Type`
+
+**Production Headers** (Recommended):
+- `Access-Control-Allow-Origin`: Use allowlist of approved domains, echo the `Origin` header for allowed domains
+- `Access-Control-Allow-Methods`: Restrict to only needed methods (typically just `GET, OPTIONS`)
+- `Access-Control-Allow-Headers`: Restrict to only needed headers (avoid `Authorization` unless required)
+- `Access-Control-Allow-Credentials`: Only set to `true` if using cookies or authentication
+- `Vary: Origin`: Required when echoing Origin header for proper caching
+
+**Security Notes**:
+- Never use `Access-Control-Allow-Origin: *` with `Access-Control-Allow-Credentials: true`
+- Restrict allowed methods and headers to minimum required for each endpoint
+- Use specific origin allowlist rather than wildcard in production
 
 ---
 

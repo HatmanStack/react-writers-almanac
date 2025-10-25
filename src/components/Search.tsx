@@ -62,8 +62,10 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
 
   const handleKeyDown = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
+      const trimmedQuery = query.trim();
+      if (!trimmedQuery) return; // Don't search if query is empty
       setIsShowing(false);
-      searchedTermWrapper(query);
+      searchedTermWrapper(trimmedQuery);
     }
     if (event.key === 'Escape') {
       setIsShowing(false);
@@ -124,7 +126,7 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
           />
           <button
             type="button"
-            className="bg-transparent border-none cursor-pointer overflow-hidden font-bold text-xs text-app-text z-10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            className="bg-transparent border-none cursor-pointer overflow-hidden font-bold text-xs text-app-text z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             onClick={() => setIsShowing(!isShowing)}
             aria-label={isShowing ? 'Close calendar' : 'Open calendar'}
             aria-expanded={isShowing}
@@ -192,7 +194,7 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
           />
           <button
             type="button"
-            className="bg-transparent border-none cursor-pointer overflow-hidden font-bold text-xs text-app-text z-10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            className="bg-transparent border-none cursor-pointer overflow-hidden font-bold text-xs text-app-text z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             onClick={() => setIsShowing(!isShowing)}
             aria-label={isShowing ? 'Close calendar' : 'Open calendar'}
             aria-expanded={isShowing}
