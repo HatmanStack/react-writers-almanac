@@ -33,20 +33,16 @@ async function fetchSearchResults(query: string, limit: number): Promise<SearchR
   return response.data;
 }
 
-export interface SearchQueryOptions {
-  /** Callback fired when an error occurs */
-  onError?: (error: ApiError) => void;
-}
-
 /**
  * Hook to search for authors and poems
  *
  * Note: Consider debouncing the query string at the component level
  * to avoid excessive API calls while typing.
  *
+ * TanStack Query v5 removed onError - handle errors via query.error instead
+ *
  * @param query - Search query string (minimum 1 character)
  * @param limit - Maximum results (default: 10)
- * @param options - Optional configuration
  * @returns Query result with search results and user-friendly error message
  *
  * @example
@@ -65,8 +61,7 @@ export interface SearchQueryOptions {
  */
 export function useSearchQuery(
   query: string,
-  limit: number = 10,
-  options?: SearchQueryOptions
+  limit: number = 10
 ): UseQueryResult<SearchResponse, ApiError> & { errorMessage: string | null } {
   const trimmedQuery = query.trim();
 
@@ -90,8 +85,7 @@ export function useSearchQuery(
       return failureCount < 2;
     },
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
-    // Use TanStack Query's onError option instead of meta
-    onError: options?.onError,
+    // TanStack Query v5 removed onError - use query.error or error boundaries instead
   });
 
   // Get user-friendly error message

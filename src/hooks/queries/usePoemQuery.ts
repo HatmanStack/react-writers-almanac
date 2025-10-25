@@ -27,16 +27,12 @@ async function fetchPoem(date: string): Promise<Poem> {
   return response.data;
 }
 
-export interface PoemQueryOptions {
-  /** Callback fired when an error occurs */
-  onError?: (error: ApiError) => void;
-}
-
 /**
  * Hook to fetch daily poem by date
  *
+ * TanStack Query v5 removed onError - handle errors via query.error instead
+ *
  * @param date - Date in YYYYMMDD format (e.g., "20240101")
- * @param options - Optional configuration
  * @returns Query result with poem data and user-friendly error message
  *
  * @example
@@ -49,8 +45,7 @@ export interface PoemQueryOptions {
  * ```
  */
 export function usePoemQuery(
-  date: string,
-  options?: PoemQueryOptions
+  date: string
 ): UseQueryResult<Poem, ApiError> & { errorMessage: string | null } {
   const query = useQuery<Poem, ApiError>({
     queryKey: poemKeys.byDate(date),
@@ -72,8 +67,7 @@ export function usePoemQuery(
       return failureCount < 3;
     },
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
-    // Use TanStack Query's onError option instead of meta
-    onError: options?.onError,
+    // TanStack Query v5 removed onError - use query.error or error boundaries instead
   });
 
   // Get user-friendly error message

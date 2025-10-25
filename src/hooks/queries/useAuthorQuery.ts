@@ -27,16 +27,12 @@ async function fetchAuthor(slug: string): Promise<Author> {
   return response.data;
 }
 
-export interface AuthorQueryOptions {
-  /** Callback fired when an error occurs */
-  onError?: (error: ApiError) => void;
-}
-
 /**
  * Hook to fetch author data by name or slug
  *
+ * TanStack Query v5 removed onError - handle errors via query.error instead
+ *
  * @param name - Author name or slug (e.g., "Billy Collins" or "billy-collins")
- * @param options - Optional configuration
  * @returns Query result with author data and user-friendly error message
  *
  * @example
@@ -49,8 +45,7 @@ export interface AuthorQueryOptions {
  * ```
  */
 export function useAuthorQuery(
-  name: string,
-  options?: AuthorQueryOptions
+  name: string
 ): UseQueryResult<Author, ApiError> & { errorMessage: string | null } {
   // Normalize name to slug
   const slug = name ? nameToSlug(name) : '';
@@ -75,8 +70,7 @@ export function useAuthorQuery(
       return failureCount < 2;
     },
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-    // Use TanStack Query's onError option instead of meta
-    onError: options?.onError,
+    // TanStack Query v5 removed onError - use query.error or error boundaries instead
   });
 
   // Get user-friendly error message
