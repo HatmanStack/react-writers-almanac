@@ -66,7 +66,7 @@ describe('Note Component', () => {
       const notes = ['First', 'Second'];
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(notes);
       const { container } = render(<Note />);
-      const dividers = container.querySelectorAll('img[alt="divider"]');
+      const dividers = container.querySelectorAll('img[aria-hidden="true"]');
       expect(dividers.length).toBe(1);
     });
 
@@ -74,7 +74,7 @@ describe('Note Component', () => {
       const notes = ['First', 'Second', 'Third'];
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(notes);
       const { container } = render(<Note />);
-      const dividers = container.querySelectorAll('img[alt="divider"]');
+      const dividers = container.querySelectorAll('img[aria-hidden="true"]');
       // Should be 2 dividers for 3 notes (not after the last one)
       expect(dividers.length).toBe(2);
     });
@@ -83,7 +83,7 @@ describe('Note Component', () => {
       const notes = ['Only note'];
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(notes);
       const { container } = render(<Note />);
-      const dividers = container.querySelectorAll('img[alt="divider"]');
+      const dividers = container.querySelectorAll('img[aria-hidden="true"]');
       expect(dividers.length).toBe(0);
     });
 
@@ -91,7 +91,7 @@ describe('Note Component', () => {
       const notes = ['First', 'Second'];
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(notes);
       const { container } = render(<Note />);
-      const divider = container.querySelector('img[alt="divider"]');
+      const divider = container.querySelector('img[aria-hidden="true"]');
       expect(divider).toHaveAttribute('src', 'divider.png');
     });
   });
@@ -144,7 +144,7 @@ describe('Note Component', () => {
       const notes = ['Test note'];
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(notes);
       const { container } = render(<Note />);
-      const noteDiv = container.querySelector('.text-xs.mx-8.my-8.text-pretty');
+      const noteDiv = container.querySelector('.text-base.mx-8.my-8.text-pretty');
       expect(noteDiv).toBeInTheDocument();
     });
 
@@ -152,8 +152,8 @@ describe('Note Component', () => {
       const notes = ['First', 'Second'];
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(notes);
       const { container } = render(<Note />);
-      const divider = container.querySelector('img[alt="divider"]');
-      expect(divider).toHaveClass('w-[10%]', 'h-auto');
+      const divider = container.querySelector('img[aria-hidden="true"]');
+      expect(divider).toHaveClass('w-[10%]', 'h-auto', 'mx-auto');
     });
   });
 
@@ -163,7 +163,7 @@ describe('Note Component', () => {
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(notes);
       const { container } = render(<Note />);
       // Should render but with empty content
-      expect(container.querySelector('.text-xs')).toBeInTheDocument();
+      expect(container.querySelector('.text-base')).toBeInTheDocument();
     });
 
     it('should handle notes with only whitespace', () => {
@@ -171,14 +171,14 @@ describe('Note Component', () => {
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(notes);
       const { container } = render(<Note />);
       // Should render the component structure even with whitespace
-      expect(container.querySelector('.text-xs')).toBeInTheDocument();
+      expect(container.querySelector('.text-base')).toBeInTheDocument();
     });
 
     it('should use index as key for list items', () => {
       const notes = ['First', 'Second', 'Third'];
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(notes);
       const { container } = render(<Note />);
-      const noteDivs = container.querySelectorAll('.text-xs');
+      const noteDivs = container.querySelectorAll('.text-base');
       expect(noteDivs.length).toBe(3);
     });
   });

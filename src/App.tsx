@@ -158,12 +158,18 @@ function App() {
   const shiftContentByAuthorOrDate = useCallback(
     async (x: string): Promise<void> => {
       if (isShowingContentByDate) {
-        const holderDate = new Date(
-          linkDate.substring(0, 4) + '-' + linkDate.substring(4, 6) + '-' + linkDate.substring(6)
-        );
-        const forwardDateHolder = new Date(holderDate);
-        forwardDateHolder.setDate(holderDate.getDate() + (x === 'back' ? -1 : 1));
-        setLinkDate(formatDate(forwardDateHolder));
+        // Use functional update to avoid stale closure issues
+        setLinkDate(currentLinkDate => {
+          // Parse date using local time to avoid timezone issues
+          const year = parseInt(currentLinkDate.substring(0, 4), 10);
+          const month = parseInt(currentLinkDate.substring(4, 6), 10) - 1; // Month is 0-indexed
+          const day = parseInt(currentLinkDate.substring(6, 8), 10);
+
+          const currentDate = new Date(year, month, day);
+          const newDate = new Date(currentDate);
+          newDate.setDate(currentDate.getDate() + (x === 'back' ? -1 : 1));
+          return formatDate(newDate);
+        });
       } else {
         let sortedList = sortedPoems;
         if (sortedAuthors.includes(searchTerm)) {
@@ -178,17 +184,13 @@ function App() {
         setSearchTerm(x === 'back' ? before : after);
       }
     },
-    [isShowingContentByDate, linkDate, searchTerm, setLinkDate, setSearchTerm]
+    [isShowingContentByDate, searchTerm, setLinkDate, setSearchTerm]
   );
 
   // Author data is now fetched by the Author component using TanStack Query
   // No need for local author data fetching here
 
   useEffect(() => {
-    if (!isShowingContentByDate) {
-      toggleViewMode();
-    }
-
     const abortController = new AbortController();
 
     async function getData() {
@@ -269,16 +271,7 @@ function App() {
     return () => {
       abortController.abort();
     };
-  }, [
-    linkDate,
-    isShowingContentByDate,
-    toggleViewMode,
-    storeSetCurrentDate,
-    setPoemData,
-    setAuthorData,
-    setAudioData,
-    cleanup,
-  ]);
+  }, [linkDate, storeSetCurrentDate, setPoemData, setAuthorData, setAudioData, cleanup]);
 
   // Normalize store data to arrays for components that expect arrays
   const normalizedPoemTitle = useMemo(() => {
@@ -389,7 +382,7 @@ function App() {
             </Suspense>
             <header className="flex flex-row items-center justify-around m-4">
               <img
-                className="flex-[1_3_0] w-[35%] z-10 bg-app-container rounded-[3rem] flex p-4"
+                className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
                 src={logo}
                 alt="The Writer's Almanac Logo"
               />
@@ -407,6 +400,7 @@ function App() {
                     searchedTermWrapper={searchedTermWrapper}
                     calendarDate={calendarDate}
                     width={width}
+                    currentDate={linkDate}
                   />
                 </ErrorBoundary>
                 <div
@@ -450,7 +444,7 @@ function App() {
             </Suspense>
             <header className="flex flex-col items-center justify-around m-4">
               <img
-                className="flex-[1_3_0] z-10 bg-app-container rounded-[3rem] flex p-4 w-[20em]"
+                className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
                 src={logo}
                 alt="The Writer's Almanac Logo"
               />
@@ -467,6 +461,7 @@ function App() {
                     searchedTermWrapper={searchedTermWrapper}
                     calendarDate={calendarDate}
                     width={width}
+                    currentDate={linkDate}
                   />
                 </ErrorBoundary>
                 <div

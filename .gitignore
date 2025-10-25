@@ -15,6 +15,7 @@ cleaning.py
 moving.py
 .babelrc
 /scrape_data
+CLAUDE.md
 
 # testing
 /coverage

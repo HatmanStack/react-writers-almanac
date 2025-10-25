@@ -32,7 +32,10 @@ const Note = memo(function Note() {
   return (
     <div>
       {noteArray.map((string: string, index: number) => (
-        <div key={`note-${index}-${string.slice(0, 20)}`} className="text-xs mx-8 my-8 text-pretty">
+        <div
+          key={`note-${index}-${string.slice(0, 20)}`}
+          className="text-base mx-8 my-8 text-pretty"
+        >
           <div
             dangerouslySetInnerHTML={{
               __html: sanitizeHtml(string),
@@ -45,7 +48,7 @@ const Note = memo(function Note() {
                 src={divider}
                 alt=""
                 aria-hidden="true"
-                className="w-[10%] h-auto"
+                className="w-[10%] h-auto mx-auto"
                 loading="lazy"
               />
             </div>

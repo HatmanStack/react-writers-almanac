@@ -16,6 +16,7 @@ describe('Core Components Integration', () => {
             searchedTermWrapper={mockSearchedTermWrapper}
             calendarDate={mockCalendarDate}
             width={1200}
+            currentDate="20240101"
           />
           <Poem
             poemTitle={['Test Poem']}
@@ -44,6 +45,7 @@ describe('Core Components Integration', () => {
             searchedTermWrapper={mockSearchedTermWrapper}
             calendarDate={mockCalendarDate}
             width={1200}
+            currentDate="20240101"
           />
           <Poem
             poemTitle={['Styled Poem']}
@@ -80,6 +82,7 @@ describe('Core Components Integration', () => {
           searchedTermWrapper={searchedTermWrapper}
           calendarDate={calendarDate}
           width={1200}
+          currentDate="20240101"
         />
       );
 
@@ -117,6 +120,7 @@ describe('Core Components Integration', () => {
             searchedTermWrapper={mockSearchedTermWrapper}
             calendarDate={mockCalendarDate}
             width={1200}
+            currentDate="20240101"
           />
           <Poem
             poemTitle={['Accessible Poem']}
@@ -157,6 +161,7 @@ describe('Core Components Integration', () => {
             searchedTermWrapper={mockSearchedTermWrapper}
             calendarDate={mockCalendarDate}
             width={800}
+            currentDate="20240101"
           />
           <Poem
             poemTitle={['Mobile Poem']}
@@ -187,6 +192,7 @@ describe('Core Components Integration', () => {
             searchedTermWrapper={mockSearchedTermWrapper}
             calendarDate={mockCalendarDate}
             width={1400}
+            currentDate="20240101"
           />
           <Poem
             poemTitle={['Desktop Poem']}

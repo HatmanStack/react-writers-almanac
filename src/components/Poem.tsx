@@ -24,7 +24,7 @@ const Poem = memo(function Poem({
             <h2>
               <button
                 type="button"
-                className="text-base bg-transparent bg-no-repeat border-none cursor-pointer overflow-hidden font-bold text-app-text flex-[2_0_0] justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                className="text-3xl bg-transparent bg-no-repeat border-none cursor-pointer overflow-hidden font-bold text-app-text flex-[2_0_0] justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                 dangerouslySetInnerHTML={{
                   __html: sanitizeHtml(poemTitle[index]),
                 }}
@@ -35,7 +35,7 @@ const Poem = memo(function Poem({
             {poemTitle.length > 1 && author && author.length == 1 && index != 0 ? null : (
               <button
                 type="button"
-                className="bg-transparent bg-no-repeat border-none cursor-pointer overflow-hidden font-bold text-base text-app-text flex-[2_0_0] justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                className="bg-transparent bg-no-repeat border-none cursor-pointer overflow-hidden font-bold text-xl text-app-text flex-[2_0_0] justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                 onClick={() => {
                   const authorName = author?.[index];
                   if (authorName) setSearchedTerm(authorName);
@@ -63,7 +63,7 @@ const Poem = memo(function Poem({
             <br />
             {index === poemTitle.length - 1 && poemByline && (
               <div
-                className="text-sm italic text-app-text mt-2"
+                className="text-base italic text-app-text mt-2"
                 dangerouslySetInnerHTML={{
                   __html: sanitizeHtml(poemByline),
                 }}
