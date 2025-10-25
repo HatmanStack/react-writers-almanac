@@ -228,9 +228,12 @@ exports.handler = async (event) => {
   // Handle OPTIONS request for CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
-      statusCode: 200,
-      headers: getCorsHeaders(),
-      body: '',
+      statusCode: 204, // No Content - more semantic for preflight
+      headers: {
+        ...getCorsHeaders(),
+        'Access-Control-Max-Age': '600', // Cache preflight for 10 minutes
+      },
+      body: '', // 204 should have empty body
     };
   }
 
