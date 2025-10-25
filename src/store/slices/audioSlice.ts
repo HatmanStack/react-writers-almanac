@@ -53,9 +53,10 @@ export const createAudioSlice: SliceCreator<AudioSlice> = (set, get) => ({
 
   /**
    * Set the current playback time in seconds
+   * Clamps value to be >= 0 (negative playback time doesn't make sense)
    */
   setCurrentTime: time => {
-    set({ currentTime: time });
+    set({ currentTime: Math.max(0, time) });
   },
 
   /**
