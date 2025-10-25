@@ -77,26 +77,25 @@ export function useSearchQuery(
     staleTime: 1000 * 60 * 5, // 5 minutes - search results can be cached briefly
     gcTime: 1000 * 60 * 30, // 30 minutes
     retry: (failureCount, error) => {
-      // Don't retry 400 errors (bad request)
-      if (error.status === 400) return false;
-      // Don't retry 4xx client errors
-      if (error.status >= 400 && error.status < 500) return false;
+      // Safely extract HTTP status from different error shapes (ApiError or AxiosError)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const status = (error as any)?.status ?? (error as any)?.response?.status;
+
+      // Don't retry any 4xx client errors (bad request, not found, etc.)
+      if (status && status >= 400 && status < 500) {
+        return false;
+      }
+
       // Retry network errors and 5xx errors up to 2 times
       return failureCount < 2;
     },
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
-    meta: {
-      onError: options?.onError,
-    },
+    // Use TanStack Query's onError option instead of meta
+    onError: options?.onError,
   });
 
   // Get user-friendly error message
   const errorMessage = queryResult.error ? getSearchErrorMessage(queryResult.error) : null;
-
-  // Call onError callback if provided
-  if (queryResult.error && options?.onError) {
-    options.onError(queryResult.error);
-  }
 
   return {
     ...queryResult,

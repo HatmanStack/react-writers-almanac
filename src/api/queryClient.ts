@@ -28,10 +28,11 @@ export const queryClient = new QueryClient({
 
         const status = getStatus(error);
 
-        // Don't retry 404s (not found)
-        if (status === 404) return false;
-        // Don't retry 400s (bad request)
-        if (status === 400) return false;
+        // Don't retry any 4xx client errors (bad request, not found, unauthorized, etc.)
+        if (status && status >= 400 && status < 500) {
+          return false;
+        }
+
         // Retry server errors (5xx) and network errors up to 3 times
         return failureCount < 3;
       },

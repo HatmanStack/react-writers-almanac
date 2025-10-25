@@ -62,26 +62,25 @@ export function useAuthorQuery(
     staleTime: 1000 * 60 * 60 * 24, // 24 hours - author data rarely changes
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - keep in cache for a week
     retry: (failureCount, error) => {
-      // Don't retry 404s (author doesn't exist)
-      if (error.status === 404) return false;
-      // Don't retry 4xx client errors
-      if (error.status >= 400 && error.status < 500) return false;
+      // Safely extract HTTP status from different error shapes (ApiError or AxiosError)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const status = (error as any)?.status ?? (error as any)?.response?.status;
+
+      // Don't retry any 4xx client errors (not found, unauthorized, bad request, etc.)
+      if (status && status >= 400 && status < 500) {
+        return false;
+      }
+
       // Retry network errors and 5xx errors up to 2 times
       return failureCount < 2;
     },
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-    meta: {
-      onError: options?.onError,
-    },
+    // Use TanStack Query's onError option instead of meta
+    onError: options?.onError,
   });
 
   // Get user-friendly error message
   const errorMessage = query.error ? getAuthorErrorMessage(query.error) : null;
-
-  // Call onError callback if provided
-  if (query.error && options?.onError) {
-    options.onError(query.error);
-  }
 
   return {
     ...query,

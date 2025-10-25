@@ -45,7 +45,7 @@ export interface PoemQueryOptions {
  *
  * if (isLoading) return <div>Loading...</div>;
  * if (error) return <div>Error: {errorMessage}</div>;
- * if (data) return <div>{data.poemtitle}</div>;
+ * if (data && data.poemtitle) return <div>{data.poemtitle[0]}</div>;
  * ```
  */
 export function usePoemQuery(
@@ -59,26 +59,25 @@ export function usePoemQuery(
     staleTime: 1000 * 60 * 60, // 1 hour - poems are immutable, can cache aggressively
     gcTime: 1000 * 60 * 60 * 24, // 24 hours - keep in cache for a day
     retry: (failureCount, error) => {
-      // Don't retry 404s (poem doesn't exist for that date)
-      if (error.status === 404) return false;
-      // Don't retry 4xx client errors
-      if (error.status >= 400 && error.status < 500) return false;
+      // Safely extract HTTP status from different error shapes (ApiError or AxiosError)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const status = (error as any)?.status ?? (error as any)?.response?.status;
+
+      // Don't retry any 4xx client errors (not found, bad request, etc.)
+      if (status && status >= 400 && status < 500) {
+        return false;
+      }
+
       // Retry network errors and 5xx errors up to 3 times
       return failureCount < 3;
     },
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
-    meta: {
-      onError: options?.onError,
-    },
+    // Use TanStack Query's onError option instead of meta
+    onError: options?.onError,
   });
 
   // Get user-friendly error message
   const errorMessage = query.error ? getPoemErrorMessage(query.error) : null;
-
-  // Call onError callback if provided
-  if (query.error && options?.onError) {
-    options.onError(query.error);
-  }
 
   return {
     ...query,
