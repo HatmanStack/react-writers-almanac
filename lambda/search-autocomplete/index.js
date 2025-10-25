@@ -1,0 +1,301 @@
+/**
+ * Lambda Function: Search Autocomplete
+ *
+ * Search for authors and poems by query string
+ *
+ * Query Parameters:
+ * - q: Search query (required)
+ * - limit: Maximum results (default: 10, max: 50)
+ *
+ * Returns:
+ * - 200: Search results
+ * - 400: Missing or invalid query
+ * - 500: Server error
+ */
+
+const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3');
+
+// Initialize S3 client
+const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
+
+// Configuration - S3_BUCKET is required (validated at handler invocation)
+const BUCKET_NAME = process.env.S3_BUCKET;
+if (!BUCKET_NAME) {
+  console.warn('S3_BUCKET environment variable is not set at init; handler will return 500');
+}
+const AUTHORS_PREFIX = 'authors/by-name/';
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 50;
+
+// In-memory cache for author slugs (cold start optimization)
+let authorSlugsCache = null;
+let cacheTimestamp = null;
+const CACHE_TTL = 3600000; // 1 hour in milliseconds
+
+/**
+ * Get CORS headers
+ * @returns {Object} CORS headers
+ */
+function getCorsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Content-Type': 'application/json',
+    'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+  };
+}
+
+/**
+ * Create error response
+ * @param {number} statusCode - HTTP status code
+ * @param {string} message - Error message
+ * @param {string} code - Error code
+ * @returns {Object} API Gateway response
+ */
+function errorResponse(statusCode, message, code) {
+  return {
+    statusCode,
+    headers: {
+      ...getCorsHeaders(),
+      'Cache-Control': 'no-store, no-cache, must-revalidate', // Never cache errors
+    },
+    body: JSON.stringify({
+      message,
+      status: statusCode,
+      code,
+      timestamp: new Date().toISOString(),
+    }),
+  };
+}
+
+/**
+ * Convert slug back to display name (best effort)
+ * @param {string} slug - Author slug (e.g., "billy-collins")
+ * @returns {string} Display name (e.g., "Billy Collins")
+ */
+function slugToName(slug) {
+  return slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+/**
+ * Fetch all author slugs from S3
+ * @returns {Promise<string[]>} Array of author slugs
+ */
+async function fetchAuthorSlugs() {
+  // Check cache
+  if (authorSlugsCache && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_TTL) {
+    console.log('Using cached author names');
+    return authorSlugsCache;
+  }
+
+  console.log('Fetching author names from S3');
+  const slugs = [];
+  let continuationToken = undefined;
+
+  do {
+    const commandParams = {
+      Bucket: BUCKET_NAME,
+      Prefix: AUTHORS_PREFIX,
+    };
+
+    // Only include ContinuationToken if it's defined (not on first request)
+    if (continuationToken) {
+      commandParams.ContinuationToken = continuationToken;
+    }
+
+    const command = new ListObjectsV2Command(commandParams);
+
+    const response = await s3Client.send(command);
+
+    if (response.Contents) {
+      response.Contents.forEach(obj => {
+        // Extract slug from key: authors/by-name/billy-collins.json -> billy-collins
+        const key = obj.Key;
+        if (key.endsWith('.json')) {
+          const slug = key.replace(AUTHORS_PREFIX, '').replace('.json', '');
+          slugs.push(slug);
+        }
+      });
+    }
+
+    continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
+  } while (continuationToken);
+
+  // Update cache
+  authorSlugsCache = slugs;
+  cacheTimestamp = Date.now();
+
+  console.log(`Fetched ${slugs.length} author slugs`);
+  return slugs;
+}
+
+/**
+ * Search authors by query
+ * @param {string} query - Search query
+ * @param {number} limit - Maximum results
+ * @returns {Promise<Object[]>} Search results
+ */
+async function searchAuthors(query, limit) {
+  const authorSlugs = await fetchAuthorSlugs();
+  const queryLower = query.toLowerCase();
+
+  // Create regex with word boundaries for better matching
+  const escapedQuery = queryLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const wordBoundaryRegex = new RegExp(`\\b${escapedQuery}`, 'i');
+
+  // Search and rank results
+  const matches = [];
+
+  for (const slug of authorSlugs) {
+    const displayName = slugToName(slug);
+    const nameLower = displayName.toLowerCase();
+    const slugLower = slug.toLowerCase();
+
+    // Exact match
+    if (nameLower === queryLower || slugLower === queryLower) {
+      matches.push({
+        type: 'author',
+        name: displayName,
+        slug: slug,
+        score: 100,
+      });
+      continue;
+    }
+
+    // Starts with match
+    if (nameLower.startsWith(queryLower)) {
+      matches.push({
+        type: 'author',
+        name: displayName,
+        slug: slug,
+        score: 90,
+      });
+      continue;
+    }
+
+    // Word boundary match (e.g., "Collins" matches "Billy Collins", "García-Lorca")
+    if (wordBoundaryRegex.test(nameLower)) {
+      matches.push({
+        type: 'author',
+        name: displayName,
+        slug: slug,
+        score: 80,
+      });
+      continue;
+    }
+
+    // Contains match
+    if (nameLower.includes(queryLower)) {
+      matches.push({
+        type: 'author',
+        name: displayName,
+        slug: slug,
+        score: 70,
+      });
+    }
+  }
+
+  // Sort by score (descending), then alphabetically for tie-breaking
+  matches.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+    return a.name.localeCompare(b.name);
+  });
+
+  return matches.slice(0, limit).map(({ type, name, slug, score }) => ({
+    type,
+    name,
+    slug,
+    info: `Author`, // Could be enhanced with additional metadata
+  }));
+}
+
+/**
+ * Lambda handler
+ * @param {Object} event - API Gateway event
+ * @returns {Object} API Gateway response
+ */
+exports.handler = async (event) => {
+  // Validate S3_BUCKET is configured (deferred from init to avoid cold-start 502)
+  if (!BUCKET_NAME) {
+    return errorResponse(500, 'S3_BUCKET environment variable not configured', 'CONFIGURATION_ERROR');
+  }
+
+  // Log request details (excluding sensitive headers)
+  console.log('Request:', JSON.stringify({
+    httpMethod: event.httpMethod,
+    path: event.path,
+    pathParameters: event.pathParameters,
+    queryStringParameters: event.queryStringParameters,
+  }, null, 2));
+
+  // Handle OPTIONS request for CORS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 204, // No Content - more semantic for preflight
+      headers: {
+        ...getCorsHeaders(),
+        'Access-Control-Max-Age': '600', // Cache preflight for 10 minutes
+      },
+      body: '', // 204 should have empty body
+    };
+  }
+
+  try {
+    // Extract query parameters
+    const queryParams = event.queryStringParameters || {};
+    const query = queryParams.q;
+    const limitParam = queryParams.limit;
+
+    // Check for null/undefined first (missing parameter)
+    if (query === null || query === undefined) {
+      return errorResponse(400, 'Missing query parameter "q"', 'MISSING_QUERY');
+    }
+
+    // Then check for empty string or whitespace (too short)
+    if (query.trim().length < 1) {
+      return errorResponse(400, 'Query must be at least 1 character', 'QUERY_TOO_SHORT');
+    }
+
+    // Parse limit
+    let limit = DEFAULT_LIMIT;
+    if (limitParam) {
+      limit = parseInt(limitParam, 10);
+      if (isNaN(limit) || limit < 1) {
+        limit = DEFAULT_LIMIT;
+      }
+      if (limit > MAX_LIMIT) {
+        limit = MAX_LIMIT;
+      }
+    }
+
+    console.log(`Searching for: "${query}" (limit: ${limit})`);
+
+    // Search authors
+    const results = await searchAuthors(query, limit);
+
+    // Return search results
+    return {
+      statusCode: 200,
+      headers: getCorsHeaders(),
+      body: JSON.stringify({
+        query,
+        results,
+        total: results.length,
+      }),
+    };
+  } catch (error) {
+    console.error('Error:', error);
+
+    return errorResponse(
+      500,
+      'Internal server error',
+      'INTERNAL_ERROR'
+    );
+  }
+};

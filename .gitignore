@@ -19,8 +19,12 @@ moving.py
 # testing
 /coverage
 /venv
+/test-results/
+/playwright-report/
+/playwright/.cache/
 # production
 /build
+/output
 
 # misc
 .DS_Store
@@ -63,3 +67,5 @@ amplifytools.xcconfig
 .secret-*
 **.sample
 #amplify-do-not-edit-end
+/lambda/dist/
+build/stats.html

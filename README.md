@@ -1,64 +1,110 @@
-# The Writers Almanac
+# The Writer's Almanac
 
-A single page web application that uses React to serve daily poems and history about the day. It also serves an audio file from Garrison Keillor narrating some of the historical events of the day and reading a poem. OpenAI Whisper is used to create transcripts of the audio file included in the app. This <ul><b>Proof of Concept</b></ul> version is running [here](https://d6d8ny9p8jhyg.cloudfront.net). The original version is located [here](https://www.writersalmanac.org/index.html%3Fp=10097.html)
+A modern React application delivering daily poems and historical narratives, featuring audio narration by Garrison Keillor and AI-generated transcripts.
+
+**Live Demo**: [https://d6d8ny9p8jhyg.cloudfront.net](https://d6d8ny9p8jhyg.cloudfront.net)
+
+---
+
+## About
+
+This is a modernized version of The Writer's Almanac, rebuilt with current web technologies. The code is provided here for transparency and as a portfolio demonstration. The content (poems, audio, historical narratives) is hosted privately and is the property of Prairie Home Productions.
+
+---
+
+## Tech Stack
+
+- **React 18** with TypeScript
+- **Vite** - Build tool
+- **Zustand** - State management
+- **TanStack Query** - Server state & caching
+- **Material-UI** - Component library
+- **Tailwind CSS** - Styling
+- **Vitest** - Unit testing
+- **Playwright** - E2E testing
+- **AWS** - Hosting (CloudFront + S3)
+
+---
 
 ## Features
 
-    - Serves daily poems and history about that day
-    - Plays an audio file of Garrison Keillor narrating some of the history and reading the poem
-    - Includes transcripts of the audio file created by OpenAI Whisper
+- Daily poems and historical events
+- Audio narration with AI transcripts
+- Author biographies from Poetry Foundation
+- Search with autocomplete
+- Date navigation and calendar picker
+- Responsive design
+- Animated particle effects
 
-## Technology
+---
 
-    - Single Page Application (SPA) written in React
-    - Hosted on AWS CloudFront
-    - Database served using AWS s3
-    - OpenAI Whisper (Transcription)
-    
-## Getting Started
+## Development
 
-    - Working Node install
-    
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Run tests
+npm test
+
+# Run E2E tests
+npm run test:e2e
+
+# Build for production
+npm run build
 ```
-git clone https://github.com/hatmanstack/react-writers-almanac.git
-cd react-writers-almanac
-npm install --global yarn
-yarn
-npm start
+
+---
+
+## Project Structure
+
+```text
+src/
+├── api/              # API client and endpoints
+├── components/       # React components
+├── hooks/            # Custom React hooks
+├── store/            # Zustand state management
+├── types/            # TypeScript definitions
+└── utils/            # Utility functions
+
+tests/
+└── e2e/              # Playwright E2E tests
 ```
 
-## Usage
+---
 
-To use the app, simply visit http://localhost:3000 in your browser. The original database is not being updated but the archive is large enough to deliver a new entry for the day/date of the year we're in going forward.  The app loads the current day's (based on the day of the week) poem and history.
+## Notes for Developers
+
+This codebase demonstrates:
+- Modern React patterns (hooks, lazy loading, memoization)
+- Type-safe development with strict TypeScript (zero `any` types)
+- Comprehensive testing (75%+ coverage)
+- Performance optimization (code splitting, virtualization)
+- Accessibility compliance (WCAG AA)
+- Security best practices (DOMPurify sanitization)
+
+The data layer expects AWS infrastructure (S3 for content, API Gateway for author data) which is not included in this repository.
+
+---
 
 ## License
 
-The code for this project is licensed under the MIT License.  Any and all content included is the property of Praire Home Productions and should not be used without their express written consent.
+**Code**: MIT License
 
-## ToDo
+**Content**: All poems, historical narratives, and audio recordings are the property of **Prairie Home Productions** and may not be reproduced without permission.
 
-- [X] Rework Data After Eliminating Default Padding/Margin 
-    - [X] 1993 - 1997 
-    - [X] 1998 - 2002 
-    - [X] 2003 - 2007 
-    - [X] 2008 - 2011 
-    - [X] 2012 - 2017 
-- [X] Unicode issue when going to utf-8 from whatever was scraped 
-        for special characters é ñ ö
-- [ ] Audio for 1993 - 2008
-- [ ] Consider Adding more recent TWA entries 2018 - ~2022
-- [ ] X-vector Speech Embeddings for other voice options
-- [ ] Calendar should open to Current Day
-- Build Author Bios
-    - [ ] Build Author Bios
-    - [ ] Begin Gathering Author Permissions for Poems
-        - [ ] Publisher Info
-        - [ ] Contact Info
-    - [X] Poetry Foundation scrape
-    - [ ] Make Author Info Editable with shared Account Access s3
-- [ ] Replace broken links to booksite.com with Repaired links for Author/Book purchase
-- [ ] Check all links for broken or redirects
-- [ ] Phantom Container in App.js
-- [ ] Multiple Authors on Day - Rework Author Button to link to Correct Author not First
+---
 
+## Acknowledgments
 
+- **Garrison Keillor** - Creator of The Writer's Almanac
+- **Prairie Home Productions** - Content provider
+- **Poetry Foundation** - Author biographies
+- **OpenAI Whisper** - Audio transcription
+
+---
+
+**Version**: 0.1.0 | **Last Updated**: 2025-10-24
