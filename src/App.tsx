@@ -123,7 +123,7 @@ function App() {
   );
 
   // Local component state (not in store)
-  const [linkDate, setLinkDate] = useState<string>(presentDate);
+  const [linkDate, setLinkDate] = useState<string>(presentDate());
   const [day, setDay] = useState<string | undefined>();
   const [poemByline, setPoemByline] = useState<string | undefined>();
   const { width } = useWindowSize();
