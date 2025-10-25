@@ -240,10 +240,12 @@ exports.handler = async (event) => {
     const query = queryParams.q;
     const limitParam = queryParams.limit;
 
-    if (!query) {
+    // Check for null/undefined first (missing parameter)
+    if (query === null || query === undefined) {
       return errorResponse(400, 'Missing query parameter "q"', 'MISSING_QUERY');
     }
 
+    // Then check for empty string or whitespace (too short)
     if (query.trim().length < 1) {
       return errorResponse(400, 'Query must be at least 1 character', 'QUERY_TOO_SHORT');
     }
