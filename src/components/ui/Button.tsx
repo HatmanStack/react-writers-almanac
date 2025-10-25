@@ -1,12 +1,7 @@
-import { memo, type ReactNode } from 'react';
+import { memo, type ButtonHTMLAttributes } from 'react';
 
-interface ButtonProps {
-  children: ReactNode;
-  onClick?: () => void;
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'text';
-  className?: string;
-  'aria-label'?: string;
-  type?: 'button' | 'submit' | 'reset';
 }
 
 const baseClasses =
@@ -20,17 +15,15 @@ const variantClasses: Record<NonNullable<ButtonProps['variant']>, string> = {
 };
 
 const Button = memo(function Button({
-  children,
-  onClick,
   variant = 'text',
   className = '',
-  'aria-label': ariaLabel,
-  type = 'button',
+  children,
+  ...props
 }: ButtonProps) {
   const classes = `${baseClasses} ${variantClasses[variant]} ${className}`.trim();
 
   return (
-    <button type={type} onClick={onClick} className={classes} aria-label={ariaLabel}>
+    <button type="button" className={classes} {...props}>
       {children}
     </button>
   );
