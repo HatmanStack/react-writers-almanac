@@ -95,6 +95,30 @@ describe('endpoints utility functions', () => {
       expect(parsed.getMonth()).toBe(original.getMonth());
       expect(parsed.getDate()).toBe(original.getDate());
     });
+
+    it('should throw error for invalid format (too short)', () => {
+      expect(() => parseDateFromYYYYMMDD('2024010')).toThrow('Invalid date format');
+    });
+
+    it('should throw error for invalid format (too long)', () => {
+      expect(() => parseDateFromYYYYMMDD('202401011')).toThrow('Invalid date format');
+    });
+
+    it('should throw error for invalid format (contains letters)', () => {
+      expect(() => parseDateFromYYYYMMDD('2024010a')).toThrow('Invalid date format');
+    });
+
+    it('should throw error for invalid date (Feb 30)', () => {
+      expect(() => parseDateFromYYYYMMDD('20240230')).toThrow('Invalid date');
+    });
+
+    it('should throw error for invalid date (month 13)', () => {
+      expect(() => parseDateFromYYYYMMDD('20241301')).toThrow('Invalid date');
+    });
+
+    it('should throw error for invalid date (day 32)', () => {
+      expect(() => parseDateFromYYYYMMDD('20240132')).toThrow('Invalid date');
+    });
   });
 
   describe('isAudioAvailable', () => {

@@ -96,13 +96,26 @@ export function formatDateToYYYYMMDD(date: Date): string {
  * Helper function to parse YYYYMMDD to Date
  * @param dateString - Date string in YYYYMMDD format
  * @returns Date object
+ * @throws Error if dateString is not valid YYYYMMDD format
  * @example parseDateFromYYYYMMDD("20240101") → Date(2024, 0, 1)
  */
 export function parseDateFromYYYYMMDD(dateString: string): Date {
+  // Validate format: exactly 8 digits
+  if (!/^\d{8}$/.test(dateString)) {
+    throw new Error(`Invalid date format: expected YYYYMMDD (8 digits), got "${dateString}"`);
+  }
+
   const year = parseInt(dateString.substring(0, 4), 10);
   const month = parseInt(dateString.substring(4, 6), 10) - 1; // Month is 0-indexed
   const day = parseInt(dateString.substring(6, 8), 10);
-  return new Date(year, month, day);
+
+  // Validate date is actually valid (e.g., not Feb 30)
+  const date = new Date(year, month, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
+    throw new Error(`Invalid date: ${dateString} does not represent a valid calendar date`);
+  }
+
+  return date;
 }
 
 /**
