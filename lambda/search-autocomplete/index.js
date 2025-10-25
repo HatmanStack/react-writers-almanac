@@ -27,8 +27,8 @@ const AUTHORS_PREFIX = 'authors/by-name/';
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
 
-// In-memory cache for author names (cold start optimization)
-let authorNamesCache = null;
+// In-memory cache for author slugs (cold start optimization)
+let authorSlugsCache = null;
 let cacheTimestamp = null;
 const CACHE_TTL = 3600000; // 1 hour in milliseconds
 
@@ -87,9 +87,9 @@ function slugToName(slug) {
  */
 async function fetchAuthorSlugs() {
   // Check cache
-  if (authorNamesCache && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_TTL) {
+  if (authorSlugsCache && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_TTL) {
     console.log('Using cached author names');
-    return authorNamesCache;
+    return authorSlugsCache;
   }
 
   console.log('Fetching author names from S3');
@@ -126,7 +126,7 @@ async function fetchAuthorSlugs() {
   } while (continuationToken);
 
   // Update cache
-  authorNamesCache = slugs;
+  authorSlugsCache = slugs;
   cacheTimestamp = Date.now();
 
   console.log(`Fetched ${slugs.length} author slugs`);
@@ -142,6 +142,10 @@ async function fetchAuthorSlugs() {
 async function searchAuthors(query, limit) {
   const authorSlugs = await fetchAuthorSlugs();
   const queryLower = query.toLowerCase();
+
+  // Create regex with word boundaries for better matching
+  const escapedQuery = queryLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const wordBoundaryRegex = new RegExp(`\\b${escapedQuery}`, 'i');
 
   // Search and rank results
   const matches = [];
@@ -173,8 +177,8 @@ async function searchAuthors(query, limit) {
       continue;
     }
 
-    // Word boundary match (e.g., "Collins" matches "Billy Collins")
-    if (nameLower.includes(' ' + queryLower)) {
+    // Word boundary match (e.g., "Collins" matches "Billy Collins", "García-Lorca")
+    if (wordBoundaryRegex.test(nameLower)) {
       matches.push({
         type: 'author',
         name: displayName,
@@ -195,8 +199,13 @@ async function searchAuthors(query, limit) {
     }
   }
 
-  // Sort by score (descending) and take top results
-  matches.sort((a, b) => b.score - a.score);
+  // Sort by score (descending), then alphabetically for tie-breaking
+  matches.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+    return a.name.localeCompare(b.name);
+  });
 
   return matches.slice(0, limit).map(({ type, name, slug, score }) => ({
     type,
