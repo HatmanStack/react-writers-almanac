@@ -6,7 +6,7 @@
  * - API Gateway - dynamic endpoints (search)
  */
 
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 import type { ApiError } from '../types/api';
 
 /**
@@ -48,20 +48,6 @@ export const apiClient: AxiosInstance = axios.create({
 });
 
 /**
- * Request interceptor - passes through config
- */
-const requestInterceptor = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-  return config;
-};
-
-/**
- * Response interceptor - handle successful responses
- */
-const responseInterceptor = (response: AxiosResponse): AxiosResponse => {
-  return response;
-};
-
-/**
  * Error interceptor - handle errors and format them consistently
  */
 const errorInterceptor = (error: AxiosError): Promise<never> => {
@@ -90,13 +76,9 @@ const errorInterceptor = (error: AxiosError): Promise<never> => {
   return Promise.reject(apiError);
 };
 
-// Add interceptors to CDN client
-cdnClient.interceptors.request.use(requestInterceptor);
-cdnClient.interceptors.response.use(responseInterceptor, errorInterceptor);
-
-// Add interceptors to API client
-apiClient.interceptors.request.use(requestInterceptor);
-apiClient.interceptors.response.use(responseInterceptor, errorInterceptor);
+// Add error interceptor to clients
+cdnClient.interceptors.response.use(response => response, errorInterceptor);
+apiClient.interceptors.response.use(response => response, errorInterceptor);
 
 // Export configured clients
 export default {
