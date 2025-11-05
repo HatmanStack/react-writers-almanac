@@ -28,6 +28,20 @@ export const createSearchSlice: SliceCreator<SearchSlice> = set => ({
   },
 
   /**
+   * Set the selected author
+   */
+  setSelectedAuthor: author => {
+    set({ searchTerm: author ?? '' });
+  },
+
+  /**
+   * Set the selected poem
+   */
+  setSelectedPoem: poem => {
+    set({ searchTerm: poem ?? '' });
+  },
+
+  /**
    * Set search results
    * Replaces existing results completely
    */

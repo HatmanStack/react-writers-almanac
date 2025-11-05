@@ -8,9 +8,27 @@ import logo from './assets/logo_writersalmanac.png';
 import sortedAuthorsImport from './assets/Authors_sorted.js';
 import sortedPoemsImport from './assets/Poems_sorted.js';
 
+// Runtime validation for JS imports
+if (
+  !Array.isArray(sortedAuthorsImport) ||
+  !sortedAuthorsImport.every(item => typeof item === 'string')
+) {
+  throw new Error('sortedAuthorsImport is not an array of strings');
+}
+if (
+  !Array.isArray(sortedPoemsImport) ||
+  !sortedPoemsImport.every(item => typeof item === 'string')
+) {
+  throw new Error('sortedPoemsImport is not an array of strings');
+}
+
 // Type assertions for JS imports
 const sortedAuthors = sortedAuthorsImport as string[];
 const sortedPoems = sortedPoemsImport as string[];
+
+// Convert to Sets for O(1) lookups
+const sortedAuthorsSet = new Set(sortedAuthors);
+const sortedPoemsSet = new Set(sortedPoems);
 
 import { useWindowSize } from 'react-use';
 import DOMPurify from 'dompurify';
@@ -141,7 +159,7 @@ function App() {
 
   const searchedTermWrapper = useCallback(
     (query: string): void => {
-      if (query && (sortedAuthors.includes(query) || sortedPoems.includes(query))) {
+      if (query && (sortedAuthorsSet.has(query) || sortedPoemsSet.has(query))) {
         setSearchTerm(query);
       }
     },
@@ -166,7 +184,7 @@ function App() {
         setLinkDate(formatDate(forwardDateHolder));
       } else {
         let sortedList = sortedPoems;
-        if (sortedAuthors.includes(searchTerm)) {
+        if (sortedAuthorsSet.has(searchTerm)) {
           sortedList = sortedAuthors;
         }
         const index = sortedList.indexOf(searchTerm);

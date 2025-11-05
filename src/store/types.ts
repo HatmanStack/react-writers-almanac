@@ -58,6 +58,8 @@ export interface SearchSlice {
 
   // Actions
   setSearchTerm: (term: string) => void;
+  setSelectedAuthor: (author: string | null) => void;
+  setSelectedPoem: (poem: string | null) => void;
   setSearchResults: (results: SearchResult[]) => void;
   clearSearch: () => void;
 }
