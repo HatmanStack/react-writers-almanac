@@ -29,6 +29,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -41,6 +42,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -55,6 +57,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -71,6 +74,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -95,6 +99,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={mobileWidth}
+          currentDate="20240101"
         />
       );
 
@@ -107,6 +112,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={mobileWidth}
+          currentDate="20240101"
         />
       );
 
@@ -120,6 +126,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={mobileWidth}
+          currentDate="20240101"
         />
       );
 
@@ -137,6 +144,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -155,6 +163,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -173,6 +182,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -187,6 +197,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -205,33 +216,35 @@ describe('Search Component', () => {
   describe('Calendar Functionality', () => {
     const desktopWidth = 1200;
 
-    it('displays calendar label when closed', () => {
+    it('displays calendar icon when closed', () => {
       render(
         <Search
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
-      const calendarButton = screen.getByRole('button', { name: /calendar/i });
-      expect(calendarButton).toHaveTextContent('Calendar');
+      const calendarButton = screen.getByRole('button', { name: /open calendar/i });
+      expect(calendarButton).toBeInTheDocument();
     });
 
-    it('hides calendar label text when open', () => {
+    it('shows close icon when calendar is open', () => {
       render(
         <Search
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
       const calendarButton = screen.getByRole('button', { name: /open calendar/i });
       fireEvent.click(calendarButton);
 
-      // Button should have empty text when calendar is open
-      expect(calendarButton).toHaveTextContent('');
+      // Button should now say "Close calendar" when open
+      expect(screen.getByRole('button', { name: /close calendar/i })).toBeInTheDocument();
     });
 
     it('has correct min and max dates', async () => {
@@ -240,6 +253,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -264,6 +278,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -277,6 +292,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -292,6 +308,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -309,6 +326,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -326,6 +344,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -340,6 +359,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -353,6 +373,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={desktopWidth}
+          currentDate="20240101"
         />
       );
 
@@ -370,6 +391,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={1200}
+          currentDate="20240101"
         />
       );
 
@@ -384,6 +406,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={800}
+          currentDate="20240101"
         />
       );
 
@@ -398,6 +421,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={1200}
+          currentDate="20240101"
         />
       );
 
@@ -410,6 +434,7 @@ describe('Search Component', () => {
           searchedTermWrapper={mockSearchedTermWrapper}
           calendarDate={mockCalendarDate}
           width={800}
+          currentDate="20240101"
         />
       );
 

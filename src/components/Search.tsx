@@ -3,6 +3,7 @@ import { Autocomplete, TextField } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers';
+import { CalendarMonth, Close, Search as SearchIcon } from '@mui/icons-material';
 import dayjs, { Dayjs } from 'dayjs';
 
 import listImport from '../assets/searchJson';
@@ -23,9 +24,15 @@ interface SearchProps {
   searchedTermWrapper: (query: string) => void;
   calendarDate: (date: CalendarDateChange) => void;
   width: number;
+  currentDate: string; // Current date in YYYYMMDD format
 }
 
-const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }: SearchProps) {
+const Search = memo(function Search({
+  searchedTermWrapper,
+  calendarDate,
+  width,
+  currentDate,
+}: SearchProps) {
   const [isShowing, setIsShowing] = useState<boolean>(false);
   const [query, updateQuery] = useState<string>('');
   const [year, setYear] = useState<number | string>('');
@@ -73,8 +80,8 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
     }
   };
 
-  const calendarLabel = (): string => {
-    return isShowing ? 'Close' : 'Calendar';
+  const calendarIcon = () => {
+    return isShowing ? <Close /> : <CalendarMonth />;
   };
 
   return (
@@ -91,6 +98,7 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
             getOptionLabel={option => option.label}
             sx={{
               width: '15em',
+              marginRight: '1rem',
               '& .MuiFormLabel-root': {
                 color: '#fffff6',
                 justifyContent: 'center',
@@ -113,6 +121,15 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
                 {...params}
                 label="Author / Poem"
                 onKeyDown={handleKeyDown}
+                InputProps={{
+                  ...params.InputProps,
+                  startAdornment: (
+                    <>
+                      <SearchIcon sx={{ color: '#fffff6', marginRight: '0.5rem' }} />
+                      {params.InputProps.startAdornment}
+                    </>
+                  ),
+                }}
                 sx={{
                   '& input': {
                     color: '#fffff6',
@@ -126,16 +143,19 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
           />
           <button
             type="button"
-            className="bg-transparent border-none cursor-pointer overflow-hidden font-bold text-xs text-app-text z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            className="bg-transparent border-none cursor-pointer overflow-hidden text-app-text z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             onClick={() => setIsShowing(!isShowing)}
             aria-label={isShowing ? 'Close calendar' : 'Open calendar'}
             aria-expanded={isShowing}
           >
-            {calendarLabel()}
+            {calendarIcon()}
           </button>
           {isShowing ? (
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DateCalendar
+                defaultValue={dayjs(
+                  `${currentDate.substring(0, 4)}-${currentDate.substring(4, 6)}-${currentDate.substring(6, 8)}`
+                )}
                 onChange={e => calendarChange(e)}
                 maxDate={dayjs('2017-11-30')}
                 minDate={dayjs('1993-01-01')}
@@ -159,6 +179,7 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
             getOptionLabel={option => option.label}
             sx={{
               width: '15em',
+              marginBottom: '1rem',
               '& .MuiFormLabel-root': {
                 color: '#fffff6',
                 justifyContent: 'center',
@@ -181,6 +202,15 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
                 {...params}
                 label="Author / Poem"
                 onKeyDown={handleKeyDown}
+                InputProps={{
+                  ...params.InputProps,
+                  startAdornment: (
+                    <>
+                      <SearchIcon sx={{ color: '#fffff6', marginRight: '0.5rem' }} />
+                      {params.InputProps.startAdornment}
+                    </>
+                  ),
+                }}
                 sx={{
                   '& input': {
                     color: '#fffff6',
@@ -194,16 +224,19 @@ const Search = memo(function Search({ searchedTermWrapper, calendarDate, width }
           />
           <button
             type="button"
-            className="bg-transparent border-none cursor-pointer overflow-hidden font-bold text-xs text-app-text z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            className="bg-transparent border-none cursor-pointer overflow-hidden text-app-text z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             onClick={() => setIsShowing(!isShowing)}
             aria-label={isShowing ? 'Close calendar' : 'Open calendar'}
             aria-expanded={isShowing}
           >
-            {calendarLabel()}
+            {calendarIcon()}
           </button>
           {isShowing ? (
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DateCalendar
+                defaultValue={dayjs(
+                  `${currentDate.substring(0, 4)}-${currentDate.substring(4, 6)}-${currentDate.substring(6, 8)}`
+                )}
                 onChange={e => calendarChange(e)}
                 maxDate={dayjs('2017-11-30')}
                 minDate={dayjs('1993-01-01')}
