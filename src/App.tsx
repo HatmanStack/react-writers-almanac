@@ -4,6 +4,7 @@ import Poem from './components/Poem';
 import Search from './components/Search';
 import ErrorBoundary from './components/ErrorBoundary';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
+import Modal from './components/ui/Modal';
 import logo from './assets/logo_writersalmanac.png';
 import sortedAuthorsImport from './assets/Authors_sorted.js';
 import sortedPoemsImport from './assets/Poems_sorted.js';
@@ -103,6 +104,11 @@ function App() {
     setSearchTerm,
     toggleViewMode,
     cleanup,
+    isPoemModalOpen,
+    setPoemModalOpen,
+    poemDates,
+    selectedPoem,
+    isAuthorPageOpen,
   } = useAppStore(
     useShallow(state => ({
       currentDate: state.currentDate,
@@ -119,6 +125,11 @@ function App() {
       setSearchTerm: state.setSearchTerm,
       toggleViewMode: state.toggleViewMode,
       cleanup: state.cleanup,
+      isPoemModalOpen: state.isPoemModalOpen,
+      setPoemModalOpen: state.setPoemModalOpen,
+      poemDates: state.poemDates,
+      selectedPoem: state.selectedPoem,
+      isAuthorPageOpen: state.isAuthorPageOpen,
     }))
   );
 
@@ -138,15 +149,6 @@ function App() {
       }
     };
   }, []);
-
-  const searchedTermWrapper = useCallback(
-    (query: string): void => {
-      if (query && (sortedAuthors.includes(query) || sortedPoems.includes(query))) {
-        setSearchTerm(query);
-      }
-    },
-    [setSearchTerm]
-  );
 
   const calendarDate = useCallback(
     (x: CalendarDateChange): void => {
@@ -290,6 +292,19 @@ function App() {
   }, [author]);
 
   const body = useMemo(() => {
+    if (isAuthorPageOpen) {
+      return (
+        <Suspense fallback={<LoadingSpinner size="lg" label="Loading author..." />}>
+          <Author
+            setIsShowingContentByDate={toggleViewMode}
+            authorName={searchTerm}
+            formatAuthorDate={formatAuthorDate}
+            setLinkDate={setLinkDate}
+            width={width}
+          />
+        </Suspense>
+      );
+    }
     if (isShowingContentByDate) {
       return (
         <div>
@@ -308,7 +323,6 @@ function App() {
                   <Poem
                     poemTitle={normalizedPoemTitle}
                     poem={normalizedPoem}
-                    setSearchedTerm={setSearchTerm}
                     author={normalizedAuthor}
                     poemByline={poemByline}
                   />
@@ -332,7 +346,6 @@ function App() {
                 <Poem
                   poemTitle={normalizedPoemTitle}
                   poem={normalizedPoem}
-                  setSearchedTerm={setSearchTerm}
                   author={normalizedAuthor}
                   poemByline={poemByline}
                 />
@@ -358,6 +371,7 @@ function App() {
       );
     }
   }, [
+    isAuthorPageOpen,
     isShowingContentByDate,
     width,
     isShowing,
@@ -367,7 +381,6 @@ function App() {
     normalizedAuthor,
     poemByline,
     searchTerm,
-    setSearchTerm,
     toggleViewMode,
     setLinkDate,
   ]);
@@ -397,7 +410,6 @@ function App() {
                   )}
                 >
                   <Search
-                    searchedTermWrapper={searchedTermWrapper}
                     calendarDate={calendarDate}
                     width={width}
                     currentDate={linkDate}
@@ -458,7 +470,6 @@ function App() {
                   )}
                 >
                   <Search
-                    searchedTermWrapper={searchedTermWrapper}
                     calendarDate={calendarDate}
                     width={width}
                     currentDate={linkDate}
@@ -507,6 +518,14 @@ function App() {
         >
           <section aria-label="Main content">{body}</section>
         </ErrorBoundary>
+        <Modal isOpen={isPoemModalOpen} onClose={() => setPoemModalOpen(false)}>
+          <h2>{selectedPoem}</h2>
+          <ul>
+            {poemDates.map(date => (
+              <li key={date}>{date}</li>
+            ))}
+          </ul>
+        </Modal>
       </main>
     </ErrorBoundary>
   );

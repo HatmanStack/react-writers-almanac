@@ -1,21 +1,16 @@
 import { memo } from 'react';
 import { sanitizeHtml } from '../utils';
+import { useAppStore } from '../store/useAppStore';
 
 interface PoemProps {
   poemTitle: string[] | undefined;
   poem: string[] | undefined;
-  setSearchedTerm: (term: string) => void;
   author: string[] | undefined;
   poemByline: string | undefined;
 }
 
-const Poem = memo(function Poem({
-  poemTitle,
-  poem,
-  setSearchedTerm,
-  author,
-  poemByline,
-}: PoemProps) {
+const Poem = memo(function Poem({ poemTitle, poem, author, poemByline }: PoemProps) {
+  const { setPoemModalOpen, setSelectedPoem, setAuthorPageOpen, setSelectedAuthor } = useAppStore();
   return (
     <div>
       {poemTitle &&
@@ -28,7 +23,10 @@ const Poem = memo(function Poem({
                 dangerouslySetInnerHTML={{
                   __html: sanitizeHtml(poemTitle[index]),
                 }}
-                onClick={() => setSearchedTerm(poemTitle[index])}
+                onClick={() => {
+                  setSelectedPoem(poemTitle[index]);
+                  setPoemModalOpen(true);
+                }}
                 aria-label={`Search for poem: ${poemTitle[index]}`}
               />
             </h2>
@@ -38,7 +36,10 @@ const Poem = memo(function Poem({
                 className="bg-transparent bg-no-repeat border-none cursor-pointer overflow-hidden font-bold text-xl text-app-text flex-[2_0_0] justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                 onClick={() => {
                   const authorName = author?.[index];
-                  if (authorName) setSearchedTerm(authorName);
+                  if (authorName) {
+                    setSelectedAuthor(authorName);
+                    setAuthorPageOpen(true);
+                  }
                 }}
                 aria-label={
                   author?.[index] ? `Search for author: ${author?.[index]}` : 'Search for author'

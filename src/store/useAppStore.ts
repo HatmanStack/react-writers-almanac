@@ -3,6 +3,8 @@ import { devtools } from 'zustand/middleware';
 import { createContentSlice } from './slices/contentSlice';
 import { createSearchSlice } from './slices/searchSlice';
 import { createAudioSlice } from './slices/audioSlice';
+import { createPoemSlice } from './slices/poemSlice';
+import { createAuthorSlice } from './slices/authorSlice';
 import type { AppStore } from './types';
 
 /**
@@ -29,6 +31,8 @@ export const useAppStore = create<AppStore>()(
       ...createContentSlice(set, get),
       ...createSearchSlice(set, get),
       ...createAudioSlice(set, get),
+      ...createPoemSlice(set, get),
+      ...createAuthorSlice(set, get),
     }),
     {
       name: 'WritersAlmanacStore',

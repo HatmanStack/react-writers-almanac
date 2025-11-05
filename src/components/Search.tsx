@@ -5,8 +5,14 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers';
 import { CalendarMonth, Close, Search as SearchIcon } from '@mui/icons-material';
 import dayjs, { Dayjs } from 'dayjs';
-
+import { useAppStore } from '../store/useAppStore';
 import listImport from '../assets/searchJson';
+import sortedAuthorsImport from '../assets/Authors_sorted.js';
+import sortedPoemsImport from '../assets/Poems_sorted.js';
+
+// Type assertions for JS imports
+const sortedAuthors = sortedAuthorsImport as string[];
+const sortedPoems = sortedPoemsImport as string[];
 
 interface CalendarDateChange {
   calendarChangedDate: Date;
@@ -21,18 +27,13 @@ interface SearchOption {
 const list = listImport as SearchOption[];
 
 interface SearchProps {
-  searchedTermWrapper: (query: string) => void;
   calendarDate: (date: CalendarDateChange) => void;
   width: number;
   currentDate: string; // Current date in YYYYMMDD format
 }
 
-const Search = memo(function Search({
-  searchedTermWrapper,
-  calendarDate,
-  width,
-  currentDate,
-}: SearchProps) {
+const Search = memo(function Search({ calendarDate, width, currentDate }: SearchProps) {
+  const { setPoemModalOpen, setSelectedPoem, setAuthorPageOpen, setSelectedAuthor } = useAppStore();
   const [isShowing, setIsShowing] = useState<boolean>(false);
   const [query, updateQuery] = useState<string>('');
   const [year, setYear] = useState<number | string>('');
@@ -67,12 +68,22 @@ const Search = memo(function Search({
     }
   };
 
+  const handleSearch = (searchTerm: string) => {
+    if (sortedAuthors.includes(searchTerm)) {
+      setSelectedAuthor(searchTerm);
+      setAuthorPageOpen(true);
+    } else if (sortedPoems.includes(searchTerm)) {
+      setSelectedPoem(searchTerm);
+      setPoemModalOpen(true);
+    }
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       const trimmedQuery = query.trim();
       if (!trimmedQuery) return; // Don't search if query is empty
       setIsShowing(false);
-      searchedTermWrapper(trimmedQuery);
+      handleSearch(trimmedQuery);
     }
     if (event.key === 'Escape') {
       setIsShowing(false);
@@ -91,7 +102,11 @@ const Search = memo(function Search({
           <Autocomplete<SearchOption>
             id="clear-on-escape"
             onInputChange={(_e, value) => updateQuery(value)}
-            onChange={(_event, value) => updateQuery(value?.label || '')}
+            onChange={(_event, value) => {
+              if (value) {
+                handleSearch(value.label);
+              }
+            }}
             clearOnEscape
             disablePortal={false}
             options={list}
@@ -172,7 +187,11 @@ const Search = memo(function Search({
           <Autocomplete<SearchOption>
             id="clear-on-escape"
             onInputChange={(_e, value) => updateQuery(value)}
-            onChange={(_event, value) => updateQuery(value?.label || '')}
+            onChange={(_event, value) => {
+              if (value) {
+                handleSearch(value.label);
+              }
+            }}
             clearOnEscape
             disablePortal={false}
             options={list}

@@ -90,7 +90,44 @@ export interface AudioSlice {
 /**
  * AppStore combines all slices into a single unified store type.
  */
-export type AppStore = ContentSlice & SearchSlice & AudioSlice;
+// ============================================================================
+// Poem Slice Types
+// ============================================================================
+
+/**
+ * PoemSlice manages the state for the poem modal.
+ */
+export interface PoemSlice {
+  // State
+  isPoemModalOpen: boolean;
+  poemDates: string[];
+  selectedPoem: string | null;
+
+  // Actions
+  setPoemModalOpen: (isOpen: boolean) => void;
+  setPoemDates: (dates: string[]) => void;
+  setSelectedPoem: (poem: string | null) => void;
+}
+
+// ============================================================================
+// Author Slice Types
+// ============================================================================
+
+/**
+ * AuthorSlice manages the state for the author page.
+ */
+export interface AuthorSlice {
+  // State
+  isAuthorPageOpen: boolean;
+  authorDates: string[];
+  selectedAuthor: string | null;
+
+  // Actions
+  setAuthorPageOpen: (isOpen: boolean) => void;
+  setAuthorDates: (dates: string[]) => void;
+  setSelectedAuthor: (author: string | null) => void;
+}
+export type AppStore = ContentSlice & SearchSlice & AudioSlice & PoemSlice & AuthorSlice;
 
 // ============================================================================
 // Helper Types
