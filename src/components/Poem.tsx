@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { sanitizeHtml } from '../utils';
+import { sanitizeHtml, stripHtml } from '../utils';
 
 interface PoemProps {
   poemTitle: string[] | undefined;
@@ -28,7 +28,7 @@ const Poem = memo(function Poem({
                 __html: sanitizeHtml(poemTitle[index]),
               }}
               onClick={() => setSearchedTerm(poemTitle[index])}
-              aria-label={`Search for poem: ${poemTitle[index]}`}
+              aria-label={`Search for poem: ${stripHtml(poemTitle[index])}`}
             />
           </h2>
           {poemTitle.length > 1 && author && author.length == 1 && index != 0 ? null : (
@@ -40,7 +40,9 @@ const Poem = memo(function Poem({
                 if (authorName) setSearchedTerm(authorName);
               }}
               aria-label={
-                author?.[index] ? `Search for author: ${author?.[index]}` : 'Search for author'
+                author?.[index]
+                  ? `Search for author: ${stripHtml(author?.[index])}`
+                  : 'Search for author'
               }
             >
               by{' '}

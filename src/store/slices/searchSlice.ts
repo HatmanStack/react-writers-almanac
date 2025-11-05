@@ -31,14 +31,14 @@ export const createSearchSlice: SliceCreator<SearchSlice> = set => ({
    * Set the selected author
    */
   setSelectedAuthor: author => {
-    set({ searchTerm: author ?? '' });
+    set({ searchTerm: author ?? '', isSearching: !!author });
   },
 
   /**
    * Set the selected poem
    */
   setSelectedPoem: poem => {
-    set({ searchTerm: poem ?? '' });
+    set({ searchTerm: poem ?? '', isSearching: !!poem });
   },
 
   /**

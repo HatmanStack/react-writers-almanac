@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Poem from './Poem';
+import { stripHtml } from '../utils';
+
+vi.mock('../utils', async () => {
+  const actual = await vi.importActual('../utils');
+  return {
+    ...actual,
+    stripHtml: vi.fn(str => str),
+  };
+});
 
 describe('Poem Component', () => {
   const mockSetSearchedTerm = vi.fn();

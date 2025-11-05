@@ -8,7 +8,7 @@ import type { AppStore } from './types';
 /**
  * Main Application Store
  *
- * Combines all slices (Content, Search, Audio, Poem, Author) into a single unified store.
+ * Combines all slices (Content, Search, Audio) into a single unified store.
  * Configured with Redux DevTools for development debugging.
  *
  * Usage:
