@@ -4,6 +4,7 @@ import Poem from './components/Poem';
 import Search from './components/Search';
 import ErrorBoundary from './components/ErrorBoundary';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
+import Modal from './components/ui/Modal';
 import logo from './assets/logo_writersalmanac.png';
 import sortedAuthorsImport from './assets/Authors_sorted.js';
 import sortedPoemsImport from './assets/Poems_sorted.js';
@@ -146,6 +147,12 @@ function App() {
   const [poemByline, setPoemByline] = useState<string | undefined>();
   const { width } = useWindowSize();
   const [isShowing, setIsShowing] = useState<boolean>(false);
+  const [isPoemModalOpen, setIsPoemModalOpen] = useState<boolean>(false);
+  const [modalPoemContent, setModalPoemContent] = useState<{
+    title: string;
+    content: string;
+    author: string;
+  } | null>(null);
 
   // Cleanup blob URLs on component unmount to prevent memory leaks
   useEffect(() => {
@@ -159,12 +166,53 @@ function App() {
 
   const searchedTermWrapper = useCallback(
     (query: string): void => {
-      if (query && (sortedAuthorsSet.has(query) || sortedPoemsSet.has(query))) {
+      if (!query) return;
+
+      // Check if searching for an author
+      if (sortedAuthorsSet.has(query)) {
+        setSearchTerm(query);
+        // Navigate to author page
+        if (isShowingContentByDate) {
+          toggleViewMode();
+        }
+      }
+      // Check if searching for a poem
+      else if (sortedPoemsSet.has(query)) {
+        // For poem searches, just set the search term
+        // Note: Full poem-to-date mapping would require additional implementation
         setSearchTerm(query);
       }
     },
-    [setSearchTerm]
+    [setSearchTerm, isShowingContentByDate, toggleViewMode]
   );
+
+  const handlePoemTitleClick = useCallback(
+    (title: string, poemContent: string, authorName: string): void => {
+      setModalPoemContent({
+        title,
+        content: poemContent,
+        author: authorName,
+      });
+      setIsPoemModalOpen(true);
+    },
+    []
+  );
+
+  const handleAuthorClick = useCallback(
+    (authorName: string): void => {
+      setSearchTerm(authorName);
+      // Navigate to author page
+      if (isShowingContentByDate) {
+        toggleViewMode();
+      }
+    },
+    [setSearchTerm, isShowingContentByDate, toggleViewMode]
+  );
+
+  const closeModal = useCallback(() => {
+    setIsPoemModalOpen(false);
+    setModalPoemContent(null);
+  }, []);
 
   const calendarDate = useCallback(
     (x: CalendarDateChange): void => {
@@ -329,6 +377,8 @@ function App() {
                     setSearchedTerm={setSearchTerm}
                     author={normalizedAuthor}
                     poemByline={poemByline}
+                    onTitleClick={handlePoemTitleClick}
+                    onAuthorClick={handleAuthorClick}
                   />
                 </div>
                 <div className="flex-[1_3_0] z-10 bg-app-container rounded-r-[3rem] flex p-4 mr-20">
@@ -353,6 +403,8 @@ function App() {
                   setSearchedTerm={setSearchTerm}
                   author={normalizedAuthor}
                   poemByline={poemByline}
+                  onTitleClick={handlePoemTitleClick}
+                  onAuthorClick={handleAuthorClick}
                 />
               </div>
               <div className="z-10 bg-app-container rounded-b-[3rem] p-4">
@@ -388,6 +440,8 @@ function App() {
     setSearchTerm,
     toggleViewMode,
     setLinkDate,
+    handlePoemTitleClick,
+    handleAuthorClick,
   ]);
 
   return (
@@ -525,6 +579,19 @@ function App() {
         >
           <section aria-label="Main content">{body}</section>
         </ErrorBoundary>
+
+        {/* Poem Modal */}
+        <Modal isOpen={isPoemModalOpen} onClose={closeModal} title={modalPoemContent?.title || ''}>
+          <div className="space-y-4">
+            <div className="text-sm text-gray-600">by {modalPoemContent?.author}</div>
+            <div
+              className="text-base leading-relaxed whitespace-pre-wrap"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(modalPoemContent?.content || ''),
+              }}
+            />
+          </div>
+        </Modal>
       </main>
     </ErrorBoundary>
   );
