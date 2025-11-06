@@ -583,9 +583,9 @@ function App() {
         {/* Poem Modal */}
         <Modal isOpen={isPoemModalOpen} onClose={closeModal} title={modalPoemContent?.title || ''}>
           <div className="space-y-4">
-            <div className="text-sm text-gray-600">by {modalPoemContent?.author}</div>
+            <div className="text-base text-app-text italic">by {modalPoemContent?.author}</div>
             <div
-              className="text-base leading-relaxed whitespace-pre-wrap"
+              className="text-base leading-relaxed"
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(modalPoemContent?.content || ''),
               }}
