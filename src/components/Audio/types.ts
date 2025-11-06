@@ -9,11 +9,6 @@ export interface AudioProps {
   isShowingContentByDate: boolean;
 
   /**
-   * The current search term (shown when not in date mode)
-   */
-  searchedTerm: string;
-
-  /**
    * Function to navigate forward/backward through content
    */
   shiftContentByAuthorOrDate: (direction: string) => Promise<void>;

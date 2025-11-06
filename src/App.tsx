@@ -539,7 +539,6 @@ function App() {
               <Suspense fallback={<LoadingSpinner size="md" label="Loading audio player..." />}>
                 <Audio
                   isShowingContentByDate={isShowingContentByDate}
-                  searchedTerm={searchTerm}
                   shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
                   width={width}
                   setIsShowing={setIsShowing}
@@ -598,7 +597,6 @@ function App() {
               <Suspense fallback={<LoadingSpinner size="md" label="Loading audio player..." />}>
                 <Audio
                   isShowingContentByDate={isShowingContentByDate}
-                  searchedTerm={searchTerm}
                   shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
                   width={width}
                   setIsShowing={setIsShowing}

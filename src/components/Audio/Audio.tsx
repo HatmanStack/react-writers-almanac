@@ -54,7 +54,6 @@ function NavButton({ direction, imageSrc, altText, reverse = false, onClick }: N
  */
 const Audio = memo(function Audio({
   isShowingContentByDate,
-  searchedTerm,
   shiftContentByAuthorOrDate,
   width,
   setIsShowing,
@@ -126,16 +125,12 @@ const Audio = memo(function Audio({
           )}
         </div>
       );
-    } else if (!isShowingContentByDate) {
-      return (
-        <div className="z-10 flex justify-center items-center bg-app-container rounded-[3rem] px-2">
-          <h3>{searchedTerm}</h3>
-        </div>
-      );
     } else {
+      // Don't display author/poem name between prev/next buttons
+      // The name is already shown in the Author/PoemDates component
       return <div></div>;
     }
-  }, [isShowingContentByDate, mp3Url, width, isShowing, setIsShowing, searchedTerm]);
+  }, [isShowingContentByDate, mp3Url, width, isShowing, setIsShowing]);
 
   return (
     <div>
