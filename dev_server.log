@@ -1,0 +1,11 @@
+
+> writers-almanac@0.1.0 dev
+> vite
+
+12:49:18 AM [vite] (client) Re-optimizing dependencies because lockfile has changed
+Port 3000 is in use, trying another one...
+
+  VITE v7.1.12  ready in 1490 ms
+
+  ➜  Local:   http://localhost:3001/
+  ➜  Network: use --host to expose

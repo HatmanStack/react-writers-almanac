@@ -1,4 +1,4 @@
-const sortedPoems = [
+export default [
   '#11 (The world is a beautiful place)',
   "#14 (Don't let that horse eat that violin)",
   '#20',
@@ -6000,4 +6000,3 @@ const sortedPoems = [
   'you can take it with you',
   '\x97The Book',
 ];
-export default sortedPoems;
