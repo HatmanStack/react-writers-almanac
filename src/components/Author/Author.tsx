@@ -1,5 +1,4 @@
-import { memo, useMemo, useCallback, useRef } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { memo, useMemo, useCallback } from 'react';
 import type { AuthorProps } from './types';
 import { useAuthorQuery } from '../../hooks/queries/useAuthorQuery';
 import type { AuthorSource, PoemItem } from '../../types/author';
@@ -50,32 +49,17 @@ function Author({
 
     const photosList: string[] = [];
 
-    // eslint-disable-next-line no-console
-    console.log('Raw author data:', authorData);
-
     // Check new structure (photos.primary with filename)
     if ('photos' in authorData) {
       const photosData = authorData.photos as unknown;
-      // eslint-disable-next-line no-console
-      console.log('Photos data found:', photosData);
       if (photosData && typeof photosData === 'object' && 'primary' in photosData) {
         const filename = (photosData as { primary: string }).primary;
-        // eslint-disable-next-line no-console
-        console.log('Extracted filename:', filename);
         if (filename) {
-          // Try /public/images/ path (top level, not under authors/)
+          // Construct CloudFront URL with /public/images/ path
           const photoUrl = `https://d3vq6af2mo7fcy.cloudfront.net/public/images/${filename}`;
-          // eslint-disable-next-line no-console
-          console.log('Constructed photo URL:', photoUrl);
           photosList.push(photoUrl);
         }
-      } else {
-        // eslint-disable-next-line no-console
-        console.log('Photos data does not match expected structure');
       }
-    } else {
-      // eslint-disable-next-line no-console
-      console.log('No photos field found in authorData');
     }
 
     // Check old structure
@@ -84,8 +68,6 @@ function Author({
     if (poetryFoundation?.photo) photosList.push(poetryFoundation.photo);
     if (wikipedia?.photo) photosList.push(wikipedia.photo);
 
-    // eslint-disable-next-line no-console
-    console.log('Final photosList:', photosList);
     return photosList;
   }, [authorData]);
 
@@ -243,185 +225,93 @@ function Author({
       {/* Header section - show author name, photo, bio, and links */}
       <section className="flex justify-center m-8">
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl w-full relative z-20">
-          {/* Author name and photo */}
-          <div
-            className={`flex ${width <= 1000 ? 'flex-col items-center' : 'items-start'} gap-6 mb-6`}
-          >
+          {/* Author name */}
+          <h2 className="font-bold text-2xl mb-4">{authorName}</h2>
+
+          {/* Photo (floated) and Biography with text wrapping */}
+          <div className="mb-6">
             {photos.length > 0 && (
-              <div className="flex-shrink-0">
-                <img
-                  src={photos[0]}
-                  alt={`Portrait of ${authorName}`}
-                  className={`${width <= 1000 ? 'w-48 h-48' : 'w-32 h-32'} object-cover rounded-2xl shadow-lg`}
-                  onLoad={() => {
-                    // eslint-disable-next-line no-console
-                    console.log('Image loaded successfully:', photos[0]);
-                  }}
-                  onError={e => {
-                    // eslint-disable-next-line no-console
-                    console.error('Image failed to load:', photos[0]);
-                    // eslint-disable-next-line no-console
-                    console.error('Error event:', e);
-                    // Hide image if it fails to load
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              </div>
+              <img
+                src={photos[0]}
+                alt={`Portrait of ${authorName}`}
+                className={`${width <= 1000 ? 'w-48 h-48 mx-auto mb-4' : 'w-48 h-48 float-left mr-6 mb-4'} object-cover rounded-2xl shadow-lg`}
+                onError={e => {
+                  // Hide image if it fails to load
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
             )}
-            <div className={`flex-grow ${width <= 1000 ? 'text-center' : ''}`}>
-              <h2 className="font-bold text-2xl mb-2">{authorName}</h2>
-              {additionalWorks.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold mb-2 opacity-70">Other Poems:</h3>
-                  <div className={`flex flex-wrap gap-2 ${width <= 1000 ? 'justify-center' : ''}`}>
-                    {additionalWorks.map((link, index) => (
-                      <a
-                        key={index}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center px-3 py-1 bg-app-bg rounded-full text-sm hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                        aria-label={`Read ${link.name} on external site`}
-                      >
-                        {link.name}
-                        <span className="ml-1" aria-hidden="true">
-                          ↗
-                        </span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Biography */}
+            {biography && (
+              <div
+                className="text-base leading-relaxed"
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeHtml(biography),
+                }}
+              />
+            )}
           </div>
 
-          {/* Biography */}
-          {biography ? (
-            <div
-              className="text-base leading-relaxed"
-              dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(biography),
-              }}
-            />
-          ) : (
-            <p className="text-base">
-              Poems by {authorName} ({poems.length} {poems.length === 1 ? 'poem' : 'poems'}):
-            </p>
-          )}
+          {/* Clear float */}
+          <div className="clear-both"></div>
+
+          {/* Links Section */}
+          <div className="mt-6">
+            {/* Internal Poems (from our database) */}
+            {poems.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold mb-2 opacity-70">
+                  Poems on The Writer&apos;s Almanac:
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {poems.slice(0, 20).map((item, index) => (
+                    <button
+                      key={`${item.date}-${index}`}
+                      type="button"
+                      onClick={() => handleClick(item.date)}
+                      className="inline-flex items-center px-3 py-1 bg-app-bg rounded-full text-sm hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                      aria-label={`View ${item.title || 'poem'} from ${item.date}`}
+                    >
+                      {item.title ? item.title.replaceAll(/[^\x20-\x7E]/g, '') : item.date}
+                    </button>
+                  ))}
+                  {poems.length > 20 && (
+                    <span className="inline-flex items-center px-3 py-1 text-sm opacity-70">
+                      +{poems.length - 20} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* External Poems (other sites) */}
+            {additionalWorks.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-2 opacity-70">Other Poems:</h3>
+                <div className="flex flex-wrap gap-2">
+                  {additionalWorks.map((link, index) => (
+                    <a
+                      key={index}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-3 py-1 bg-app-bg rounded-full text-sm hover:opacity-80 transition-opacity border border-app-text border-opacity-20 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                      aria-label={`Read ${link.name} on external site`}
+                    >
+                      {link.name}
+                      <span className="ml-1" aria-hidden="true">
+                        ↗
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </section>
-
-      {/* Poems list section - virtualized for long lists (>50 items) */}
-      {poems.length > 0 &&
-        (poems.length > 50 ? (
-          <VirtualizedPoemsList poems={poems} width={width} handleClick={handleClick} />
-        ) : (
-          <section className="relative z-20">
-            {poems.map(item => (
-              <div key={item.date} className="flex justify-center">
-                {width <= 1000 && <div className="flex-[1_0_auto]" />}
-                <button
-                  type="button"
-                  className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center relative z-20 rounded-[3rem] px-4 py-4 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                  onClick={() => handleClick(item.date)}
-                  aria-label={`View poem from ${item.date}${item.title ? `: ${item.title.replaceAll(/[^\x20-\x7E]/g, '')}` : ''}`}
-                >
-                  {item.date}
-                </button>
-                {item.title ? (
-                  <div className="m-4 flex justify-start items-start relative z-20 bg-app-container rounded-[3rem] px-4 py-4">
-                    {item.title.replaceAll(/[^\x20-\x7E]/g, '')}
-                  </div>
-                ) : null}
-              </div>
-            ))}
-          </section>
-        ))}
     </div>
   );
 }
-
-/**
- * Virtualized Poems List Component
- * Uses TanStack Virtual for efficient rendering of long lists
- */
-interface VirtualizedPoemsListProps {
-  poems: PoemItem[];
-  width: number;
-  handleClick: (date: string) => void;
-}
-
-const VirtualizedPoemsList = memo(function VirtualizedPoemsList({
-  poems,
-  width,
-  handleClick,
-}: VirtualizedPoemsListProps) {
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  // Setup virtualizer for efficient rendering of long lists
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const rowVirtualizer = useVirtualizer({
-    count: poems.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 80, // Estimated row height in pixels
-    overscan: 5, // Number of items to render outside visible area
-  });
-
-  return (
-    <section
-      ref={parentRef}
-      className="relative z-20"
-      style={{
-        height: '600px',
-        overflow: 'auto',
-      }}
-      aria-label="List of poems by author"
-    >
-      <div
-        style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-          zIndex: 20,
-        }}
-      >
-        {rowVirtualizer.getVirtualItems().map(virtualRow => {
-          const item = poems[virtualRow.index];
-          return (
-            <div
-              key={item.date}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
-                zIndex: 20,
-              }}
-            >
-              <div className="flex justify-center">
-                {width <= 1000 && <div className="flex-[1_0_auto]" />}
-                <button
-                  type="button"
-                  className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center relative z-20 rounded-[3rem] px-4 py-4 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                  onClick={() => handleClick(item.date)}
-                  aria-label={`View poem from ${item.date}${item.title ? `: ${item.title.replaceAll(/[^\x20-\x7E]/g, '')}` : ''}`}
-                >
-                  {item.date}
-                </button>
-                {item.title ? (
-                  <div className="m-4 flex justify-start items-start relative z-20 bg-app-container rounded-[3rem] px-4 py-4">
-                    {item.title.replaceAll(/[^\x20-\x7E]/g, '')}
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-});
 
 export default memo(Author);
