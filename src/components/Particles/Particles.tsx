@@ -157,7 +157,7 @@ function ParticlesComponent() {
       id="tsparticles"
       init={particlesInit}
       options={particlesOptions}
-      className="absolute w-full h-[200vh] bg-[#8f9193] bg-no-repeat bg-cover bg-center animate-particle-pulse"
+      className="fixed top-0 left-0 w-full h-full bg-[#8f9193] bg-no-repeat bg-cover bg-center animate-particle-pulse"
       aria-hidden="true"
     />
   );

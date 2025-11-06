@@ -157,6 +157,7 @@ function App() {
     author: string;
   } | null>(null);
   const [searchType, setSearchType] = useState<'author' | 'poem' | null>(null);
+  const [isContentHidden, setIsContentHidden] = useState<boolean>(false);
 
   // Cleanup blob URLs on component unmount to prevent memory leaks
   useEffect(() => {
@@ -496,18 +497,31 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <main className="text-center text-[calc(8px+2vmin)] bg-app-bg text-app-text h-full absolute w-full">
+      <main className="text-center text-[calc(8px+2vmin)] bg-app-bg text-app-text min-h-screen w-full relative">
         {width > 1000 ? (
           <div>
             <Suspense fallback={<div className="h-full w-full" />}>
               <ParticlesComponent />
             </Suspense>
             <header className="flex flex-row items-center justify-around m-4">
-              <img
-                className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
-                src={logo}
-                alt="The Writer's Almanac Logo"
-              />
+              <div className="flex flex-col items-center gap-2">
+                <img
+                  className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
+                  src={logo}
+                  alt="The Writer's Almanac Logo"
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsContentHidden(!isContentHidden)}
+                  className="z-10 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  aria-label={
+                    isContentHidden ? 'Show content containers' : 'Hide content containers'
+                  }
+                  aria-expanded={!isContentHidden}
+                >
+                  {isContentHidden ? 'Show Content' : 'Hide Content'}
+                </button>
+              </div>
               <div className="FormattingContainer" />
               <div className="z-10 bg-app-container rounded-[3rem] flex p-4">
                 <ErrorBoundary
@@ -565,11 +579,24 @@ function App() {
               <ParticlesComponent />
             </Suspense>
             <header className="flex flex-col items-center justify-around m-4">
-              <img
-                className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
-                src={logo}
-                alt="The Writer's Almanac Logo"
-              />
+              <div className="flex flex-col items-center gap-2">
+                <img
+                  className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
+                  src={logo}
+                  alt="The Writer's Almanac Logo"
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsContentHidden(!isContentHidden)}
+                  className="z-10 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  aria-label={
+                    isContentHidden ? 'Show content containers' : 'Hide content containers'
+                  }
+                  aria-expanded={!isContentHidden}
+                >
+                  {isContentHidden ? 'Show Content' : 'Hide Content'}
+                </button>
+              </div>
               <div className="z-10 bg-app-container rounded-[3rem] flex p-4 flex-col">
                 <ErrorBoundary
                   fallback={error => (
@@ -620,16 +647,18 @@ function App() {
             </ErrorBoundary>
           </div>
         )}
-        <ErrorBoundary
-          fallback={error => (
-            <div className="p-8 text-center text-red-600">
-              <p>Content unavailable</p>
-              <p className="text-sm">{error.message}</p>
-            </div>
-          )}
-        >
-          <section aria-label="Main content">{body}</section>
-        </ErrorBoundary>
+        {!isContentHidden && (
+          <ErrorBoundary
+            fallback={error => (
+              <div className="p-8 text-center text-red-600">
+                <p>Content unavailable</p>
+                <p className="text-sm">{error.message}</p>
+              </div>
+            )}
+          >
+            <section aria-label="Main content">{body}</section>
+          </ErrorBoundary>
+        )}
 
         {/* Poem Modal */}
         <Modal isOpen={isPoemModalOpen} onClose={closeModal} title={modalPoemContent?.title || ''}>
