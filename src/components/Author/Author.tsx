@@ -31,21 +31,19 @@ function Author({
   // Must be called before early returns to follow Rules of Hooks
   const biography = useMemo(() => {
     if (!authorData) return undefined;
+
+    // Debug: Show the actual structure
+    // eslint-disable-next-line no-console
+    console.log('Author data received:', {
+      topLevelKeys: Object.keys(authorData),
+      fullDataSample: JSON.stringify(authorData).substring(0, 500),
+      hasPoetryFoundation: 'poetry foundation' in authorData,
+      hasWikipedia: 'wikipedia' in authorData,
+    });
+
     const poetryFoundation = authorData['poetry foundation'] as AuthorSource | undefined;
     const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
     const bio = poetryFoundation?.biography || wikipedia?.biography;
-
-    // Debug: Check what we're getting
-    if (!bio) {
-      // eslint-disable-next-line no-console
-      console.warn('Author biography not found. Data structure:', {
-        hasPoetryFoundation: !!poetryFoundation,
-        hasWikipedia: !!wikipedia,
-        poetryFoundationKeys: poetryFoundation ? Object.keys(poetryFoundation) : [],
-        wikipediaKeys: wikipedia ? Object.keys(wikipedia) : [],
-        fullData: authorData,
-      });
-    }
 
     return bio;
   }, [authorData]);
@@ -57,16 +55,6 @@ function Author({
     const poetryFoundation = authorData['poetry foundation'] as AuthorSource | undefined;
     const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
     const poemsData = poetryFoundation?.poems || wikipedia?.poems;
-
-    // Debug: Check poems data
-    if (!poemsData || (Array.isArray(poemsData) && poemsData.length === 0)) {
-      // eslint-disable-next-line no-console
-      console.warn('Author poems not found. Poems data:', {
-        poemsData,
-        poetryFoundationPoems: poetryFoundation?.poems,
-        wikipediaPoems: wikipedia?.poems,
-      });
-    }
 
     // Normalize to array (handle single string case)
     const poemsArray = Array.isArray(poemsData) ? poemsData : poemsData ? [poemsData] : [];
