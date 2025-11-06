@@ -222,10 +222,10 @@ function Author({
   }
 
   return (
-    <div>
+    <div className="relative z-20">
       {/* Header section - show author name, photo, bio, and links */}
-      <section className="flex justify-center m-8 z-10">
-        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl w-full">
+      <section className="flex justify-center m-8">
+        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl w-full relative z-20">
           {/* Author name and photo */}
           <div
             className={`flex ${width <= 1000 ? 'flex-col items-center' : 'items-start'} gap-6 mb-6`}
@@ -291,20 +291,20 @@ function Author({
         (poems.length > 50 ? (
           <VirtualizedPoemsList poems={poems} width={width} handleClick={handleClick} />
         ) : (
-          <section>
+          <section className="relative z-20">
             {poems.map(item => (
               <div key={item.date} className="flex justify-center">
                 {width <= 1000 && <div className="flex-[1_0_auto]" />}
                 <button
                   type="button"
-                  className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center z-10 rounded-[3rem] px-4 py-4 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center relative z-20 rounded-[3rem] px-4 py-4 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                   onClick={() => handleClick(item.date)}
                   aria-label={`View poem from ${item.date}${item.title ? `: ${item.title.replaceAll(/[^\x20-\x7E]/g, '')}` : ''}`}
                 >
                   {item.date}
                 </button>
                 {item.title ? (
-                  <div className="m-4 flex justify-start items-start z-10 bg-app-container rounded-[3rem] px-4 py-4">
+                  <div className="m-4 flex justify-start items-start relative z-20 bg-app-container rounded-[3rem] px-4 py-4">
                     {item.title.replaceAll(/[^\x20-\x7E]/g, '')}
                   </div>
                 ) : null}
@@ -345,6 +345,7 @@ const VirtualizedPoemsList = memo(function VirtualizedPoemsList({
   return (
     <section
       ref={parentRef}
+      className="relative z-20"
       style={{
         height: '600px',
         overflow: 'auto',
@@ -356,6 +357,7 @@ const VirtualizedPoemsList = memo(function VirtualizedPoemsList({
           height: `${rowVirtualizer.getTotalSize()}px`,
           width: '100%',
           position: 'relative',
+          zIndex: 20,
         }}
       >
         {rowVirtualizer.getVirtualItems().map(virtualRow => {
@@ -370,20 +372,21 @@ const VirtualizedPoemsList = memo(function VirtualizedPoemsList({
                 width: '100%',
                 height: `${virtualRow.size}px`,
                 transform: `translateY(${virtualRow.start}px)`,
+                zIndex: 20,
               }}
             >
               <div className="flex justify-center">
                 {width <= 1000 && <div className="flex-[1_0_auto]" />}
                 <button
                   type="button"
-                  className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center z-10 rounded-[3rem] px-4 py-4 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center relative z-20 rounded-[3rem] px-4 py-4 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                   onClick={() => handleClick(item.date)}
                   aria-label={`View poem from ${item.date}${item.title ? `: ${item.title.replaceAll(/[^\x20-\x7E]/g, '')}` : ''}`}
                 >
                   {item.date}
                 </button>
                 {item.title ? (
-                  <div className="m-4 flex justify-start items-start z-10 bg-app-container rounded-[3rem] px-4 py-4">
+                  <div className="m-4 flex justify-start items-start relative z-20 bg-app-container rounded-[3rem] px-4 py-4">
                     {item.title.replaceAll(/[^\x20-\x7E]/g, '')}
                   </div>
                 ) : null}
