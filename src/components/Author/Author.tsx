@@ -53,17 +53,11 @@ function Author({
     // Check new structure (photos.primary with filename)
     if ('photos' in authorData) {
       const photosData = authorData.photos as unknown;
-      // eslint-disable-next-line no-console
-      console.log('Photos data:', photosData);
       if (photosData && typeof photosData === 'object' && 'primary' in photosData) {
         const filename = (photosData as { primary: string }).primary;
-        // eslint-disable-next-line no-console
-        console.log('Photo filename:', filename);
         if (filename) {
-          // Construct full CloudFront URL
-          const photoUrl = `https://d3vq6af2mo7fcy.cloudfront.net/public/authors/photos/${filename}`;
-          // eslint-disable-next-line no-console
-          console.log('Photo URL:', photoUrl);
+          // Construct full CloudFront URL (images/ not photos/)
+          const photoUrl = `https://d3vq6af2mo7fcy.cloudfront.net/public/authors/images/${filename}`;
           photosList.push(photoUrl);
         }
       }
@@ -75,8 +69,6 @@ function Author({
     if (poetryFoundation?.photo) photosList.push(poetryFoundation.photo);
     if (wikipedia?.photo) photosList.push(wikipedia.photo);
 
-    // eslint-disable-next-line no-console
-    console.log('Final photos list:', photosList);
     return photosList;
   }, [authorData]);
 
