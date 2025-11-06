@@ -33,7 +33,21 @@ function Author({
     if (!authorData) return undefined;
     const poetryFoundation = authorData['poetry foundation'] as AuthorSource | undefined;
     const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
-    return poetryFoundation?.biography || wikipedia?.biography;
+    const bio = poetryFoundation?.biography || wikipedia?.biography;
+
+    // Debug: Check what we're getting
+    if (!bio) {
+      // eslint-disable-next-line no-console
+      console.warn('Author biography not found. Data structure:', {
+        hasPoetryFoundation: !!poetryFoundation,
+        hasWikipedia: !!wikipedia,
+        poetryFoundationKeys: poetryFoundation ? Object.keys(poetryFoundation) : [],
+        wikipediaKeys: wikipedia ? Object.keys(wikipedia) : [],
+        fullData: authorData,
+      });
+    }
+
+    return bio;
   }, [authorData]);
 
   // Extract poems list - memoized array transformation
@@ -43,6 +57,16 @@ function Author({
     const poetryFoundation = authorData['poetry foundation'] as AuthorSource | undefined;
     const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
     const poemsData = poetryFoundation?.poems || wikipedia?.poems;
+
+    // Debug: Check poems data
+    if (!poemsData || (Array.isArray(poemsData) && poemsData.length === 0)) {
+      // eslint-disable-next-line no-console
+      console.warn('Author poems not found. Poems data:', {
+        poemsData,
+        poetryFoundationPoems: poetryFoundation?.poems,
+        wikipediaPoems: wikipedia?.poems,
+      });
+    }
 
     // Normalize to array (handle single string case)
     const poemsArray = Array.isArray(poemsData) ? poemsData : poemsData ? [poemsData] : [];
