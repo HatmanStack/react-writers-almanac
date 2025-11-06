@@ -51,3 +51,17 @@ export function normalizeString(str: string): string {
     .replace(/\s+/g, ' ') // Collapse multiple spaces
     .trim(); // Final trim to remove any leading/trailing spaces
 }
+
+/**
+ * Strip all HTML tags from a string
+ *
+ * @param str - The string to strip
+ * @returns String with all HTML tags removed
+ *
+ * @example
+ * stripHtml('<p>Hello, <strong>world!</strong></p>') → "Hello, world!"
+ * stripHtml('No tags here') → "No tags here"
+ */
+export function stripHtml(str: string): string {
+  return str.replaceAll(/<[^>]*>/g, '');
+}

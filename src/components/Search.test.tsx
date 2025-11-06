@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Search from './Search';
 
 // Mock the search JSON data
@@ -52,6 +53,7 @@ describe('Search Component', () => {
     });
 
     it('opens calendar when calendar button is clicked', async () => {
+      const user = userEvent.setup();
       render(
         <Search
           searchedTermWrapper={mockSearchedTermWrapper}
@@ -62,13 +64,14 @@ describe('Search Component', () => {
       );
 
       const calendarButton = screen.getByRole('button', { name: /open calendar/i });
-      fireEvent.click(calendarButton);
+      await user.click(calendarButton);
 
       expect(calendarButton).toHaveAttribute('aria-expanded', 'true');
       expect(calendarButton).toHaveAttribute('aria-label', 'Close calendar');
     });
 
     it('closes calendar when calendar button is clicked again', async () => {
+      const user = userEvent.setup();
       render(
         <Search
           searchedTermWrapper={mockSearchedTermWrapper}
@@ -81,11 +84,11 @@ describe('Search Component', () => {
       const calendarButton = screen.getByRole('button', { name: /open calendar/i });
 
       // Open calendar
-      fireEvent.click(calendarButton);
+      await user.click(calendarButton);
       expect(calendarButton).toHaveAttribute('aria-expanded', 'true');
 
       // Close calendar
-      fireEvent.click(calendarButton);
+      await user.click(calendarButton);
       expect(calendarButton).toHaveAttribute('aria-expanded', 'false');
     });
   });
@@ -139,6 +142,7 @@ describe('Search Component', () => {
     const desktopWidth = 1200;
 
     it('calls searchedTermWrapper on Enter key press', async () => {
+      const user = userEvent.setup();
       render(
         <Search
           searchedTermWrapper={mockSearchedTermWrapper}
@@ -149,15 +153,17 @@ describe('Search Component', () => {
       );
 
       const input = screen.getByLabelText(/author.*poem/i);
-      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+      await user.type(input, 'Robert Frost');
+      await user.keyboard('{enter}');
 
-      // Verify the handler is called (with empty string since no MUI selection)
+      // Verify the handler is called
       await waitFor(() => {
-        expect(mockSearchedTermWrapper).toHaveBeenCalled();
+        expect(mockSearchedTermWrapper).toHaveBeenCalledWith('Robert Frost');
       });
     });
 
-    it('calls searchedTermWrapper on Escape key press', async () => {
+    it('does not call searchedTermWrapper on Escape key press', async () => {
+      const user = userEvent.setup();
       render(
         <Search
           searchedTermWrapper={mockSearchedTermWrapper}
@@ -168,11 +174,12 @@ describe('Search Component', () => {
       );
 
       const input = screen.getByLabelText(/author.*poem/i);
-      fireEvent.keyDown(input, { key: 'Escape', code: 'Escape' });
+      await user.type(input, 'Robert Frost');
+      await user.keyboard('{escape}');
 
-      // Verify the handler is called (with empty string since no MUI selection)
+      // Verify the handler is not called
       await waitFor(() => {
-        expect(mockSearchedTermWrapper).toHaveBeenCalled();
+        expect(mockSearchedTermWrapper).not.toHaveBeenCalled();
       });
     });
 
@@ -192,6 +199,7 @@ describe('Search Component', () => {
     });
 
     it('handles keyboard events on input field', async () => {
+      const user = userEvent.setup();
       render(
         <Search
           searchedTermWrapper={mockSearchedTermWrapper}
@@ -204,9 +212,9 @@ describe('Search Component', () => {
       const input = screen.getByLabelText(/author.*poem/i);
 
       // Test that keyboard events don't cause errors
-      fireEvent.keyDown(input, { key: 'ArrowDown', code: 'ArrowDown' });
-      fireEvent.keyDown(input, { key: 'ArrowUp', code: 'ArrowUp' });
-      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+      await user.type(input, '{arrowdown}');
+      await user.type(input, '{arrowup}');
+      await user.type(input, '{enter}');
 
       // Verify component is still functional
       expect(input).toBeInTheDocument();
@@ -230,7 +238,8 @@ describe('Search Component', () => {
       expect(calendarButton).toBeInTheDocument();
     });
 
-    it('shows close icon when calendar is open', () => {
+    it('shows close icon when calendar is open', async () => {
+      const user = userEvent.setup();
       render(
         <Search
           searchedTermWrapper={mockSearchedTermWrapper}
@@ -241,13 +250,14 @@ describe('Search Component', () => {
       );
 
       const calendarButton = screen.getByRole('button', { name: /open calendar/i });
-      fireEvent.click(calendarButton);
+      await user.click(calendarButton);
 
       // Button should now say "Close calendar" when open
       expect(screen.getByRole('button', { name: /close calendar/i })).toBeInTheDocument();
     });
 
     it('has correct min and max dates', async () => {
+      const user = userEvent.setup();
       render(
         <Search
           searchedTermWrapper={mockSearchedTermWrapper}
@@ -258,7 +268,7 @@ describe('Search Component', () => {
       );
 
       const calendarButton = screen.getByRole('button', { name: /open calendar/i });
-      fireEvent.click(calendarButton);
+      await user.click(calendarButton);
 
       // DateCalendar should be rendered with min/max dates
       // Note: Testing MUI DateCalendar's internal date constraints is complex
@@ -286,7 +296,8 @@ describe('Search Component', () => {
       expect(calendarButton).toHaveAttribute('aria-label', 'Open calendar');
     });
 
-    it('has proper aria-label for calendar button when open', () => {
+    it('has proper aria-label for calendar button when open', async () => {
+      const user = userEvent.setup();
       render(
         <Search
           searchedTermWrapper={mockSearchedTermWrapper}
@@ -297,12 +308,13 @@ describe('Search Component', () => {
       );
 
       const calendarButton = screen.getByRole('button', { name: /open calendar/i });
-      fireEvent.click(calendarButton);
+      await user.click(calendarButton);
 
       expect(calendarButton).toHaveAttribute('aria-label', 'Close calendar');
     });
 
-    it('has proper aria-expanded attribute', () => {
+    it('has proper aria-expanded attribute', async () => {
+      const user = userEvent.setup();
       render(
         <Search
           searchedTermWrapper={mockSearchedTermWrapper}
@@ -316,7 +328,7 @@ describe('Search Component', () => {
 
       expect(calendarButton).toHaveAttribute('aria-expanded', 'false');
 
-      fireEvent.click(calendarButton);
+      await user.click(calendarButton);
       expect(calendarButton).toHaveAttribute('aria-expanded', 'true');
     });
 

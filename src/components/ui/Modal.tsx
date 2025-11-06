@@ -17,6 +17,26 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
       if (event.key === 'Escape') {
         onClose();
       }
+      if (event.key === 'Tab') {
+        const focusableElements = modalRef.current?.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusableElements) {
+          const firstElement = focusableElements[0] as HTMLElement;
+          const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+          if (event.shiftKey) {
+            if (document.activeElement === firstElement) {
+              lastElement.focus();
+              event.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              firstElement.focus();
+              event.preventDefault();
+            }
+          }
+        }
+      }
     },
     [onClose]
   );

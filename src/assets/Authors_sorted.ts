@@ -1,4 +1,4 @@
-const sortedAuthors = [
+export default [
   'A. A. Milne',
   'A. D. Hope',
   'A. E. Housman',
@@ -1571,5 +1571,3 @@ const sortedAuthors = [
   'Yehuda Amichai',
   'Young Dawkins',
 ];
-
-export default sortedAuthors;

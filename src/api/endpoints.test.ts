@@ -21,7 +21,7 @@ describe('endpoints utility functions', () => {
     it('should handle special characters', () => {
       expect(nameToSlug('A. A. Milne')).toBe('a-a-milne');
       expect(nameToSlug("O'Brien")).toBe('obrien');
-      expect(nameToSlug('José Martí')).toBe('jos-mart');
+      expect(nameToSlug('José Martí')).toBe('josé-martí');
     });
 
     it('should handle multiple spaces', () => {

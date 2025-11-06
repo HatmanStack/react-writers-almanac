@@ -3,6 +3,14 @@ import { render, screen } from '@testing-library/react';
 import Search from './Search';
 import Poem from './Poem';
 
+vi.mock('../utils', async () => {
+  const actual = await vi.importActual('../utils');
+  return {
+    ...actual,
+    stripHtml: vi.fn(str => str),
+  };
+});
+
 describe('Core Components Integration', () => {
   describe('Search and Poem Integration', () => {
     it('Search component renders alongside Poem component', () => {
