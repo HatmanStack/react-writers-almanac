@@ -44,6 +44,70 @@ function Author({
     return bio || directBio || undefined;
   }, [authorData]);
 
+  // Extract photo URLs
+  const photos = useMemo(() => {
+    if (!authorData) return [];
+
+    const photosList: string[] = [];
+
+    // Check new structure (direct photos array)
+    if ('photos' in authorData) {
+      const photosData = authorData.photos as unknown;
+      if (Array.isArray(photosData)) {
+        photosData.forEach(photo => {
+          if (typeof photo === 'string') {
+            photosList.push(photo);
+          } else if (photo && typeof photo === 'object' && 'url' in photo) {
+            photosList.push((photo as { url: string }).url);
+          }
+        });
+      }
+    }
+
+    // Check old structure
+    const poetryFoundation = authorData['poetry foundation'] as AuthorSource | undefined;
+    const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
+    if (poetryFoundation?.photo) photosList.push(poetryFoundation.photo);
+    if (wikipedia?.photo) photosList.push(wikipedia.photo);
+
+    return photosList;
+  }, [authorData]);
+
+  // Extract external links
+  const externalLinks = useMemo(() => {
+    if (!authorData) return [];
+
+    const links: Array<{ name: string; url: string }> = [];
+
+    // Check new structure (direct externalLinks array)
+    if ('externalLinks' in authorData) {
+      const linksData = authorData.externalLinks as unknown;
+      if (Array.isArray(linksData)) {
+        linksData.forEach(link => {
+          if (link && typeof link === 'object' && 'name' in link && 'url' in link) {
+            links.push({
+              name: (link as { name: string }).name,
+              url: (link as { url: string }).url,
+            });
+          }
+        });
+      }
+    }
+
+    // Check old structure sources
+    const poetryFoundation = authorData['poetry foundation'] as AuthorSource | undefined;
+    const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
+
+    if (poetryFoundation?.url) {
+      links.push({ name: 'Poetry Foundation', url: poetryFoundation.url });
+    }
+    if (wikipedia?.url) {
+      links.push({ name: 'Wikipedia', url: wikipedia.url });
+    }
+
+    return links;
+  }, [authorData]);
+
   // Extract poems list - memoized array transformation
   // Must be called before early returns to follow Rules of Hooks
   const poems = useMemo(() => {
@@ -160,10 +224,53 @@ function Author({
 
   return (
     <div>
-      {/* Header section - show author name always */}
+      {/* Header section - show author name, photo, bio, and links */}
       <section className="flex justify-center m-8 z-10">
-        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl">
-          <h2 className="font-bold text-2xl mb-4">{authorName}</h2>
+        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl w-full">
+          {/* Author name and photo */}
+          <div
+            className={`flex ${width <= 1000 ? 'flex-col items-center' : 'items-start'} gap-6 mb-6`}
+          >
+            {photos.length > 0 && (
+              <div className="flex-shrink-0">
+                <img
+                  src={photos[0]}
+                  alt={`Portrait of ${authorName}`}
+                  className={`${width <= 1000 ? 'w-48 h-48' : 'w-32 h-32'} object-cover rounded-2xl shadow-lg`}
+                  onError={e => {
+                    // Hide image if it fails to load
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+            <div className={`flex-grow ${width <= 1000 ? 'text-center' : ''}`}>
+              <h2 className="font-bold text-2xl mb-2">{authorName}</h2>
+              {externalLinks.length > 0 && (
+                <div
+                  className={`flex flex-wrap gap-2 mb-4 ${width <= 1000 ? 'justify-center' : ''}`}
+                >
+                  {externalLinks.map((link, index) => (
+                    <a
+                      key={index}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-3 py-1 bg-app-bg rounded-full text-sm hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                      aria-label={`Visit ${link.name} page for ${authorName}`}
+                    >
+                      {link.name}
+                      <span className="ml-1" aria-hidden="true">
+                        ↗
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Biography */}
           {biography ? (
             <div
               className="text-base leading-relaxed"
