@@ -70,8 +70,8 @@ function PoemDates({
     );
   }
 
-  // Not found state
-  if (!poemData || !poemData.dates || poemData.dates.length === 0) {
+  // Not found or empty state
+  if (!poemData || !poemData.dates) {
     return (
       <div className="flex justify-center items-center m-8 z-10">
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
@@ -84,6 +84,22 @@ function PoemDates({
   // Normalize dates to array of strings
   const dates = Array.isArray(poemData.dates) ? poemData.dates : [poemData.dates];
 
+  // Filter out any null/undefined/empty values
+  const validDates = dates.filter(
+    d => d && (typeof d === 'string' || (typeof d === 'object' && 'date' in d))
+  );
+
+  if (validDates.length === 0) {
+    return (
+      <div className="flex justify-center items-center m-8 z-10">
+        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
+          <p className="font-bold mb-2">No dates found for this poem</p>
+          <p className="text-sm">Data received: {JSON.stringify(poemData.dates)}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Header section */}
@@ -91,14 +107,14 @@ function PoemDates({
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl">
           <h2 className="font-bold text-2xl mb-4">{poemTitle}</h2>
           <p className="text-base">
-            This poem appeared on {dates.length} {dates.length === 1 ? 'date' : 'dates'}:
+            This poem appeared on {validDates.length} {validDates.length === 1 ? 'date' : 'dates'}:
           </p>
         </div>
       </section>
 
       {/* Dates list section */}
       <section>
-        {dates.map((dateStr, index) => {
+        {validDates.map((dateStr, index) => {
           // Handle both string dates and PoemDateEntry objects
           const date = typeof dateStr === 'string' ? dateStr : (dateStr as { date: string }).date;
 
