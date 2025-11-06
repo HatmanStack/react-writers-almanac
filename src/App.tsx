@@ -510,11 +510,11 @@ function App() {
                   src={logo}
                   alt="The Writer's Almanac Logo"
                 />
-                {/* Hide Content Button - Positioned at bottom of logo */}
+                {/* Hide Content Button - Top edge aligns with bottom of logo */}
                 <button
                   type="button"
                   onClick={() => setIsContentHidden(!isContentHidden)}
-                  className="absolute left-0 bottom-0 z-20 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  className="absolute left-0 top-full z-20 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                   aria-label={
                     isContentHidden ? 'Show content containers' : 'Hide content containers'
                   }
@@ -587,11 +587,11 @@ function App() {
                   src={logo}
                   alt="The Writer's Almanac Logo"
                 />
-                {/* Hide Content Button - Positioned at bottom of logo */}
+                {/* Hide Content Button - Top edge aligns with bottom of logo */}
                 <button
                   type="button"
                   onClick={() => setIsContentHidden(!isContentHidden)}
-                  className="absolute left-0 bottom-0 z-20 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  className="absolute left-0 top-full z-20 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                   aria-label={
                     isContentHidden ? 'Show content containers' : 'Hide content containers'
                   }
