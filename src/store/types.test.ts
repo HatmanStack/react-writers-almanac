@@ -65,6 +65,8 @@ describe('Store Type Definitions', () => {
 
         // Actions
         setSearchTerm: () => {},
+        setSelectedAuthor: () => {},
+        setSelectedPoem: () => {},
         setSearchResults: () => {},
         clearSearch: () => {},
       };
@@ -85,6 +87,8 @@ describe('Store Type Definitions', () => {
         isSearching: false,
 
         setSearchTerm: () => {},
+        setSelectedAuthor: () => {},
+        setSelectedPoem: () => {},
         setSearchResults: () => {},
         clearSearch: () => {},
       };
@@ -159,6 +163,8 @@ describe('Store Type Definitions', () => {
         searchResults: [],
         isSearching: false,
         setSearchTerm: () => {},
+        setSelectedAuthor: () => {},
+        setSelectedPoem: () => {},
         setSearchResults: () => {},
         clearSearch: () => {},
 
@@ -197,6 +203,8 @@ describe('Store Type Definitions', () => {
         searchResults: [],
         isSearching: false,
         setSearchTerm: () => {},
+        setSelectedAuthor: () => {},
+        setSelectedPoem: () => {},
         setSearchResults: () => {},
         clearSearch: () => {},
 
@@ -255,6 +263,8 @@ describe('Store Type Definitions', () => {
           const _typeCheck: string = term;
           void _typeCheck; // Use variable to satisfy linter
         },
+        setSelectedAuthor: () => {},
+        setSelectedPoem: () => {},
         setSearchResults: () => {},
         clearSearch: () => {},
       };

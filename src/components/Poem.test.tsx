@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Poem from './Poem';
-import { stripHtml } from '../utils';
 
 vi.mock('../utils', async () => {
   const actual = await vi.importActual('../utils');
@@ -13,6 +12,8 @@ vi.mock('../utils', async () => {
 
 describe('Poem Component', () => {
   const mockSetSearchedTerm = vi.fn();
+  const mockOnTitleClick = vi.fn();
+  const mockOnAuthorClick = vi.fn();
 
   afterEach(() => {
     vi.clearAllMocks();
@@ -26,6 +27,8 @@ describe('Poem Component', () => {
           poem={['This is a test poem with multiple lines']}
           author={['John Doe']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
@@ -42,6 +45,8 @@ describe('Poem Component', () => {
           poem={['First poem text', 'Second poem text']}
           author={['Author One', 'Author Two']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
@@ -61,6 +66,8 @@ describe('Poem Component', () => {
           poem={['Test poem text']}
           author={['Test Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline="by Test Author, 2024"
         />
       );
@@ -75,6 +82,8 @@ describe('Poem Component', () => {
           poem={['Test poem text']}
           author={['Test Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
@@ -89,6 +98,8 @@ describe('Poem Component', () => {
           poem={undefined}
           author={undefined}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
@@ -98,40 +109,44 @@ describe('Poem Component', () => {
   });
 
   describe('Interactivity', () => {
-    it('calls setSearchedTerm when poem title button is clicked', () => {
+    it('calls onTitleClick when poem title button is clicked', () => {
       render(
         <Poem
           poemTitle={['Clickable Poem']}
           poem={['Poem text']}
           author={['Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
 
-      const titleButton = screen.getByRole('button', { name: /search for poem/i });
+      const titleButton = screen.getByRole('button', { name: /view poem/i });
       fireEvent.click(titleButton);
 
-      expect(mockSetSearchedTerm).toHaveBeenCalledWith('Clickable Poem');
-      expect(mockSetSearchedTerm).toHaveBeenCalledTimes(1);
+      expect(mockOnTitleClick).toHaveBeenCalledWith('Clickable Poem', 'Poem text', 'Author');
+      expect(mockOnTitleClick).toHaveBeenCalledTimes(1);
     });
 
-    it('calls setSearchedTerm when author button is clicked', () => {
+    it('calls onAuthorClick when author button is clicked', () => {
       render(
         <Poem
           poemTitle={['Test Poem']}
           poem={['Poem text']}
           author={['Test Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
 
-      const authorButton = screen.getByRole('button', { name: /search for author/i });
+      const authorButton = screen.getByRole('button', { name: /view author page/i });
       fireEvent.click(authorButton);
 
-      expect(mockSetSearchedTerm).toHaveBeenCalledWith('Test Author');
-      expect(mockSetSearchedTerm).toHaveBeenCalledTimes(1);
+      expect(mockOnAuthorClick).toHaveBeenCalledWith('Test Author');
+      expect(mockOnAuthorClick).toHaveBeenCalledTimes(1);
     });
 
     it('handles multiple poem title button clicks', () => {
@@ -141,17 +156,19 @@ describe('Poem Component', () => {
           poem={['Text one', 'Text two']}
           author={['Author One', 'Author Two']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
 
-      const titleButtons = screen.getAllByRole('button', { name: /search for poem/i });
+      const titleButtons = screen.getAllByRole('button', { name: /view poem/i });
       fireEvent.click(titleButtons[0]);
       fireEvent.click(titleButtons[1]);
 
-      expect(mockSetSearchedTerm).toHaveBeenNthCalledWith(1, 'Poem One');
-      expect(mockSetSearchedTerm).toHaveBeenNthCalledWith(2, 'Poem Two');
-      expect(mockSetSearchedTerm).toHaveBeenCalledTimes(2);
+      expect(mockOnTitleClick).toHaveBeenNthCalledWith(1, 'Poem One', 'Text one', 'Author One');
+      expect(mockOnTitleClick).toHaveBeenNthCalledWith(2, 'Poem Two', 'Text two', 'Author Two');
+      expect(mockOnTitleClick).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -163,13 +180,15 @@ describe('Poem Component', () => {
           poem={['Poem text']}
           author={['Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
 
-      const titleButton = screen.getByRole('button', { name: 'Search for poem: My Poem' });
+      const titleButton = screen.getByRole('button', { name: 'View poem: My Poem' });
       expect(titleButton).toBeInTheDocument();
-      expect(titleButton).toHaveAttribute('aria-label', 'Search for poem: My Poem');
+      expect(titleButton).toHaveAttribute('aria-label', 'View poem: My Poem');
     });
 
     it('has proper ARIA label for author button', () => {
@@ -179,13 +198,15 @@ describe('Poem Component', () => {
           poem={['Poem text']}
           author={['John Smith']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
 
-      const authorButton = screen.getByRole('button', { name: 'Search for author: John Smith' });
+      const authorButton = screen.getByRole('button', { name: 'View author page: John Smith' });
       expect(authorButton).toBeInTheDocument();
-      expect(authorButton).toHaveAttribute('aria-label', 'Search for author: John Smith');
+      expect(authorButton).toHaveAttribute('aria-label', 'View author page: John Smith');
     });
   });
 
@@ -197,6 +218,8 @@ describe('Poem Component', () => {
           poem={['Poem text']}
           author={['Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
@@ -213,6 +236,8 @@ describe('Poem Component', () => {
           poem={['Text']}
           author={['<script>alert("xss")</script>Safe Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
@@ -229,6 +254,8 @@ describe('Poem Component', () => {
           poem={['<script>alert("xss")</script>Safe poem content']}
           author={['Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
@@ -245,6 +272,8 @@ describe('Poem Component', () => {
           poem={['Text']}
           author={['Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline='<script>alert("xss")</script>Safe byline'
         />
       );
@@ -263,11 +292,13 @@ describe('Poem Component', () => {
           poem={['Text']}
           author={['Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
 
-      const titleButton = screen.getByRole('button', { name: /search for poem/i });
+      const titleButton = screen.getByRole('button', { name: /view poem/i });
       expect(titleButton).toHaveClass('bg-transparent');
       expect(titleButton).toHaveClass('cursor-pointer');
       expect(titleButton).toHaveClass('text-app-text');
@@ -280,11 +311,13 @@ describe('Poem Component', () => {
           poem={['Text']}
           author={['Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline={undefined}
         />
       );
 
-      const authorButton = screen.getByRole('button', { name: /search for author/i });
+      const authorButton = screen.getByRole('button', { name: /view author page/i });
       expect(authorButton).toHaveClass('bg-transparent');
       expect(authorButton).toHaveClass('cursor-pointer');
       expect(authorButton).toHaveClass('text-app-text');
@@ -297,6 +330,8 @@ describe('Poem Component', () => {
           poem={['Text']}
           author={['Author']}
           setSearchedTerm={mockSetSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline="Test byline"
         />
       );

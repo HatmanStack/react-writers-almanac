@@ -12,6 +12,9 @@ vi.mock('../utils', async () => {
 });
 
 describe('Core Components Integration', () => {
+  const mockOnTitleClick = vi.fn();
+  const mockOnAuthorClick = vi.fn();
+
   describe('Search and Poem Integration', () => {
     it('Search component renders alongside Poem component', () => {
       const mockSearchedTermWrapper = vi.fn();
@@ -31,6 +34,8 @@ describe('Core Components Integration', () => {
             poem={['Test poem content']}
             author={['Test Author']}
             setSearchedTerm={mockSetSearchedTerm}
+            onTitleClick={mockOnTitleClick}
+            onAuthorClick={mockOnAuthorClick}
             poemByline="by Test Author"
           />
         </div>
@@ -60,6 +65,8 @@ describe('Core Components Integration', () => {
             poem={['Content']}
             author={['Author']}
             setSearchedTerm={mockSetSearchedTerm}
+            onTitleClick={mockOnTitleClick}
+            onAuthorClick={mockOnAuthorClick}
             poemByline={undefined}
           />
         </div>
@@ -108,6 +115,8 @@ describe('Core Components Integration', () => {
           poem={['Content']}
           author={['Author']}
           setSearchedTerm={setSearchedTerm}
+          onTitleClick={mockOnTitleClick}
+          onAuthorClick={mockOnAuthorClick}
           poemByline="byline"
         />
       );
@@ -135,6 +144,8 @@ describe('Core Components Integration', () => {
             poem={['Content']}
             author={['Accessible Author']}
             setSearchedTerm={mockSetSearchedTerm}
+            onTitleClick={mockOnTitleClick}
+            onAuthorClick={mockOnAuthorClick}
             poemByline={undefined}
           />
         </div>
@@ -176,6 +187,8 @@ describe('Core Components Integration', () => {
             poem={['Content']}
             author={['Author']}
             setSearchedTerm={mockSetSearchedTerm}
+            onTitleClick={mockOnTitleClick}
+            onAuthorClick={mockOnAuthorClick}
             poemByline={undefined}
           />
         </div>
@@ -207,6 +220,8 @@ describe('Core Components Integration', () => {
             poem={['Content']}
             author={['Author']}
             setSearchedTerm={mockSetSearchedTerm}
+            onTitleClick={mockOnTitleClick}
+            onAuthorClick={mockOnAuthorClick}
             poemByline={undefined}
           />
         </div>
