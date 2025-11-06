@@ -32,39 +32,77 @@ function Author({
   const biography = useMemo(() => {
     if (!authorData) return undefined;
 
-    // Debug: Show the actual structure
-    // eslint-disable-next-line no-console
-    console.log('Author data received:', {
-      topLevelKeys: Object.keys(authorData),
-      fullDataSample: JSON.stringify(authorData).substring(0, 500),
-      hasPoetryFoundation: 'poetry foundation' in authorData,
-      hasWikipedia: 'wikipedia' in authorData,
-    });
-
+    // Check for old structure (poetry foundation/wikipedia)
     const poetryFoundation = authorData['poetry foundation'] as AuthorSource | undefined;
     const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
     const bio = poetryFoundation?.biography || wikipedia?.biography;
 
-    return bio;
+    // Check for new structure (direct biography field)
+    const directBio =
+      'biography' in authorData ? (authorData.biography as string | undefined) : undefined;
+
+    return bio || directBio || undefined;
   }, [authorData]);
 
   // Extract poems list - memoized array transformation
   // Must be called before early returns to follow Rules of Hooks
   const poems = useMemo(() => {
     if (!authorData) return [];
+
+    // Check for old structure (poetry foundation/wikipedia)
     const poetryFoundation = authorData['poetry foundation'] as AuthorSource | undefined;
     const wikipedia = authorData['wikipedia'] as AuthorSource | undefined;
-    const poemsData = poetryFoundation?.poems || wikipedia?.poems;
+    let poemsData = poetryFoundation?.poems || wikipedia?.poems;
+
+    // Check for new structure (direct poems array)
+    if (!poemsData && 'poems' in authorData) {
+      poemsData = authorData.poems as string | string[] | PoemItem[] | undefined;
+    }
 
     // Normalize to array (handle single string case)
     const poemsArray = Array.isArray(poemsData) ? poemsData : poemsData ? [poemsData] : [];
 
-    return poemsArray.map(item => {
+    // Transform poems data to flat list of date entries
+    const flattenedPoems: PoemItem[] = [];
+
+    poemsArray.forEach(item => {
       if (typeof item === 'string') {
-        return { date: item, title: undefined };
+        // Old format: just a date string
+        flattenedPoems.push({ date: item, title: undefined });
+      } else if (item && typeof item === 'object' && 'date' in item) {
+        // Standard PoemItem format: {date: "...", title?: "..."}
+        flattenedPoems.push(item as PoemItem);
+      } else if (item && typeof item === 'object') {
+        // New backend format: {title: "...", dates: [...]}
+        const itemObj = item as Record<string, unknown>;
+        const poemTitle = 'title' in itemObj ? (itemObj.title as string | undefined) : undefined;
+        const dates = 'dates' in itemObj ? itemObj.dates : undefined;
+
+        if (Array.isArray(dates)) {
+          // Create an entry for each date this poem appeared
+          dates.forEach(date => {
+            flattenedPoems.push({
+              date: typeof date === 'string' ? date : String(date),
+              title: poemTitle,
+            });
+          });
+        } else if (dates) {
+          // Single date
+          flattenedPoems.push({
+            date: String(dates),
+            title: poemTitle,
+          });
+        } else {
+          // No dates, just title
+          flattenedPoems.push({
+            date: '',
+            title: poemTitle,
+          });
+        }
       }
-      return item as PoemItem;
     });
+
+    return flattenedPoems;
   }, [authorData]);
 
   /**
@@ -122,20 +160,24 @@ function Author({
 
   return (
     <div>
-      {/* Biography section */}
-      {biography && (
-        <section className="flex justify-center m-8 z-10">
-          <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl">
-            <h2 className="font-bold text-2xl mb-4">{authorName}</h2>
+      {/* Header section - show author name always */}
+      <section className="flex justify-center m-8 z-10">
+        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl">
+          <h2 className="font-bold text-2xl mb-4">{authorName}</h2>
+          {biography ? (
             <div
               className="text-base leading-relaxed"
               dangerouslySetInnerHTML={{
                 __html: sanitizeHtml(biography),
               }}
             />
-          </div>
-        </section>
-      )}
+          ) : (
+            <p className="text-base">
+              Poems by {authorName} ({poems.length} {poems.length === 1 ? 'poem' : 'poems'}):
+            </p>
+          )}
+        </div>
+      </section>
 
       {/* Poems list section - virtualized for long lists (>50 items) */}
       {poems.length > 0 &&
