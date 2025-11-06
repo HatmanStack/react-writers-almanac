@@ -427,6 +427,7 @@ function App() {
         return (
           <Suspense fallback={<LoadingSpinner size="lg" label="Loading author..." />}>
             <Author
+              key={searchTerm}
               setIsShowingContentByDate={toggleViewMode}
               authorName={searchTerm}
               formatAuthorDate={formatAuthorDate}
@@ -439,6 +440,7 @@ function App() {
         return (
           <Suspense fallback={<LoadingSpinner size="lg" label="Loading poem dates..." />}>
             <PoemDates
+              key={searchTerm}
               poemTitle={searchTerm}
               setIsShowingContentByDate={toggleViewMode}
               formatAuthorDate={formatAuthorDate}
@@ -452,6 +454,7 @@ function App() {
         return (
           <Suspense fallback={<LoadingSpinner size="lg" label="Loading..." />}>
             <Author
+              key={searchTerm}
               setIsShowingContentByDate={toggleViewMode}
               authorName={searchTerm}
               formatAuthorDate={formatAuthorDate}
