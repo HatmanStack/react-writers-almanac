@@ -4,4 +4,4 @@
 
 export { formatDate } from './date';
 export { sanitizeHtml } from './sanitize';
-export { slugify, normalizeString } from './string';
+export { slugify, normalizeString, stripHtml } from './string';
