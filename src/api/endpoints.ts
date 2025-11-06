@@ -42,6 +42,14 @@ export const CDN_ENDPOINTS = {
    * @example getAuthorsByLetter("B") → "/authors/by-letter/B.json"
    */
   getAuthorsByLetter: (letter: string) => `/authors/by-letter/${letter.toUpperCase()}.json`,
+
+  /**
+   * Get poem by title slug
+   * @param slug - Poem title slug (e.g., "the-road-not-taken")
+   * @returns Path to poem JSON file
+   * @example getPoemBySlug("the-road-not-taken") → "/poems/by-title/the-road-not-taken.json"
+   */
+  getPoemBySlug: (slug: string) => `/poems/by-title/${slug}.json`,
 } as const;
 
 /**

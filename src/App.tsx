@@ -41,6 +41,7 @@ import { formatDate as formatDateUtil } from './utils';
 // Lazy load heavy components for code splitting
 const Audio = lazy(() => import('./components/Audio/Audio'));
 const Author = lazy(() => import('./components/Author/Author'));
+const PoemDates = lazy(() => import('./components/PoemDates/PoemDates'));
 const ParticlesComponent = lazy(() => import('./components/Particles/Particles'));
 
 /**
@@ -153,6 +154,7 @@ function App() {
     content: string;
     author: string;
   } | null>(null);
+  const [searchType, setSearchType] = useState<'author' | 'poem' | null>(null);
 
   // Cleanup blob URLs on component unmount to prevent memory leaks
   useEffect(() => {
@@ -171,6 +173,7 @@ function App() {
       // Check if searching for an author
       if (sortedAuthorsSet.has(query)) {
         setSearchTerm(query);
+        setSearchType('author');
         // Navigate to author page
         if (isShowingContentByDate) {
           toggleViewMode();
@@ -178,9 +181,12 @@ function App() {
       }
       // Check if searching for a poem
       else if (sortedPoemsSet.has(query)) {
-        // For poem searches, just set the search term
-        // Note: Full poem-to-date mapping would require additional implementation
         setSearchTerm(query);
+        setSearchType('poem');
+        // Navigate to poem dates page
+        if (isShowingContentByDate) {
+          toggleViewMode();
+        }
       }
     },
     [setSearchTerm, isShowingContentByDate, toggleViewMode]
@@ -201,6 +207,7 @@ function App() {
   const handleAuthorClick = useCallback(
     (authorName: string): void => {
       setSearchTerm(authorName);
+      setSearchType('author');
       // Navigate to author page
       if (isShowingContentByDate) {
         toggleViewMode();
@@ -415,17 +422,45 @@ function App() {
         </div>
       );
     } else {
-      return (
-        <Suspense fallback={<LoadingSpinner size="lg" label="Loading author..." />}>
-          <Author
-            setIsShowingContentByDate={toggleViewMode}
-            authorName={searchTerm}
-            formatAuthorDate={formatAuthorDate}
-            setLinkDate={setLinkDate}
-            width={width}
-          />
-        </Suspense>
-      );
+      // Render either Author or PoemDates based on search type
+      if (searchType === 'author') {
+        return (
+          <Suspense fallback={<LoadingSpinner size="lg" label="Loading author..." />}>
+            <Author
+              setIsShowingContentByDate={toggleViewMode}
+              authorName={searchTerm}
+              formatAuthorDate={formatAuthorDate}
+              setLinkDate={setLinkDate}
+              width={width}
+            />
+          </Suspense>
+        );
+      } else if (searchType === 'poem') {
+        return (
+          <Suspense fallback={<LoadingSpinner size="lg" label="Loading poem dates..." />}>
+            <PoemDates
+              poemTitle={searchTerm}
+              setIsShowingContentByDate={toggleViewMode}
+              formatAuthorDate={formatAuthorDate}
+              setLinkDate={setLinkDate}
+              width={width}
+            />
+          </Suspense>
+        );
+      } else {
+        // Default to author if search type is not set (backward compatibility)
+        return (
+          <Suspense fallback={<LoadingSpinner size="lg" label="Loading..." />}>
+            <Author
+              setIsShowingContentByDate={toggleViewMode}
+              authorName={searchTerm}
+              formatAuthorDate={formatAuthorDate}
+              setLinkDate={setLinkDate}
+              width={width}
+            />
+          </Suspense>
+        );
+      }
     }
   }, [
     isShowingContentByDate,
@@ -437,6 +472,7 @@ function App() {
     normalizedAuthor,
     poemByline,
     searchTerm,
+    searchType,
     setSearchTerm,
     toggleViewMode,
     setLinkDate,
