@@ -531,10 +531,11 @@ function App() {
                   aria-label="Day of week"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }}
                 />
-                <div
-                  className="flex-[1_0_auto] m-4"
-                  role="text"
-                  aria-label="Current date"
+                <button
+                  type="button"
+                  className="flex-[1_0_auto] m-4 bg-transparent border-none cursor-pointer text-app-text hover:opacity-70 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  onClick={() => setViewMode(true)}
+                  aria-label={`Navigate to ${currentDate || 'current date'}`}
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
                 />
               </div>
@@ -590,9 +591,11 @@ function App() {
                   aria-label="Day of week"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }}
                 />
-                <div
-                  role="text"
-                  aria-label="Current date"
+                <button
+                  type="button"
+                  className="bg-transparent border-none cursor-pointer text-app-text hover:opacity-70 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  onClick={() => setViewMode(true)}
+                  aria-label={`Navigate to ${currentDate || 'current date'}`}
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
                 />
               </div>
