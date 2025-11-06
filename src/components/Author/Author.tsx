@@ -27,6 +27,22 @@ function Author({
   // Fetch author data using TanStack Query
   const { data: authorData, isLoading, error, refetch } = useAuthorQuery(authorName);
 
+  // Debug logging
+  if (authorData) {
+    // eslint-disable-next-line no-console
+    console.log('Full author data:', {
+      keys: Object.keys(authorData),
+      hasBiography: 'biography' in authorData,
+      hasPhotos: 'photos' in authorData,
+      hasExternalLinks: 'externalLinks' in authorData,
+      hasPoems: 'poems' in authorData,
+      biography: 'biography' in authorData ? authorData.biography : null,
+      photos: 'photos' in authorData ? authorData.photos : null,
+      externalLinks: 'externalLinks' in authorData ? authorData.externalLinks : null,
+      poemsCount: 'poems' in authorData ? (authorData.poems as unknown[]).length : 0,
+    });
+  }
+
   // Extract biography from available sources (prefer Poetry Foundation) - memoized
   // Must be called before early returns to follow Rules of Hooks
   const biography = useMemo(() => {
