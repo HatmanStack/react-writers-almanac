@@ -63,8 +63,8 @@ function Author({
         // eslint-disable-next-line no-console
         console.log('Extracted filename:', filename);
         if (filename) {
-          // Construct full CloudFront URL (images/ not photos/)
-          const photoUrl = `https://d3vq6af2mo7fcy.cloudfront.net/public/authors/images/${filename}`;
+          // Try /public/images/ path (top level, not under authors/)
+          const photoUrl = `https://d3vq6af2mo7fcy.cloudfront.net/public/images/${filename}`;
           // eslint-disable-next-line no-console
           console.log('Constructed photo URL:', photoUrl);
           photosList.push(photoUrl);
