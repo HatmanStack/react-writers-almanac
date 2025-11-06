@@ -50,17 +50,32 @@ function Author({
 
     const photosList: string[] = [];
 
+    // eslint-disable-next-line no-console
+    console.log('Raw author data:', authorData);
+
     // Check new structure (photos.primary with filename)
     if ('photos' in authorData) {
       const photosData = authorData.photos as unknown;
+      // eslint-disable-next-line no-console
+      console.log('Photos data found:', photosData);
       if (photosData && typeof photosData === 'object' && 'primary' in photosData) {
         const filename = (photosData as { primary: string }).primary;
+        // eslint-disable-next-line no-console
+        console.log('Extracted filename:', filename);
         if (filename) {
           // Construct full CloudFront URL (images/ not photos/)
           const photoUrl = `https://d3vq6af2mo7fcy.cloudfront.net/public/authors/images/${filename}`;
+          // eslint-disable-next-line no-console
+          console.log('Constructed photo URL:', photoUrl);
           photosList.push(photoUrl);
         }
+      } else {
+        // eslint-disable-next-line no-console
+        console.log('Photos data does not match expected structure');
       }
+    } else {
+      // eslint-disable-next-line no-console
+      console.log('No photos field found in authorData');
     }
 
     // Check old structure
@@ -69,6 +84,8 @@ function Author({
     if (poetryFoundation?.photo) photosList.push(poetryFoundation.photo);
     if (wikipedia?.photo) photosList.push(wikipedia.photo);
 
+    // eslint-disable-next-line no-console
+    console.log('Final photosList:', photosList);
     return photosList;
   }, [authorData]);
 
@@ -236,7 +253,15 @@ function Author({
                   src={photos[0]}
                   alt={`Portrait of ${authorName}`}
                   className={`${width <= 1000 ? 'w-48 h-48' : 'w-32 h-32'} object-cover rounded-2xl shadow-lg`}
+                  onLoad={() => {
+                    // eslint-disable-next-line no-console
+                    console.log('Image loaded successfully:', photos[0]);
+                  }}
                   onError={e => {
+                    // eslint-disable-next-line no-console
+                    console.error('Image failed to load:', photos[0]);
+                    // eslint-disable-next-line no-console
+                    console.error('Error event:', e);
                     // Hide image if it fails to load
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
