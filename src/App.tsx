@@ -499,26 +499,30 @@ function App() {
     <ErrorBoundary>
       <main className="text-center text-[calc(8px+2vmin)] bg-app-bg text-app-text min-h-screen w-full relative">
         {width > 1000 ? (
-          <div className="relative">
+          <div>
             <Suspense fallback={<div className="h-full w-full" />}>
               <ParticlesComponent />
             </Suspense>
-            {/* Hide Content Button - Absolutely positioned on left */}
-            <button
-              type="button"
-              onClick={() => setIsContentHidden(!isContentHidden)}
-              className="absolute left-4 top-4 z-20 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-              aria-label={isContentHidden ? 'Show content containers' : 'Hide content containers'}
-              aria-expanded={!isContentHidden}
-            >
-              {isContentHidden ? 'Show Content' : 'Hide Content'}
-            </button>
             <header className="flex flex-row items-center justify-around m-4">
-              <img
-                className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
-                src={logo}
-                alt="The Writer's Almanac Logo"
-              />
+              <div className="relative">
+                <img
+                  className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
+                  src={logo}
+                  alt="The Writer's Almanac Logo"
+                />
+                {/* Hide Content Button - Positioned at bottom of logo */}
+                <button
+                  type="button"
+                  onClick={() => setIsContentHidden(!isContentHidden)}
+                  className="absolute left-0 bottom-0 z-20 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  aria-label={
+                    isContentHidden ? 'Show content containers' : 'Hide content containers'
+                  }
+                  aria-expanded={!isContentHidden}
+                >
+                  {isContentHidden ? 'Show Content' : 'Hide Content'}
+                </button>
+              </div>
               <div className="FormattingContainer" />
               <div className="z-10 bg-app-container rounded-[3rem] flex p-4">
                 <ErrorBoundary
@@ -575,22 +579,27 @@ function App() {
             <Suspense fallback={<div className="h-full w-full" />}>
               <ParticlesComponent />
             </Suspense>
-            {/* Hide Content Button - Absolutely positioned on left */}
-            <button
-              type="button"
-              onClick={() => setIsContentHidden(!isContentHidden)}
-              className="absolute left-4 top-4 z-20 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-              aria-label={isContentHidden ? 'Show content containers' : 'Hide content containers'}
-              aria-expanded={!isContentHidden}
-            >
-              {isContentHidden ? 'Show Content' : 'Hide Content'}
-            </button>
             <header className="flex flex-col items-center justify-around m-4">
-              <img
-                className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
-                src={logo}
-                alt="The Writer's Almanac Logo"
-              />
+              {/* Logo with Hide Content Button at bottom edge */}
+              <div className="relative">
+                <img
+                  className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
+                  src={logo}
+                  alt="The Writer's Almanac Logo"
+                />
+                {/* Hide Content Button - Positioned at bottom of logo */}
+                <button
+                  type="button"
+                  onClick={() => setIsContentHidden(!isContentHidden)}
+                  className="absolute left-0 bottom-0 z-20 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  aria-label={
+                    isContentHidden ? 'Show content containers' : 'Hide content containers'
+                  }
+                  aria-expanded={!isContentHidden}
+                >
+                  {isContentHidden ? 'Show Content' : 'Hide Content'}
+                </button>
+              </div>
               <div className="z-10 bg-app-container rounded-[3rem] flex p-4 flex-col">
                 <ErrorBoundary
                   fallback={error => (
