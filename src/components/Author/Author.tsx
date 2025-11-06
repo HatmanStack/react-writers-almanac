@@ -174,8 +174,8 @@ function Author({
   const handleClick = useCallback(
     (date: string): void => {
       setLinkDate(formatAuthorDate(date));
-      // Toggle to date view mode (toggleViewMode doesn't take arguments)
-      setIsShowingContentByDate();
+      // Switch to date view mode
+      setIsShowingContentByDate(true);
     },
     [setLinkDate, formatAuthorDate, setIsShowingContentByDate]
   );

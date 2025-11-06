@@ -216,6 +216,18 @@ function App() {
     [setSearchTerm, isShowingContentByDate, toggleViewMode]
   );
 
+  const handleSwitchToDateView = useCallback(
+    (_shouldShow?: boolean) => {
+      // Switch to date view mode if not already there
+      // Note: We always switch to date view (true), ignoring the parameter
+      // because toggleViewMode doesn't support setting a specific value
+      if (!isShowingContentByDate) {
+        toggleViewMode();
+      }
+    },
+    [isShowingContentByDate, toggleViewMode]
+  );
+
   const closeModal = useCallback(() => {
     setIsPoemModalOpen(false);
     setModalPoemContent(null);
@@ -428,7 +440,7 @@ function App() {
           <Suspense fallback={<LoadingSpinner size="lg" label="Loading author..." />}>
             <Author
               key={searchTerm}
-              setIsShowingContentByDate={toggleViewMode}
+              setIsShowingContentByDate={handleSwitchToDateView}
               authorName={searchTerm}
               formatAuthorDate={formatAuthorDate}
               setLinkDate={setLinkDate}
@@ -442,7 +454,7 @@ function App() {
             <PoemDates
               key={searchTerm}
               poemTitle={searchTerm}
-              setIsShowingContentByDate={toggleViewMode}
+              setIsShowingContentByDate={handleSwitchToDateView}
               formatAuthorDate={formatAuthorDate}
               setLinkDate={setLinkDate}
               width={width}
@@ -455,7 +467,7 @@ function App() {
           <Suspense fallback={<LoadingSpinner size="lg" label="Loading..." />}>
             <Author
               key={searchTerm}
-              setIsShowingContentByDate={toggleViewMode}
+              setIsShowingContentByDate={handleSwitchToDateView}
               authorName={searchTerm}
               formatAuthorDate={formatAuthorDate}
               setLinkDate={setLinkDate}
@@ -477,7 +489,7 @@ function App() {
     searchTerm,
     searchType,
     setSearchTerm,
-    toggleViewMode,
+    handleSwitchToDateView,
     setLinkDate,
     handlePoemTitleClick,
     handleAuthorClick,
