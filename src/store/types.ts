@@ -29,6 +29,7 @@ export interface ContentSlice {
   }) => void;
   setAuthorData: (data: { author?: string | string[] }) => void;
   toggleViewMode: () => void;
+  setViewMode: (isShowingByDate: boolean) => void;
   resetContent: () => void;
 }
 

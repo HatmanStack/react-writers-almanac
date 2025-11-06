@@ -63,6 +63,13 @@ export const createContentSlice: SliceCreator<ContentSlice> = set => ({
   },
 
   /**
+   * Set the view mode to a specific value
+   */
+  setViewMode: (isShowingByDate: boolean) => {
+    set({ isShowingContentByDate: isShowingByDate });
+  },
+
+  /**
    * Reset all content to initial state
    */
   resetContent: () => {

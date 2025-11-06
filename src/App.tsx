@@ -122,6 +122,7 @@ function App() {
     setAudioData,
     setSearchTerm,
     toggleViewMode,
+    setViewMode,
     cleanup,
   } = useAppStore(
     useShallow(state => ({
@@ -138,6 +139,7 @@ function App() {
       setAudioData: state.setAudioData,
       setSearchTerm: state.setSearchTerm,
       toggleViewMode: state.toggleViewMode,
+      setViewMode: state.setViewMode,
       cleanup: state.cleanup,
     }))
   );
@@ -218,14 +220,11 @@ function App() {
 
   const handleSwitchToDateView = useCallback(
     (_shouldShow?: boolean) => {
-      // Switch to date view mode if not already there
-      // Note: We always switch to date view (true), ignoring the parameter
-      // because toggleViewMode doesn't support setting a specific value
-      if (!isShowingContentByDate) {
-        toggleViewMode();
-      }
+      // Switch to date view mode
+      // Always set to true to show content by date
+      setViewMode(true);
     },
-    [isShowingContentByDate, toggleViewMode]
+    [setViewMode]
   );
 
   const closeModal = useCallback(() => {
