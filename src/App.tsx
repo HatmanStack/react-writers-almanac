@@ -41,6 +41,7 @@ import { formatDate as formatDateUtil } from './utils';
 // Lazy load heavy components for code splitting
 const Audio = lazy(() => import('./components/Audio/Audio'));
 const Author = lazy(() => import('./components/Author/Author'));
+const PoemDates = lazy(() => import('./components/PoemDates/PoemDates'));
 const ParticlesComponent = lazy(() => import('./components/Particles/Particles'));
 
 /**
@@ -121,6 +122,7 @@ function App() {
     setAudioData,
     setSearchTerm,
     toggleViewMode,
+    setViewMode,
     cleanup,
   } = useAppStore(
     useShallow(state => ({
@@ -137,6 +139,7 @@ function App() {
       setAudioData: state.setAudioData,
       setSearchTerm: state.setSearchTerm,
       toggleViewMode: state.toggleViewMode,
+      setViewMode: state.setViewMode,
       cleanup: state.cleanup,
     }))
   );
@@ -153,6 +156,8 @@ function App() {
     content: string;
     author: string;
   } | null>(null);
+  const [searchType, setSearchType] = useState<'author' | 'poem' | null>(null);
+  const [isContentHidden, setIsContentHidden] = useState<boolean>(false);
 
   // Cleanup blob URLs on component unmount to prevent memory leaks
   useEffect(() => {
@@ -171,6 +176,7 @@ function App() {
       // Check if searching for an author
       if (sortedAuthorsSet.has(query)) {
         setSearchTerm(query);
+        setSearchType('author');
         // Navigate to author page
         if (isShowingContentByDate) {
           toggleViewMode();
@@ -178,9 +184,12 @@ function App() {
       }
       // Check if searching for a poem
       else if (sortedPoemsSet.has(query)) {
-        // For poem searches, just set the search term
-        // Note: Full poem-to-date mapping would require additional implementation
         setSearchTerm(query);
+        setSearchType('poem');
+        // Navigate to poem dates page
+        if (isShowingContentByDate) {
+          toggleViewMode();
+        }
       }
     },
     [setSearchTerm, isShowingContentByDate, toggleViewMode]
@@ -201,12 +210,22 @@ function App() {
   const handleAuthorClick = useCallback(
     (authorName: string): void => {
       setSearchTerm(authorName);
+      setSearchType('author');
       // Navigate to author page
       if (isShowingContentByDate) {
         toggleViewMode();
       }
     },
     [setSearchTerm, isShowingContentByDate, toggleViewMode]
+  );
+
+  const handleSwitchToDateView = useCallback(
+    (_shouldShow?: boolean) => {
+      // Switch to date view mode
+      // Always set to true to show content by date
+      setViewMode(true);
+    },
+    [setViewMode]
   );
 
   const closeModal = useCallback(() => {
@@ -415,17 +434,48 @@ function App() {
         </div>
       );
     } else {
-      return (
-        <Suspense fallback={<LoadingSpinner size="lg" label="Loading author..." />}>
-          <Author
-            setIsShowingContentByDate={toggleViewMode}
-            authorName={searchTerm}
-            formatAuthorDate={formatAuthorDate}
-            setLinkDate={setLinkDate}
-            width={width}
-          />
-        </Suspense>
-      );
+      // Render either Author or PoemDates based on search type
+      if (searchType === 'author') {
+        return (
+          <Suspense fallback={<LoadingSpinner size="lg" label="Loading author..." />}>
+            <Author
+              key={searchTerm}
+              setIsShowingContentByDate={handleSwitchToDateView}
+              authorName={searchTerm}
+              formatAuthorDate={formatAuthorDate}
+              setLinkDate={setLinkDate}
+              width={width}
+            />
+          </Suspense>
+        );
+      } else if (searchType === 'poem') {
+        return (
+          <Suspense fallback={<LoadingSpinner size="lg" label="Loading poem dates..." />}>
+            <PoemDates
+              key={searchTerm}
+              poemTitle={searchTerm}
+              setIsShowingContentByDate={handleSwitchToDateView}
+              formatAuthorDate={formatAuthorDate}
+              setLinkDate={setLinkDate}
+              width={width}
+            />
+          </Suspense>
+        );
+      } else {
+        // Default to author if search type is not set (backward compatibility)
+        return (
+          <Suspense fallback={<LoadingSpinner size="lg" label="Loading..." />}>
+            <Author
+              key={searchTerm}
+              setIsShowingContentByDate={handleSwitchToDateView}
+              authorName={searchTerm}
+              formatAuthorDate={formatAuthorDate}
+              setLinkDate={setLinkDate}
+              width={width}
+            />
+          </Suspense>
+        );
+      }
     }
   }, [
     isShowingContentByDate,
@@ -437,8 +487,9 @@ function App() {
     normalizedAuthor,
     poemByline,
     searchTerm,
+    searchType,
     setSearchTerm,
-    toggleViewMode,
+    handleSwitchToDateView,
     setLinkDate,
     handlePoemTitleClick,
     handleAuthorClick,
@@ -446,18 +497,32 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <main className="text-center text-[calc(8px+2vmin)] bg-app-bg text-app-text h-full absolute w-full">
+      <main className="text-center text-[calc(8px+2vmin)] bg-app-bg text-app-text min-h-screen w-full relative">
         {width > 1000 ? (
           <div>
             <Suspense fallback={<div className="h-full w-full" />}>
               <ParticlesComponent />
             </Suspense>
             <header className="flex flex-row items-center justify-around m-4">
-              <img
-                className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
-                src={logo}
-                alt="The Writer's Almanac Logo"
-              />
+              <div className="relative">
+                <img
+                  className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
+                  src={logo}
+                  alt="The Writer's Almanac Logo"
+                />
+                {/* Hide Content Button - 10px gap below logo */}
+                <button
+                  type="button"
+                  onClick={() => setIsContentHidden(!isContentHidden)}
+                  className="absolute left-0 top-full mt-[10px] z-20 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  aria-label={
+                    isContentHidden ? 'Show content containers' : 'Hide content containers'
+                  }
+                  aria-expanded={!isContentHidden}
+                >
+                  {isContentHidden ? 'Show Content' : 'Hide Content'}
+                </button>
+              </div>
               <div className="FormattingContainer" />
               <div className="z-10 bg-app-container rounded-[3rem] flex p-4">
                 <ErrorBoundary
@@ -481,10 +546,11 @@ function App() {
                   aria-label="Day of week"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }}
                 />
-                <div
-                  className="flex-[1_0_auto] m-4"
-                  role="text"
-                  aria-label="Current date"
+                <button
+                  type="button"
+                  className="flex-[1_0_auto] m-4 bg-transparent border-none cursor-pointer text-app-text hover:opacity-70 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  onClick={() => setViewMode(true)}
+                  aria-label={`Navigate to ${currentDate || 'current date'}`}
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
                 />
               </div>
@@ -500,7 +566,6 @@ function App() {
               <Suspense fallback={<LoadingSpinner size="md" label="Loading audio player..." />}>
                 <Audio
                   isShowingContentByDate={isShowingContentByDate}
-                  searchedTerm={searchTerm}
                   shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
                   width={width}
                   setIsShowing={setIsShowing}
@@ -510,16 +575,31 @@ function App() {
             </ErrorBoundary>
           </div>
         ) : (
-          <div>
+          <div className="relative">
             <Suspense fallback={<div className="h-full w-full" />}>
               <ParticlesComponent />
             </Suspense>
             <header className="flex flex-col items-center justify-around m-4">
-              <img
-                className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
-                src={logo}
-                alt="The Writer's Almanac Logo"
-              />
+              {/* Logo with Hide Content Button at bottom edge */}
+              <div className="relative">
+                <img
+                  className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
+                  src={logo}
+                  alt="The Writer's Almanac Logo"
+                />
+                {/* Hide Content Button - 10px gap below logo, right-aligned for mobile */}
+                <button
+                  type="button"
+                  onClick={() => setIsContentHidden(!isContentHidden)}
+                  className="absolute right-0 top-full mt-[10px] z-20 bg-app-container text-app-text border-none font-semibold text-sm cursor-pointer px-6 py-2 rounded-[2rem] hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  aria-label={
+                    isContentHidden ? 'Show content containers' : 'Hide content containers'
+                  }
+                  aria-expanded={!isContentHidden}
+                >
+                  {isContentHidden ? 'Show Content' : 'Hide Content'}
+                </button>
+              </div>
               <div className="z-10 bg-app-container rounded-[3rem] flex p-4 flex-col">
                 <ErrorBoundary
                   fallback={error => (
@@ -541,9 +621,11 @@ function App() {
                   aria-label="Day of week"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }}
                 />
-                <div
-                  role="text"
-                  aria-label="Current date"
+                <button
+                  type="button"
+                  className="bg-transparent border-none cursor-pointer text-app-text hover:opacity-70 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                  onClick={() => setViewMode(true)}
+                  aria-label={`Navigate to ${currentDate || 'current date'}`}
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
                 />
               </div>
@@ -559,7 +641,6 @@ function App() {
               <Suspense fallback={<LoadingSpinner size="md" label="Loading audio player..." />}>
                 <Audio
                   isShowingContentByDate={isShowingContentByDate}
-                  searchedTerm={searchTerm}
                   shiftContentByAuthorOrDate={shiftContentByAuthorOrDate}
                   width={width}
                   setIsShowing={setIsShowing}
@@ -569,23 +650,25 @@ function App() {
             </ErrorBoundary>
           </div>
         )}
-        <ErrorBoundary
-          fallback={error => (
-            <div className="p-8 text-center text-red-600">
-              <p>Content unavailable</p>
-              <p className="text-sm">{error.message}</p>
-            </div>
-          )}
-        >
-          <section aria-label="Main content">{body}</section>
-        </ErrorBoundary>
+        {!isContentHidden && (
+          <ErrorBoundary
+            fallback={error => (
+              <div className="p-8 text-center text-red-600">
+                <p>Content unavailable</p>
+                <p className="text-sm">{error.message}</p>
+              </div>
+            )}
+          >
+            <section aria-label="Main content">{body}</section>
+          </ErrorBoundary>
+        )}
 
         {/* Poem Modal */}
         <Modal isOpen={isPoemModalOpen} onClose={closeModal} title={modalPoemContent?.title || ''}>
           <div className="space-y-4">
-            <div className="text-sm text-gray-600">by {modalPoemContent?.author}</div>
+            <div className="text-base text-app-text italic">by {modalPoemContent?.author}</div>
             <div
-              className="text-base leading-relaxed whitespace-pre-wrap"
+              className="text-base leading-relaxed"
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(modalPoemContent?.content || ''),
               }}

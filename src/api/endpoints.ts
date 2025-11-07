@@ -31,17 +31,25 @@ export const CDN_ENDPOINTS = {
    * Get author by slug
    * @param slug - Author slug (e.g., "billy-collins")
    * @returns Path to author JSON file
-   * @example getAuthorBySlug("billy-collins") → "/authors/by-name/billy-collins.json"
+   * @example getAuthorBySlug("billy-collins") → "/public/authors/by-name/billy-collins.json"
    */
-  getAuthorBySlug: (slug: string) => `/authors/by-name/${slug}.json`,
+  getAuthorBySlug: (slug: string) => `/public/authors/by-name/${slug}.json`,
 
   /**
    * Get authors by first letter
    * @param letter - Single uppercase letter A-Z
    * @returns Path to letter JSON file
-   * @example getAuthorsByLetter("B") → "/authors/by-letter/B.json"
+   * @example getAuthorsByLetter("B") → "/public/authors/by-letter/B.json"
    */
-  getAuthorsByLetter: (letter: string) => `/authors/by-letter/${letter.toUpperCase()}.json`,
+  getAuthorsByLetter: (letter: string) => `/public/authors/by-letter/${letter.toUpperCase()}.json`,
+
+  /**
+   * Get poem by title slug
+   * @param slug - Poem title slug (e.g., "the-road-not-taken")
+   * @returns Path to poem JSON file
+   * @example getPoemBySlug("the-road-not-taken") → "/public/poems/by-title/the-road-not-taken.json"
+   */
+  getPoemBySlug: (slug: string) => `/public/poems/by-title/${slug}.json`,
 } as const;
 
 /**

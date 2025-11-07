@@ -91,7 +91,14 @@ const Search = memo(function Search({
           <Autocomplete<SearchOption>
             id="clear-on-escape"
             onInputChange={(_e, value) => updateQuery(value)}
-            onChange={(_event, value) => updateQuery(value?.label || '')}
+            onChange={(_event, value) => {
+              const selected = value?.label || '';
+              updateQuery(selected);
+              if (selected) {
+                setIsShowing(false);
+                searchedTermWrapper(selected);
+              }
+            }}
             clearOnEscape
             disablePortal={false}
             options={list}
@@ -172,7 +179,14 @@ const Search = memo(function Search({
           <Autocomplete<SearchOption>
             id="clear-on-escape"
             onInputChange={(_e, value) => updateQuery(value)}
-            onChange={(_event, value) => updateQuery(value?.label || '')}
+            onChange={(_event, value) => {
+              const selected = value?.label || '';
+              updateQuery(selected);
+              if (selected) {
+                setIsShowing(false);
+                searchedTermWrapper(selected);
+              }
+            }}
             clearOnEscape
             disablePortal={false}
             options={list}

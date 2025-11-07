@@ -77,16 +77,16 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
       >
         <div
           ref={modalRef}
-          className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
+          className="bg-app-container rounded-[3rem] shadow-xl p-8 w-full max-w-2xl text-app-text"
           tabIndex={-1}
         >
           <div className="flex justify-between items-center mb-4">
-            <h2 id="modal-title" className="text-xl font-bold">
+            <h2 id="modal-title" className="text-2xl font-bold">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-app-text hover:opacity-70 text-4xl leading-none"
               aria-label="Close modal"
             >
               &times;
