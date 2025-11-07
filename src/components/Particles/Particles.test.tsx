@@ -52,9 +52,10 @@ describe('Particles Component', () => {
     it('should apply correct Tailwind classes', () => {
       const { container } = render(<ParticlesComponent />);
       const particlesDiv = container.querySelector('#tsparticles');
-      expect(particlesDiv).toHaveClass('absolute');
+      expect(particlesDiv).toHaveClass('fixed');
       expect(particlesDiv).toHaveClass('w-full');
-      expect(particlesDiv).toHaveClass('h-[200vh]');
+      expect(particlesDiv).toHaveClass('h-full');
+      expect(particlesDiv).toHaveClass('z-0');
       expect(particlesDiv).toHaveClass('bg-[#8f9193]');
       expect(particlesDiv).toHaveClass('animate-particle-pulse');
     });

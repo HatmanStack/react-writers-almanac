@@ -93,8 +93,7 @@ function PoemDates({
     return (
       <div className="flex justify-center items-center m-8 z-10">
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
-          <p className="font-bold mb-2">No dates found for this poem</p>
-          <p className="text-sm">Data received: {JSON.stringify(poemData.dates)}</p>
+          No dates found for this poem
         </div>
       </div>
     );

@@ -18,11 +18,10 @@ export function sanitizeHtml(html: string, stripNonPrintable: boolean = false): 
   const cleaned = html
     // Fix non-breaking space: Â (C2 A0) → space
     .replaceAll(/Â\s/g, ' ')
-    .replaceAll(/Â /g, ' ')
-    // Fix em-dash: â€" (E2 80 93) → —
-    .replaceAll(/â€"/g, '—')
+    // Fix em-dash: â€" (E2 80 94) → —
+    .replaceAll(/\u00E2\u0080\u0094/g, '—')
     // Fix en-dash: â€" (E2 80 93) → –
-    .replaceAll(/â€"/g, '–')
+    .replaceAll(/\u00E2\u0080\u0093/g, '–')
     // Fix left double quote: â€œ (E2 80 9C) → "
     .replaceAll(/â€œ/g, '"')
     // Fix right double quote: â€ (E2 80 9D) → "

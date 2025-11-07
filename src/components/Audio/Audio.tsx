@@ -128,7 +128,7 @@ const Audio = memo(function Audio({
     } else {
       // Don't display author/poem name between prev/next buttons
       // The name is already shown in the Author/PoemDates component
-      return <div></div>;
+      return null;
     }
   }, [isShowingContentByDate, mp3Url, width, isShowing, setIsShowing]);
 

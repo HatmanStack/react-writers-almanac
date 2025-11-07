@@ -143,17 +143,34 @@ function Author({
         if (Array.isArray(dates)) {
           // Create an entry for each date this poem appeared
           dates.forEach(date => {
-            flattenedPoems.push({
-              date: typeof date === 'string' ? date : String(date),
-              title: poemTitle,
-            });
+            // Handle PoemDateEntry objects with .date property
+            if (date && typeof date === 'object' && 'date' in date) {
+              const dateObj = date as { date: string; title?: string };
+              flattenedPoems.push({
+                date: dateObj.date,
+                title: dateObj.title || poemTitle,
+              });
+            } else {
+              flattenedPoems.push({
+                date: typeof date === 'string' ? date : String(date),
+                title: poemTitle,
+              });
+            }
           });
         } else if (dates) {
           // Single date
-          flattenedPoems.push({
-            date: String(dates),
-            title: poemTitle,
-          });
+          if (dates && typeof dates === 'object' && 'date' in dates) {
+            const dateObj = dates as { date: string; title?: string };
+            flattenedPoems.push({
+              date: dateObj.date,
+              title: dateObj.title || poemTitle,
+            });
+          } else {
+            flattenedPoems.push({
+              date: String(dates),
+              title: poemTitle,
+            });
+          }
         } else {
           // No dates, just title
           flattenedPoems.push({
