@@ -400,7 +400,7 @@ function App() {
                 <div className="flex m-12">
                   <div
                     className={`text-base p-6 z-10 bg-app-container rounded-2xl leading-6 ${
-                      transcript === 'Transcript not available for this date.'
+                      transcript === TRANSCRIPT_UNAVAILABLE
                         ? 'text-gray-500 italic'
                         : 'text-app-text'
                     }`}
@@ -433,7 +433,7 @@ function App() {
                 <div className="flex m-12">
                   <p
                     className={`text-base p-6 z-10 bg-app-container rounded-2xl leading-6 ${
-                      transcript === 'Transcript not available for this date.'
+                      transcript === TRANSCRIPT_UNAVAILABLE
                         ? 'text-gray-500 italic'
                         : 'text-app-text'
                     }`}
