@@ -36,6 +36,7 @@ export const createAudioSlice: SliceCreator<AudioSlice> = (set, get) => ({
       }
 
       return {
+        ...state,
         ...(data.mp3Url !== undefined && { mp3Url: data.mp3Url }),
         ...(data.transcript !== undefined && { transcript: data.transcript }),
       };
