@@ -129,6 +129,46 @@ The application uses AWS infrastructure:
 
 ---
 
+## Debugging
+
+### Transcript Debugging
+
+If transcript content is not loading or displaying correctly, enable debug mode:
+
+**Enable debug mode:**
+```javascript
+// In browser console:
+localStorage.setItem('DEBUG_TRANSCRIPT', 'true')
+// Then reload the page
+```
+
+**Check debug output:**
+- Open browser DevTools Console tab
+- Look for messages prefixed with `[Transcript Debug]` or `[Transcript Metrics]`
+- Debug messages show transcript data flow through the application
+
+**Debug messages include:**
+- `[Transcript Debug] Poem data received` - Shows if transcript in API response
+- `[Transcript Debug] Setting to store` - Shows if transcript sent to Zustand store
+- `[App] No transcript available for date: YYYYMMDD` - Identifies dates without transcripts
+- `[Transcript Metrics]` - Shows transcript quality metrics (length, word count)
+
+**Disable debug mode:**
+```javascript
+// In browser console:
+localStorage.removeItem('DEBUG_TRANSCRIPT')
+```
+
+**Alternative: Enable via environment variable**
+```bash
+# In .env file:
+VITE_DEBUG=true
+```
+
+**Note:** Debug mode only works in development builds, not in production.
+
+---
+
 ## License
 
 **Code**: MIT License
