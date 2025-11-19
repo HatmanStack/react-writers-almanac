@@ -108,6 +108,38 @@ describe('AudioSlice', () => {
       expect(state.mp3Url).toBe(blobUrl);
     });
 
+    it('should revoke old blob URL when replacing with new mp3Url', () => {
+      const { setAudioData } = useTestStore.getState();
+
+      // First set a blob URL
+      const blobUrl = 'blob:https://example.com/old-blob';
+      setAudioData({ mp3Url: blobUrl });
+      expect(mockRevokeObjectURL).not.toHaveBeenCalled();
+
+      // Now replace it with a new URL (triggers revoke on line 35)
+      setAudioData({ mp3Url: 'https://example.com/new.mp3' });
+
+      // Should have revoked the old blob URL
+      expect(mockRevokeObjectURL).toHaveBeenCalledWith(blobUrl);
+      expect(mockRevokeObjectURL).toHaveBeenCalledTimes(1);
+
+      const state = useTestStore.getState();
+      expect(state.mp3Url).toBe('https://example.com/new.mp3');
+    });
+
+    it('should not revoke non-blob URLs when replacing', () => {
+      const { setAudioData } = useTestStore.getState();
+
+      // Set a regular HTTPS URL
+      setAudioData({ mp3Url: 'https://example.com/old.mp3' });
+
+      // Replace with new URL
+      setAudioData({ mp3Url: 'https://example.com/new.mp3' });
+
+      // Should not have called revokeObjectURL for non-blob URLs
+      expect(mockRevokeObjectURL).not.toHaveBeenCalled();
+    });
+
     it('should handle empty object', () => {
       const { setAudioData } = useTestStore.getState();
 
