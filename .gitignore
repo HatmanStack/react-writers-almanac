@@ -70,3 +70,9 @@ amplifytools.xcconfig
 #amplify-do-not-edit-end
 /lambda/dist/
 build/stats.html
+
+# SAM build artifacts
+.aws-sam/
+
+# Environment files with secrets
+.env
