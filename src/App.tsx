@@ -311,10 +311,21 @@ function App() {
             author: data.author,
           });
 
-          // Update store with transcript
+          // Update store with transcript (with fallback for missing data)
+          const transcriptText =
+            data.transcript && data.transcript.trim()
+              ? data.transcript
+              : 'Transcript not available for this date.';
+
           setAudioData({
-            transcript: data.transcript,
+            transcript: transcriptText,
           });
+
+          // Log warning if transcript is missing (for debugging)
+          if (!data.transcript || !data.transcript.trim()) {
+            // eslint-disable-next-line no-console
+            console.warn(`[App] No transcript available for date: ${linkDate}`);
+          }
         })
         .catch(error => {
           // Don't update state if request was aborted
@@ -382,7 +393,13 @@ function App() {
             <div>
               {isShowing ? (
                 <div className="flex m-12">
-                  <div className="text-base p-6 z-10 bg-app-container text-app-text rounded-2xl leading-6">
+                  <div
+                    className={`text-base p-6 z-10 bg-app-container rounded-2xl leading-6 ${
+                      transcript === 'Transcript not available for this date.'
+                        ? 'text-gray-500 italic'
+                        : 'text-app-text'
+                    }`}
+                  >
                     {transcript}
                   </div>
                 </div>
@@ -409,7 +426,13 @@ function App() {
             <div className="flex flex-col p-3">
               {isShowing ? (
                 <div className="flex m-12">
-                  <p className="text-base p-6 z-10 bg-app-container text-app-text rounded-2xl leading-6">
+                  <p
+                    className={`text-base p-6 z-10 bg-app-container rounded-2xl leading-6 ${
+                      transcript === 'Transcript not available for this date.'
+                        ? 'text-gray-500 italic'
+                        : 'text-app-text'
+                    }`}
+                  >
                     {transcript}
                   </p>
                 </div>
