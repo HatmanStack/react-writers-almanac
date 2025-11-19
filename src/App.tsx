@@ -106,6 +106,11 @@ interface CalendarDateChange {
   calendarChangedDate: Date;
 }
 
+/**
+ * Constants
+ */
+const TRANSCRIPT_UNAVAILABLE = 'Transcript not available for this date.';
+
 function App() {
   // Zustand store state - single selector with shallow equality for performance
   const {
@@ -315,7 +320,7 @@ function App() {
           const transcriptText =
             data.transcript && data.transcript.trim()
               ? data.transcript
-              : 'Transcript not available for this date.';
+              : TRANSCRIPT_UNAVAILABLE;
 
           setAudioData({
             transcript: transcriptText,
@@ -333,7 +338,7 @@ function App() {
           // Set fallback state to prevent undefined errors on fetch failure
           setPoemData({ poem: [], poemTitle: [], note: '' });
           setAuthorData({ author: [] });
-          setAudioData({ transcript: '' });
+          setAudioData({ transcript: TRANSCRIPT_UNAVAILABLE });
         });
       if (Number(linkDate) > 20090111) {
         axios
