@@ -135,6 +135,9 @@ Resources:
       Description: Search for authors and poems by query string
       CodeUri: search-autocomplete/
       Handler: index.handler
+      # Higher memory than default (256 MB) due to in-memory search operations
+      # across full author and poem datasets. Performance testing recommended
+      # to optimize this value based on actual dataset size.
       MemorySize: 512
       Timeout: 30
       Policies:
