@@ -1,0 +1,68 @@
+# SAM CLI Configuration File
+# This file stores default parameters for SAM CLI commands
+#
+# To deploy with these settings, run: sam deploy
+# To deploy with different settings, run: sam deploy --guided
+
+version = 0.1
+
+[default]
+[default.global.parameters]
+stack_name = "writers-almanac-backend-prod"
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.validate.parameters]
+lint = true
+
+[default.deploy.parameters]
+# CloudFormation stack configuration
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+resolve_s3 = true
+region = "us-east-1"
+
+# Parameter overrides (customize these for your environment)
+parameter_overrides = [
+    "Environment=prod",
+    "S3BucketName=your-bucket-name",  # REPLACE: Existing S3 bucket with poem/author data
+    "AWSRegion=us-east-1"
+]
+
+# Deployment options
+fail_on_empty_changeset = false
+disable_rollback = false
+
+# Output configuration
+resolve_image_repos = false
+
+[default.sync.parameters]
+watch = true
+
+[default.local_start_api.parameters]
+warm_containers = "EAGER"
+
+[default.local_start_lambda.parameters]
+warm_containers = "EAGER"
+
+# Development environment configuration (optional - for future use)
+[dev]
+[dev.deploy.parameters]
+stack_name = "writers-almanac-backend-dev"
+parameter_overrides = [
+    "Environment=dev",
+    "S3BucketName=your-dev-bucket-name",
+    "AWSRegion=us-east-1"
+]
+
+# Staging environment configuration (optional - for future use)
+[staging]
+[staging.deploy.parameters]
+stack_name = "writers-almanac-backend-staging"
+parameter_overrides = [
+    "Environment=staging",
+    "S3BucketName=your-staging-bucket-name",
+    "AWSRegion=us-east-1"
+]
