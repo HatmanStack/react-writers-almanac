@@ -19,9 +19,11 @@ Strengthen the testing foundation by performing comprehensive coverage analysis,
 ## Prerequisites
 
 ### Phase Dependencies
-- [ ] Phase 1 complete (SAM deployment working)
+- [ ] Phase 0 read and understood (architecture decisions and testing patterns)
 - [ ] All existing tests passing: `npm test && npm run test:e2e`
 - [ ] Clean working directory: `git status`
+
+**Note**: This phase has no technical dependency on Phase 1 (SAM deployment). You can implement test coverage improvements independently. Phase 1 is listed first only as a priority preference.
 
 ### Tools Verified
 - [ ] Vitest installed and working: `npm test`

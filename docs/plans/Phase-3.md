@@ -20,10 +20,11 @@ Investigate and resolve the issue where the transcript button toggles visibility
 ## Prerequisites
 
 ### Phase Dependencies
-- [ ] Phase 1 complete (SAM deployment working)
-- [ ] Phase 2 complete (Test coverage improved)
+- [ ] Phase 0 read and understood (especially ADR-005: Transcript Data Flow Investigation Pattern)
 - [ ] All tests passing: `npm test && npm run test:e2e`
 - [ ] Clean working directory: `git status`
+
+**Note**: This phase has no technical dependency on Phase 1 or Phase 2. You can investigate and fix the transcript issue independently. Earlier phases are listed first only as a priority preference.
 
 ### Understanding
 - [ ] Read Phase 0 ADR-005 (Transcript Data Flow Investigation Pattern)
