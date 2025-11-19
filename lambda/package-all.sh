@@ -1,6 +1,14 @@
 #!/bin/bash
+# ⚠️  DEPRECATED: This script is deprecated in favor of SAM deployment
+# ⚠️  Use "sam build && sam deploy" instead
+# ⚠️  See lambda/README.md for SAM deployment instructions
+# ⚠️  This script is kept for emergency manual deployment only
 set -e
 
+echo "⚠️  WARNING: This script is DEPRECATED"
+echo "⚠️  Use SAM for deployment: cd lambda && sam build && sam deploy"
+echo "⚠️  See lambda/README.md for instructions"
+echo ""
 echo "📦 Packaging Lambda functions..."
 echo ""
 
