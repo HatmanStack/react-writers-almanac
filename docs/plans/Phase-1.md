@@ -57,10 +57,17 @@ Transform the manual Lambda deployment process into an automated, repeatable inf
 **Implementation Steps**:
 
 1. **Analyze existing Lambda functions** to understand their current configuration:
-   - Check `lambda/get-author/index.js` for environment variables used
-   - Check `lambda/get-authors-by-letter/index.js` for dependencies
-   - Check `lambda/search-autocomplete/index.js` for memory/timeout needs
-   - Note: Each function uses `process.env.S3_BUCKET` and `process.env.AWS_REGION`
+   - Read `/home/user/react-writers-almanac/lambda/get-author/index.js`
+     - Note environment variables used: `process.env.S3_BUCKET`, `process.env.AWS_REGION`
+     - Note handler function: `exports.handler`
+     - Note runtime requirements: Node.js 18.x
+   - Read `/home/user/react-writers-almanac/lambda/get-authors-by-letter/index.js`
+     - Check dependencies in `package.json` (AWS SDK v3)
+     - Note similar environment variables
+   - Read `/home/user/react-writers-almanac/lambda/search-autocomplete/index.js`
+     - Check memory/timeout needs (larger function, may need 512 MB)
+     - Note caching implementation
+   - Summary: All three functions use the same environment variables (`S3_BUCKET`, `AWS_REGION`), same runtime (Node.js 18.x), and AWS SDK v3 for S3 access
 
 2. **Create SAM template structure** at `lambda/template.yaml`:
    - Start with SAM Transform declaration (`AWS::Serverless-2016-10-31`)
@@ -242,7 +249,79 @@ chore(sam): configure deployment settings in samconfig.toml
    - Generate API Gateway proxy event JSON for each endpoint
    - Include path parameters (e.g., `{name}` or `{letter}`)
    - Include query parameters where applicable
-   - Follow API Gateway event format
+   - Follow API Gateway event format (see example below)
+
+**API Gateway Proxy Event Structure Example**:
+```json
+{
+  "httpMethod": "GET",
+  "path": "/api/author/billy-collins",
+  "pathParameters": {
+    "name": "billy-collins"
+  },
+  "queryStringParameters": null,
+  "headers": {
+    "Accept": "application/json",
+    "Content-Type": "application/json"
+  },
+  "body": null,
+  "isBase64Encoded": false
+}
+```
+
+**Example event files to create**:
+
+`lambda/events/get-author-event.json`:
+```json
+{
+  "httpMethod": "GET",
+  "path": "/api/author/billy-collins",
+  "pathParameters": {
+    "name": "billy-collins"
+  },
+  "queryStringParameters": null,
+  "headers": {
+    "Accept": "application/json"
+  },
+  "body": null,
+  "isBase64Encoded": false
+}
+```
+
+`lambda/events/get-authors-by-letter-event.json`:
+```json
+{
+  "httpMethod": "GET",
+  "path": "/api/authors/letter/B",
+  "pathParameters": {
+    "letter": "B"
+  },
+  "queryStringParameters": null,
+  "headers": {
+    "Accept": "application/json"
+  },
+  "body": null,
+  "isBase64Encoded": false
+}
+```
+
+`lambda/events/search-autocomplete-event.json`:
+```json
+{
+  "httpMethod": "GET",
+  "path": "/api/search/autocomplete",
+  "pathParameters": null,
+  "queryStringParameters": {
+    "q": "billy",
+    "limit": "5"
+  },
+  "headers": {
+    "Accept": "application/json"
+  },
+  "body": null,
+  "isBase64Encoded": false
+}
+```
 
 3. **Test individual functions** using `sam local invoke`:
    - Test GetAuthorFunction with a known author (e.g., "billy-collins")

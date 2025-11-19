@@ -45,8 +45,8 @@ This implementation plan covers three integrated improvements to the React Write
 |-------|------|-----------------|--------------|
 | **Phase 0** | [Foundation - Architecture & Conventions](./Phase-0.md) | N/A (Reference) | None |
 | **Phase 1** | [SAM Automated Deployment Infrastructure](./Phase-1.md) | ~75,000 | Phase 0 |
-| **Phase 2** | [Test Coverage Analysis & Improvement](./Phase-2.md) | ~65,000 | Phase 1 complete |
-| **Phase 3** | [Transcript Content Loading Fix](./Phase-3.md) | ~50,000 | Phase 2 complete |
+| **Phase 2** | [Test Coverage Analysis & Improvement](./Phase-2.md) | ~65,000 | Phase 0 (no technical dependency on Phase 1) |
+| **Phase 3** | [Transcript Content Loading Fix](./Phase-3.md) | ~50,000 | Phase 0 (no technical dependency on Phase 2) |
 
 **Total Estimated Tokens**: ~190,000
 
