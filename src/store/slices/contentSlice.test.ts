@@ -201,6 +201,47 @@ describe('ContentSlice', () => {
     });
   });
 
+  describe('setViewMode Action', () => {
+    it('should set view mode to true', () => {
+      const { setViewMode } = useTestStore.getState();
+
+      // Start with false
+      useTestStore.setState({ isShowingContentByDate: false });
+      expect(useTestStore.getState().isShowingContentByDate).toBe(false);
+
+      setViewMode(true);
+
+      expect(useTestStore.getState().isShowingContentByDate).toBe(true);
+    });
+
+    it('should set view mode to false', () => {
+      const { setViewMode } = useTestStore.getState();
+
+      // Start with true (default)
+      expect(useTestStore.getState().isShowingContentByDate).toBe(true);
+
+      setViewMode(false);
+
+      expect(useTestStore.getState().isShowingContentByDate).toBe(false);
+    });
+
+    it('should set view mode idempotently', () => {
+      const { setViewMode } = useTestStore.getState();
+
+      setViewMode(true);
+      expect(useTestStore.getState().isShowingContentByDate).toBe(true);
+
+      setViewMode(true);
+      expect(useTestStore.getState().isShowingContentByDate).toBe(true);
+
+      setViewMode(false);
+      expect(useTestStore.getState().isShowingContentByDate).toBe(false);
+
+      setViewMode(false);
+      expect(useTestStore.getState().isShowingContentByDate).toBe(false);
+    });
+  });
+
   describe('resetContent Action', () => {
     it('should reset all content fields to initial state', () => {
       const { setPoemData, setAuthorData, setCurrentDate, resetContent } = useTestStore.getState();
