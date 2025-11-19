@@ -14,6 +14,7 @@ This is a modernized version of The Writer's Almanac, rebuilt with current web t
 
 ## Tech Stack
 
+### Frontend
 - **React 18** with TypeScript
 - **Vite** - Build tool
 - **Zustand** - State management
@@ -22,7 +23,13 @@ This is a modernized version of The Writer's Almanac, rebuilt with current web t
 - **Tailwind CSS** - Styling
 - **Vitest** - Unit testing
 - **Playwright** - E2E testing
-- **AWS** - Hosting (CloudFront + S3)
+
+### Backend
+- **AWS Lambda** - Serverless API (Node.js 18)
+- **AWS SAM** - Infrastructure as Code
+- **API Gateway** - REST API endpoints
+- **S3** - Content storage
+- **CloudFront** - CDN
 
 ---
 
@@ -39,6 +46,8 @@ This is a modernized version of The Writer's Almanac, rebuilt with current web t
 ---
 
 ## Development
+
+### Frontend Development
 
 ```bash
 # Install dependencies
@@ -57,6 +66,21 @@ npm run test:e2e
 npm run build
 ```
 
+### Backend Development
+
+The backend uses AWS SAM for automated Lambda deployment:
+
+```bash
+# Deploy Lambda functions and API Gateway
+cd lambda
+sam build && sam deploy
+
+# Test API locally (requires Docker)
+sam local start-api
+```
+
+See [`lambda/README.md`](lambda/README.md) for detailed deployment instructions.
+
 ---
 
 ## Project Structure
@@ -70,8 +94,20 @@ src/
 ├── types/            # TypeScript definitions
 └── utils/            # Utility functions
 
+lambda/
+├── get-author/       # Lambda: Fetch author data
+├── get-authors-by-letter/  # Lambda: Authors by letter
+├── search-autocomplete/    # Lambda: Search API
+├── template.yaml     # SAM infrastructure definition
+├── samconfig.toml    # SAM deployment configuration
+└── events/           # Test events for local testing
+
 tests/
 └── e2e/              # Playwright E2E tests
+
+docs/
+├── SAM_DEPLOYMENT.md # Detailed SAM documentation
+└── plans/            # Implementation plans
 ```
 
 ---
@@ -86,7 +122,10 @@ This codebase demonstrates:
 - Accessibility compliance (WCAG AA)
 - Security best practices (DOMPurify sanitization)
 
-The data layer expects AWS infrastructure (S3 for content, API Gateway for author data) which is not included in this repository.
+The application uses AWS infrastructure:
+- **S3**: Stores daily poems, author data, and audio files (not managed by this repo)
+- **Lambda + API Gateway**: Managed via AWS SAM (see `lambda/` directory)
+- **CloudFront**: CDN for content delivery (not managed by this repo)
 
 ---
 
