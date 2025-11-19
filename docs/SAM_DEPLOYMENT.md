@@ -100,7 +100,7 @@ FunctionName: !Sub 'writers-almanac-get-author-${Environment}'
 **Decision**: Use SAM `Globals` section for shared Lambda configuration.
 
 **Rationale**:
-- All functions use same runtime (Node.js 18.x)
+- All functions use same runtime (Node.js 22.x)
 - All functions need same environment variables (S3_BUCKET, AWS_REGION)
 - Reduces duplication in template
 - Easy to update shared settings in one place
@@ -221,17 +221,17 @@ Environment:
 ```yaml
 Globals:
   Function:
-    Runtime: nodejs18.x
+    Runtime: nodejs22.x
     Timeout: 30
     MemorySize: 256
 ```
 
 Applied to all Lambda functions unless overridden in individual function definition.
 
-**Runtime**: Node.js 18.x
-- Matches existing Lambda function code
-- Long-term support (LTS) release
-- Modern JavaScript features (ES2022)
+**Runtime**: Node.js 22.x
+- Active LTS release (Node.js 18.x reached EOL)
+- Compatible with AWS SDK v3 and modern JavaScript features
+- Enhanced performance and security updates
 
 **Timeout**: 30 seconds
 - Sufficient for S3 GetObject operations

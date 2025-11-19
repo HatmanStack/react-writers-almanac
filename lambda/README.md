@@ -85,9 +85,9 @@ Install these tools before deploying:
    # Download from https://www.docker.com/get-started
    ```
 
-4. **Node.js 18.x**
+4. **Node.js 22.x**
    ```bash
-   node --version  # Should be v18.x or later
+   node --version  # Should be v22.x or later
    ```
 
 ### AWS Configuration
@@ -303,7 +303,7 @@ parameter_overrides = [
 **Solutions**:
 - Validate template: `sam validate --lint`
 - Check each Lambda directory has `package.json`
-- Ensure Node.js 18.x is installed: `node --version`
+- Ensure Node.js 22.x is installed: `node --version`
 - Build with debug output: `sam build --debug`
 
 ### SAM Deploy Fails - IAM Permissions
@@ -464,7 +464,7 @@ Or use the deprecated script (not recommended):
 ## Dependencies
 
 All functions use:
-- **Runtime**: Node.js 18.x
+- **Runtime**: Node.js 22.x (active LTS)
 - **AWS SDK**: `@aws-sdk/client-s3` ^3.600.0
 
 Dependencies are automatically installed by `sam build`.
