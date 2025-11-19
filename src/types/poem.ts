@@ -9,8 +9,8 @@ export interface Poem {
   /** Formatted date string (e.g., "January 1, 2024") */
   date: string;
 
-  /** Full transcript of the Writer's Almanac episode */
-  transcript: string;
+  /** Full transcript of the Writer's Almanac episode (may be empty for older dates) */
+  transcript?: string;
 
   /** Poem title (can be multi-line, hence array) */
   poemtitle: string[];

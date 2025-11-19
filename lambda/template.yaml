@@ -1,0 +1,191 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Writers Almanac Lambda Functions
+
+  SAM template for deploying three Lambda functions (get-author, get-authors-by-letter,
+  search-autocomplete) and API Gateway REST API for the React Writers Almanac application.
+
+##############################################
+# Parameters - Environment-Specific Values
+##############################################
+Parameters:
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Deployment environment (dev, staging, prod)
+
+  S3BucketName:
+    Type: String
+    Description: Existing S3 bucket containing author and poem data (not managed by this template)
+
+  AWSRegion:
+    Type: String
+    Default: us-east-1
+    Description: AWS region for deployment
+
+##############################################
+# Global Configuration - DRY Settings
+##############################################
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Timeout: 30
+    MemorySize: 256
+    Environment:
+      Variables:
+        NODE_ENV: production
+        AWS_REGION: !Ref AWSRegion
+        S3_BUCKET: !Ref S3BucketName
+    Tags:
+      Application: WritersAlmanac
+      Environment: !Ref Environment
+      ManagedBy: SAM
+
+  Api:
+    Cors:
+      AllowOrigin: "'*'"
+      AllowMethods: "'GET,OPTIONS'"
+      AllowHeaders: "'Content-Type,Authorization'"
+    TracingEnabled: true
+
+##############################################
+# Resources - Lambda Functions & API Gateway
+##############################################
+Resources:
+  ##############################################
+  # API Gateway REST API
+  ##############################################
+  WritersAlmanacApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub 'writers-almanac-api-${Environment}'
+      StageName: Prod
+      Description: REST API for Writers Almanac application
+      EndpointConfiguration:
+        Type: REGIONAL
+
+  ##############################################
+  # Lambda Function: Get Author
+  ##############################################
+  GetAuthorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'writers-almanac-get-author-${Environment}'
+      Description: Fetch author data from S3 by author name/slug
+      CodeUri: get-author/
+      Handler: index.handler
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref S3BucketName
+        - CloudWatchLogsFullAccess
+      Events:
+        GetAuthorApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WritersAlmanacApi
+            Path: /api/author/{name}
+            Method: get
+        OptionsAuthorApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WritersAlmanacApi
+            Path: /api/author/{name}
+            Method: options
+
+  ##############################################
+  # Lambda Function: Get Authors by Letter
+  ##############################################
+  GetAuthorsByLetterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'writers-almanac-get-authors-by-letter-${Environment}'
+      Description: Fetch all authors whose names start with a given letter
+      CodeUri: get-authors-by-letter/
+      Handler: index.handler
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref S3BucketName
+        - CloudWatchLogsFullAccess
+      Events:
+        GetAuthorsByLetterApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WritersAlmanacApi
+            Path: /api/authors/letter/{letter}
+            Method: get
+        OptionsAuthorsByLetterApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WritersAlmanacApi
+            Path: /api/authors/letter/{letter}
+            Method: options
+
+  ##############################################
+  # Lambda Function: Search Autocomplete
+  ##############################################
+  SearchAutocompleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'writers-almanac-search-autocomplete-${Environment}'
+      Description: Search for authors and poems by query string
+      CodeUri: search-autocomplete/
+      Handler: index.handler
+      # Higher memory than default (256 MB) due to in-memory search operations
+      # across full author and poem datasets. Performance testing recommended
+      # to optimize this value based on actual dataset size.
+      MemorySize: 512
+      Timeout: 30
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref S3BucketName
+        - CloudWatchLogsFullAccess
+      Events:
+        SearchAutocompleteApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WritersAlmanacApi
+            Path: /api/search/autocomplete
+            Method: get
+        OptionsSearchAutocompleteApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WritersAlmanacApi
+            Path: /api/search/autocomplete
+            Method: options
+
+##############################################
+# Outputs - Deployment Information
+##############################################
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL for production stage
+    Value: !Sub 'https://${WritersAlmanacApi}.execute-api.${AWS::Region}.amazonaws.com/Prod'
+    Export:
+      Name: !Sub 'WritersAlmanacApiUrl-${Environment}'
+
+  GetAuthorFunctionArn:
+    Description: ARN of the GetAuthor Lambda function
+    Value: !GetAtt GetAuthorFunction.Arn
+    Export:
+      Name: !Sub 'GetAuthorFunctionArn-${Environment}'
+
+  GetAuthorsByLetterFunctionArn:
+    Description: ARN of the GetAuthorsByLetter Lambda function
+    Value: !GetAtt GetAuthorsByLetterFunction.Arn
+    Export:
+      Name: !Sub 'GetAuthorsByLetterFunctionArn-${Environment}'
+
+  SearchAutocompleteFunctionArn:
+    Description: ARN of the SearchAutocomplete Lambda function
+    Value: !GetAtt SearchAutocompleteFunction.Arn
+    Export:
+      Name: !Sub 'SearchAutocompleteFunctionArn-${Environment}'
+
+  StackName:
+    Description: CloudFormation stack name
+    Value: !Ref AWS::StackName

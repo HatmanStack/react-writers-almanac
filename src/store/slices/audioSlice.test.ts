@@ -108,6 +108,38 @@ describe('AudioSlice', () => {
       expect(state.mp3Url).toBe(blobUrl);
     });
 
+    it('should revoke old blob URL when replacing with new mp3Url', () => {
+      const { setAudioData } = useTestStore.getState();
+
+      // First set a blob URL
+      const blobUrl = 'blob:https://example.com/old-blob';
+      setAudioData({ mp3Url: blobUrl });
+      expect(mockRevokeObjectURL).not.toHaveBeenCalled();
+
+      // Now replace it with a new URL (triggers revoke on line 35)
+      setAudioData({ mp3Url: 'https://example.com/new.mp3' });
+
+      // Should have revoked the old blob URL
+      expect(mockRevokeObjectURL).toHaveBeenCalledWith(blobUrl);
+      expect(mockRevokeObjectURL).toHaveBeenCalledTimes(1);
+
+      const state = useTestStore.getState();
+      expect(state.mp3Url).toBe('https://example.com/new.mp3');
+    });
+
+    it('should not revoke non-blob URLs when replacing', () => {
+      const { setAudioData } = useTestStore.getState();
+
+      // Set a regular HTTPS URL
+      setAudioData({ mp3Url: 'https://example.com/old.mp3' });
+
+      // Replace with new URL
+      setAudioData({ mp3Url: 'https://example.com/new.mp3' });
+
+      // Should not have called revokeObjectURL for non-blob URLs
+      expect(mockRevokeObjectURL).not.toHaveBeenCalled();
+    });
+
     it('should handle empty object', () => {
       const { setAudioData } = useTestStore.getState();
 
@@ -122,6 +154,73 @@ describe('AudioSlice', () => {
       // Should not change existing data
       const state = useTestStore.getState();
       expect(state.mp3Url).toBe('https://example.com/test.mp3');
+    });
+
+    it('should preserve transcript when mp3Url is updated separately', () => {
+      const { setAudioData } = useTestStore.getState();
+
+      // Set transcript first (like App.tsx line 315-317)
+      setAudioData({
+        transcript: 'This is the transcript text',
+      });
+
+      let state = useTestStore.getState();
+      expect(state.transcript).toBe('This is the transcript text');
+      expect(state.mp3Url).toBeUndefined();
+
+      // Then set mp3Url separately (like App.tsx line 341)
+      setAudioData({
+        mp3Url: 'blob:https://example.com/audio.mp3',
+      });
+
+      // Both should be present - transcript should not be lost!
+      state = useTestStore.getState();
+      expect(state.transcript).toBe('This is the transcript text');
+      expect(state.mp3Url).toBe('blob:https://example.com/audio.mp3');
+    });
+
+    it('should preserve mp3Url when transcript is updated separately', () => {
+      const { setAudioData } = useTestStore.getState();
+
+      // Set mp3Url first
+      setAudioData({
+        mp3Url: 'https://example.com/audio.mp3',
+      });
+
+      let state = useTestStore.getState();
+      expect(state.mp3Url).toBe('https://example.com/audio.mp3');
+      expect(state.transcript).toBeUndefined();
+
+      // Then set transcript separately
+      setAudioData({
+        transcript: 'Updated transcript',
+      });
+
+      // Both should be present - mp3Url should not be lost!
+      state = useTestStore.getState();
+      expect(state.mp3Url).toBe('https://example.com/audio.mp3');
+      expect(state.transcript).toBe('Updated transcript');
+    });
+
+    it('should preserve other state fields (isPlaying, currentTime) when setting audio data', () => {
+      const { setAudioData, togglePlayback, setCurrentTime } = useTestStore.getState();
+
+      // Set up some playback state
+      togglePlayback(); // Set isPlaying to true
+      setCurrentTime(45.5);
+
+      // Update audio data
+      setAudioData({
+        mp3Url: 'https://example.com/new.mp3',
+        transcript: 'New transcript',
+      });
+
+      // Playback state should be preserved
+      const state = useTestStore.getState();
+      expect(state.mp3Url).toBe('https://example.com/new.mp3');
+      expect(state.transcript).toBe('New transcript');
+      expect(state.isPlaying).toBe(true);
+      expect(state.currentTime).toBe(45.5);
     });
   });
 

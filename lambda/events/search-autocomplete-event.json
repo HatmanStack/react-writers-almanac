@@ -1,0 +1,32 @@
+{
+  "httpMethod": "GET",
+  "path": "/api/search/autocomplete",
+  "pathParameters": null,
+  "queryStringParameters": {
+    "q": "billy",
+    "limit": "5"
+  },
+  "headers": {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "User-Agent": "Mozilla/5.0"
+  },
+  "multiValueHeaders": {},
+  "body": null,
+  "isBase64Encoded": false,
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "test-api-id",
+    "protocol": "HTTP/1.1",
+    "httpMethod": "GET",
+    "path": "/api/search/autocomplete",
+    "stage": "Prod",
+    "requestId": "test-request-id",
+    "requestTime": "09/Apr/2023:12:34:56 +0000",
+    "requestTimeEpoch": 1681043696000,
+    "identity": {
+      "sourceIp": "127.0.0.1",
+      "userAgent": "Mozilla/5.0"
+    }
+  }
+}

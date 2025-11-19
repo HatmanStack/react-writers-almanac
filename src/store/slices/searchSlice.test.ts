@@ -172,6 +172,70 @@ describe('SearchSlice', () => {
     });
   });
 
+  describe('setSelectedAuthor Action', () => {
+    it('should set search term to author name', () => {
+      const { setSelectedAuthor } = useTestStore.getState();
+
+      setSelectedAuthor('Ernest Hemingway');
+
+      const state = useTestStore.getState();
+      expect(state.searchTerm).toBe('Ernest Hemingway');
+      expect(state.isSearching).toBe(true);
+    });
+
+    it('should handle null author (set to empty string)', () => {
+      const { setSelectedAuthor } = useTestStore.getState();
+
+      setSelectedAuthor(null);
+
+      const state = useTestStore.getState();
+      expect(state.searchTerm).toBe('');
+      expect(state.isSearching).toBe(false);
+    });
+
+    it('should handle undefined author (set to empty string)', () => {
+      const { setSelectedAuthor } = useTestStore.getState();
+
+      setSelectedAuthor(undefined);
+
+      const state = useTestStore.getState();
+      expect(state.searchTerm).toBe('');
+      expect(state.isSearching).toBe(false);
+    });
+  });
+
+  describe('setSelectedPoem Action', () => {
+    it('should set search term to poem title', () => {
+      const { setSelectedPoem } = useTestStore.getState();
+
+      setSelectedPoem('The Road Not Taken');
+
+      const state = useTestStore.getState();
+      expect(state.searchTerm).toBe('The Road Not Taken');
+      expect(state.isSearching).toBe(true);
+    });
+
+    it('should handle null poem (set to empty string)', () => {
+      const { setSelectedPoem } = useTestStore.getState();
+
+      setSelectedPoem(null);
+
+      const state = useTestStore.getState();
+      expect(state.searchTerm).toBe('');
+      expect(state.isSearching).toBe(false);
+    });
+
+    it('should handle undefined poem (set to empty string)', () => {
+      const { setSelectedPoem } = useTestStore.getState();
+
+      setSelectedPoem(undefined);
+
+      const state = useTestStore.getState();
+      expect(state.searchTerm).toBe('');
+      expect(state.isSearching).toBe(false);
+    });
+  });
+
   describe('clearSearch Action', () => {
     it('should clear search term and results', () => {
       const { setSearchTerm, setSearchResults, clearSearch } = useTestStore.getState();
