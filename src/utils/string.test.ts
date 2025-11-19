@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { slugify, normalizeString } from './string';
+import { slugify, normalizeString, stripHtml } from './string';
 
 describe('string utilities', () => {
   describe('slugify', () => {
@@ -107,6 +107,44 @@ describe('string utilities', () => {
 
     it('should handle mixed special characters and spaces', () => {
       expect(normalizeString('Hello!!! How are you???')).toBe('hello how are you');
+    });
+  });
+
+  describe('stripHtml', () => {
+    it('should strip simple HTML tags', () => {
+      expect(stripHtml('<p>Hello World</p>')).toBe('Hello World');
+    });
+
+    it('should strip multiple tags', () => {
+      expect(stripHtml('<p>Hello, <strong>world!</strong></p>')).toBe('Hello, world!');
+    });
+
+    it('should strip nested tags', () => {
+      expect(stripHtml('<div><p><span>Nested</span></p></div>')).toBe('Nested');
+    });
+
+    it('should handle string without HTML tags', () => {
+      expect(stripHtml('No tags here')).toBe('No tags here');
+    });
+
+    it('should strip self-closing tags', () => {
+      expect(stripHtml('Line 1<br/>Line 2')).toBe('Line 1Line 2');
+    });
+
+    it('should handle empty string', () => {
+      expect(stripHtml('')).toBe('');
+    });
+
+    it('should handle tags with attributes', () => {
+      expect(stripHtml('<p class="test" id="para">Content</p>')).toBe('Content');
+    });
+
+    it('should preserve text between tags', () => {
+      expect(stripHtml('<p>First</p> Middle <p>Last</p>')).toBe('First Middle Last');
+    });
+
+    it('should handle less-than sign followed by closing tag', () => {
+      expect(stripHtml('<p>Hello < World</p>')).toBe('Hello ');
     });
   });
 });
