@@ -14,7 +14,9 @@ echo ""
 # Load from .env.deploy if it exists
 if [ -f "$ENV_DEPLOY_FILE" ]; then
     echo "Loading configuration from $ENV_DEPLOY_FILE..."
-    export $(grep -v '^#' "$ENV_DEPLOY_FILE" | grep -v '^$' | xargs)
+    set -a
+    . "$ENV_DEPLOY_FILE"
+    set +a
 fi
 
 # Get region with default
