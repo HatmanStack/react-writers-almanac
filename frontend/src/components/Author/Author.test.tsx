@@ -34,6 +34,7 @@ describe('Author Component', () => {
   const mockAuthorData: AuthorType = {
     'poetry foundation': {
       biography: '<p>Billy Collins is a great poet.</p>',
+      photo: 'https://example.com/billy-collins.jpg',
       poems: [
         { date: '2023-05-15', title: 'Test Poem 1' },
         { date: '2023-06-20', title: 'Test Poem 2' },
@@ -309,16 +310,20 @@ describe('Author Component', () => {
   });
 
   describe('Responsive Design', () => {
-    it('should render the same structure on desktop (width > 1000)', () => {
+    it('should float image left on desktop (width > 1000)', () => {
       const { container } = renderWithQuery(<Author {...defaultProps} width={1200} />);
-      // Component should render poems section
-      expect(container.querySelector('.flex.flex-wrap')).toBeInTheDocument();
+      const img = container.querySelector('img');
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveClass('float-left');
+      expect(img).toHaveClass('mr-6');
     });
 
-    it('should render the same structure on mobile (width <= 1000)', () => {
+    it('should center image on mobile (width <= 1000)', () => {
       const { container } = renderWithQuery(<Author {...defaultProps} width={800} />);
-      // Component should render poems section
-      expect(container.querySelector('.flex.flex-wrap')).toBeInTheDocument();
+      const img = container.querySelector('img');
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveClass('mx-auto');
+      expect(img).not.toHaveClass('float-left');
     });
   });
 
