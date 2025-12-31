@@ -50,23 +50,24 @@ describe('endpoints utility functions', () => {
   });
 
   describe('formatDateToYYYYMMDD', () => {
+    // Use Date constructor with explicit values to avoid timezone issues
     it('should format date correctly', () => {
-      const date = new Date('2024-01-01');
+      const date = new Date(2024, 0, 1); // Jan 1, 2024
       expect(formatDateToYYYYMMDD(date)).toBe('20240101');
     });
 
     it('should pad single-digit month and day', () => {
-      const date = new Date('2024-03-05');
+      const date = new Date(2024, 2, 5); // Mar 5, 2024
       expect(formatDateToYYYYMMDD(date)).toBe('20240305');
     });
 
     it('should handle December 31st', () => {
-      const date = new Date('2023-12-31');
+      const date = new Date(2023, 11, 31); // Dec 31, 2023
       expect(formatDateToYYYYMMDD(date)).toBe('20231231');
     });
 
     it('should handle leap year', () => {
-      const date = new Date('2024-02-29');
+      const date = new Date(2024, 1, 29); // Feb 29, 2024
       expect(formatDateToYYYYMMDD(date)).toBe('20240229');
     });
   });
@@ -150,16 +151,16 @@ describe('endpoints utility functions', () => {
 
     it('should generate correct author endpoint', () => {
       expect(CDN_ENDPOINTS.getAuthorBySlug('billy-collins')).toBe(
-        '/authors/by-name/billy-collins.json'
+        '/public/authors/by-name/billy-collins.json'
       );
     });
 
     it('should generate correct letter endpoint', () => {
-      expect(CDN_ENDPOINTS.getAuthorsByLetter('B')).toBe('/authors/by-letter/B.json');
+      expect(CDN_ENDPOINTS.getAuthorsByLetter('B')).toBe('/public/authors/by-letter/B.json');
     });
 
     it('should uppercase letter in getAuthorsByLetter', () => {
-      expect(CDN_ENDPOINTS.getAuthorsByLetter('b')).toBe('/authors/by-letter/B.json');
+      expect(CDN_ENDPOINTS.getAuthorsByLetter('b')).toBe('/public/authors/by-letter/B.json');
     });
   });
 

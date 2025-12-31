@@ -193,10 +193,10 @@ describe('SearchSlice', () => {
       expect(state.isSearching).toBe(false);
     });
 
-    it('should handle undefined author (set to empty string)', () => {
+    it('should handle null author (set to empty string)', () => {
       const { setSelectedAuthor } = useTestStore.getState();
 
-      setSelectedAuthor(undefined);
+      setSelectedAuthor(null);
 
       const state = useTestStore.getState();
       expect(state.searchTerm).toBe('');
@@ -225,10 +225,10 @@ describe('SearchSlice', () => {
       expect(state.isSearching).toBe(false);
     });
 
-    it('should handle undefined poem (set to empty string)', () => {
+    it('should handle null poem (set to empty string)', () => {
       const { setSelectedPoem } = useTestStore.getState();
 
-      setSelectedPoem(undefined);
+      setSelectedPoem(null);
 
       const state = useTestStore.getState();
       expect(state.searchTerm).toBe('');

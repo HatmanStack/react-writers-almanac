@@ -35,7 +35,7 @@ describe('PoemDates Component', () => {
         isLoading: true,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -50,7 +50,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: new Error('Failed to load'),
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -64,7 +64,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: new Error('Failed to load'),
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -79,7 +79,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: new Error('Failed to load'),
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -97,7 +97,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -110,7 +110,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -123,7 +123,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -138,7 +138,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} poemTitle="Amazing Poem" />);
 
@@ -151,7 +151,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -165,7 +165,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -183,7 +183,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -199,7 +199,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -213,7 +213,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -229,7 +229,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -248,7 +248,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -280,7 +280,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -298,7 +298,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       const { container } = render(<PoemDates {...defaultProps} width={1200} />);
 
@@ -313,7 +313,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       const { container } = render(<PoemDates {...defaultProps} width={800} />);
 
@@ -330,7 +330,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -344,7 +344,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: new Error('Test error'),
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} />);
 
@@ -360,7 +360,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       render(<PoemDates {...defaultProps} poemTitle="Unique Poem Title" />);
 
@@ -373,7 +373,7 @@ describe('PoemDates Component', () => {
         isLoading: false,
         error: null,
         refetch: mockRefetch,
-      } as unknown);
+      } as unknown as ReturnType<typeof usePoemDatesQuery>);
 
       const { rerender } = render(<PoemDates {...defaultProps} poemTitle="First Title" />);
 

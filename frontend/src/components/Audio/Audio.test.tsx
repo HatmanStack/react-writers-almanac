@@ -17,7 +17,6 @@ describe('Audio Component', () => {
 
   const defaultProps = {
     isShowingContentByDate: true,
-    searchedTerm: 'test search',
     shiftContentByAuthorOrDate: mockShiftContent,
     width: 1200,
     setIsShowing: mockSetIsShowing,
@@ -61,9 +60,9 @@ describe('Audio Component', () => {
       expect(audioElement).not.toBeInTheDocument();
     });
 
-    it('should render search term when not showing content by date', () => {
+    it('should not render audio when not showing content by date', () => {
       render(<Audio {...defaultProps} isShowingContentByDate={false} />);
-      expect(screen.getByText('test search')).toBeInTheDocument();
+      // When not showing content by date, component shows null for heading
       const audioElement = document.querySelector('audio');
       expect(audioElement).not.toBeInTheDocument();
     });
@@ -212,9 +211,7 @@ describe('Audio Component', () => {
 
     it('should have no axe violations in search mode (no audio)', async () => {
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue('NotAvailable');
-      const { container } = render(
-        <Audio {...defaultProps} isShowingContentByDate={false} searchedTerm="Test Search" />
-      );
+      const { container } = render(<Audio {...defaultProps} isShowingContentByDate={false} />);
       const results = await axe(container);
       expect(results.violations).toEqual([]);
     });

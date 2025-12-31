@@ -70,7 +70,7 @@ describe('useAuthorQuery', () => {
     expect(result.current.error).toBeNull();
 
     // Should use slug format in URL
-    expect(cdnClient.get).toHaveBeenCalledWith('/authors/by-name/billy-collins.json');
+    expect(cdnClient.get).toHaveBeenCalledWith('/public/authors/by-name/billy-collins.json');
   });
 
   it('should normalize author name to slug', async () => {
@@ -87,7 +87,7 @@ describe('useAuthorQuery', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     // Should convert "Billy Collins" to "billy-collins"
-    expect(cdnClient.get).toHaveBeenCalledWith('/authors/by-name/billy-collins.json');
+    expect(cdnClient.get).toHaveBeenCalledWith('/public/authors/by-name/billy-collins.json');
   });
 
   it('should handle 404 error for non-existent author', async () => {

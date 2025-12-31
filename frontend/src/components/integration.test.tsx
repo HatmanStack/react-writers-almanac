@@ -77,7 +77,7 @@ describe('Core Components Integration', () => {
       expect(calendarButton).toHaveClass('bg-transparent');
       expect(calendarButton).toHaveClass('text-app-text');
 
-      const poemButton = screen.getByRole('button', { name: /search for poem/i });
+      const poemButton = screen.getByRole('button', { name: /view poem/i });
       expect(poemButton).toHaveClass('bg-transparent');
       expect(poemButton).toHaveClass('text-app-text');
     });
@@ -160,11 +160,11 @@ describe('Core Components Integration', () => {
       expect(calendarButton).toHaveAttribute('aria-expanded', 'false');
 
       // Poem component accessibility
-      const poemButton = screen.getByRole('button', { name: /search for poem/i });
-      expect(poemButton).toHaveAttribute('aria-label', 'Search for poem: Accessible Poem');
+      const poemButton = screen.getByRole('button', { name: /view poem/i });
+      expect(poemButton).toHaveAttribute('aria-label', 'View poem: Accessible Poem');
 
-      const authorButton = screen.getByRole('button', { name: /search for author/i });
-      expect(authorButton).toHaveAttribute('aria-label', 'Search for author: Accessible Author');
+      const authorButton = screen.getByRole('button', { name: /view author page/i });
+      expect(authorButton).toHaveAttribute('aria-label', 'View author page: Accessible Author');
     });
   });
 

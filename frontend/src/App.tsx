@@ -318,9 +318,7 @@ function App() {
 
           // Update store with transcript (with fallback for missing data)
           const transcriptText =
-            data.transcript && data.transcript.trim()
-              ? data.transcript
-              : TRANSCRIPT_UNAVAILABLE;
+            data.transcript && data.transcript.trim() ? data.transcript : TRANSCRIPT_UNAVAILABLE;
 
           setAudioData({
             transcript: transcriptText,

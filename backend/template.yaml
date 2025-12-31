@@ -23,11 +23,6 @@ Parameters:
     Type: String
     Description: Existing S3 bucket containing author and poem data (not managed by this template)
 
-  AWSRegion:
-    Type: String
-    Default: us-east-1
-    Description: AWS region for deployment
-
 ##############################################
 # Global Configuration - DRY Settings
 ##############################################
@@ -39,7 +34,6 @@ Globals:
     Environment:
       Variables:
         NODE_ENV: production
-        AWS_REGION: !Ref AWSRegion
         S3_BUCKET: !Ref S3BucketName
     Tags:
       Application: WritersAlmanac
@@ -77,7 +71,7 @@ Resources:
     Properties:
       FunctionName: !Sub 'writers-almanac-get-author-${Environment}'
       Description: Fetch author data from S3 by author name/slug
-      CodeUri: get-author/
+      CodeUri: lambdas/get-author/
       Handler: index.handler
       Policies:
         - S3ReadPolicy:
@@ -105,7 +99,7 @@ Resources:
     Properties:
       FunctionName: !Sub 'writers-almanac-get-authors-by-letter-${Environment}'
       Description: Fetch all authors whose names start with a given letter
-      CodeUri: get-authors-by-letter/
+      CodeUri: lambdas/get-authors-by-letter/
       Handler: index.handler
       Policies:
         - S3ReadPolicy:
@@ -133,7 +127,7 @@ Resources:
     Properties:
       FunctionName: !Sub 'writers-almanac-search-autocomplete-${Environment}'
       Description: Search for authors and poems by query string
-      CodeUri: search-autocomplete/
+      CodeUri: lambdas/search-autocomplete/
       Handler: index.handler
       # Higher memory than default (256 MB) due to in-memory search operations
       # across full author and poem datasets. Performance testing recommended

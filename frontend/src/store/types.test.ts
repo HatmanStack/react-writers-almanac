@@ -18,6 +18,7 @@ describe('Store Type Definitions', () => {
         setPoemData: () => {},
         setAuthorData: () => {},
         toggleViewMode: () => {},
+        setViewMode: () => {},
         resetContent: () => {},
       };
 
@@ -48,6 +49,7 @@ describe('Store Type Definitions', () => {
         setPoemData: () => {},
         setAuthorData: () => {},
         toggleViewMode: () => {},
+        setViewMode: () => {},
         resetContent: () => {},
       };
 
@@ -156,6 +158,7 @@ describe('Store Type Definitions', () => {
         setPoemData: () => {},
         setAuthorData: () => {},
         toggleViewMode: () => {},
+        setViewMode: () => {},
         resetContent: () => {},
 
         // SearchSlice
@@ -197,6 +200,7 @@ describe('Store Type Definitions', () => {
         setPoemData: () => {},
         setAuthorData: () => {},
         toggleViewMode: () => {},
+        setViewMode: () => {},
         resetContent: () => {},
 
         searchTerm: '',
@@ -247,6 +251,7 @@ describe('Store Type Definitions', () => {
         setPoemData: () => {},
         setAuthorData: () => {},
         toggleViewMode: () => {},
+        setViewMode: () => {},
         resetContent: () => {},
       };
 

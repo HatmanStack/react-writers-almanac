@@ -99,7 +99,8 @@ describe('Transcript Integration Test - Bug Fix Verification', () => {
     const { setAudioData } = useTestStore.getState();
 
     // Simulate App.tsx handling empty transcript
-    const transcriptText = '' || 'Transcript not available for this date.';
+    const emptyTranscript = '';
+    const transcriptText = emptyTranscript || 'Transcript not available for this date.';
 
     setAudioData({
       transcript: transcriptText,
@@ -113,14 +114,12 @@ describe('Transcript Integration Test - Bug Fix Verification', () => {
     const { setAudioData } = useTestStore.getState();
 
     // Simulate App.tsx handling undefined transcript
-    const dataTranscript: string | undefined = undefined;
-    const transcriptText =
-      dataTranscript && dataTranscript.trim()
-        ? dataTranscript
-        : 'Transcript not available for this date.';
+    const getTranscriptText = (transcript: string | undefined): string => {
+      return transcript?.trim() ? transcript : 'Transcript not available for this date.';
+    };
 
     setAudioData({
-      transcript: transcriptText,
+      transcript: getTranscriptText(undefined),
     });
 
     const state = useTestStore.getState();
