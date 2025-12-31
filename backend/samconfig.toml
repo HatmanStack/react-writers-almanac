@@ -1,0 +1,14 @@
+# SAM CLI configuration file (auto-generated from .env.deploy)
+# Re-run ./scripts/deploy.sh to regenerate this file
+
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "writers-almanac-backend-prod"
+s3_bucket = "sam-deploy-writers-almanac-us-west-2"
+s3_prefix = "writers-almanac-backend-prod"
+region = "us-west-2"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = false
+fail_on_empty_changeset = false
+parameter_overrides = "Environment=prod S3BucketName=garrison-twa"
