@@ -146,7 +146,7 @@ echo "Stack Outputs:"
 echo "  API URL: $API_URL"
 echo ""
 
-# Update frontend .env file
+# Update frontend .env file (portable across GNU/BSD sed)
 update_env_var() {
     local key=$1
     local value=$2
@@ -157,7 +157,8 @@ update_env_var() {
     fi
 
     if grep -q "^${key}=" "$file" 2>/dev/null; then
-        sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+        local tmp="${file}.tmp.$$"
+        sed "s|^${key}=.*|${key}=${value}|" "$file" > "$tmp" && mv "$tmp" "$file"
     else
         echo "${key}=${value}" >> "$file"
     fi
