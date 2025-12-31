@@ -65,7 +65,6 @@ echo "Configuration saved to $ENV_DEPLOY_FILE"
 
 # Generate samconfig.toml
 DEPLOY_BUCKET="sam-deploy-writers-almanac-${AWS_REGION}"
-PARAM_OVERRIDES="Environment=$ENVIRONMENT S3BucketName=$S3_BUCKET_NAME"
 
 cat > "samconfig.toml" << EOF
 # SAM CLI configuration file (auto-generated from .env.deploy)
@@ -124,7 +123,7 @@ sam deploy \
     --s3-bucket "$DEPLOY_BUCKET" \
     --s3-prefix "$STACK_NAME" \
     --capabilities CAPABILITY_IAM \
-    --parameter-overrides $PARAM_OVERRIDES \
+    --parameter-overrides "Environment=$ENVIRONMENT" "S3BucketName=$S3_BUCKET_NAME" \
     --no-confirm-changeset \
     --no-fail-on-empty-changeset
 
