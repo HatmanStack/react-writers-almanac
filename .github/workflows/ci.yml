@@ -71,7 +71,7 @@ jobs:
       - name: Validate SAM template
         run: |
           pip install aws-sam-cli
-          cd backend && sam validate
+          cd backend && sam validate --region us-west-2
 
   build:
     name: Build
