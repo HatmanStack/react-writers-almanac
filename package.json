@@ -17,20 +17,11 @@
     "preview": "cd frontend && npm run preview",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:report": "playwright show-report",
-    "prepare": "husky || true"
-  },
-  "lint-staged": {
-    "frontend/**/*.{ts,tsx}": [
-      "eslint --fix --max-warnings=0",
-      "prettier --write"
-    ]
+    "test:e2e:report": "playwright show-report"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
     "@vitest/coverage-v8": "^4.0.7",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
     "vitest": "^4.0.7"
   }
