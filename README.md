@@ -1,16 +1,14 @@
-# The Writer's Almanac
+<div align="center">
+
+![Writer's Alamanac Banner](frontend/public/og-image.jpg)
 
 A modern React application delivering daily poems and historical narratives, featuring audio narration by Garrison Keillor and AI-generated transcripts.
 
-**Live Demo**: [https://d6d8ny9p8jhyg.cloudfront.net](https://d6d8ny9p8jhyg.cloudfront.net)
+**Live Demo**: [The Writer's Almanac](https://writer.hatstack.fun)
 
 ---
 
-## About
-
-This is a modernized version of The Writer's Almanac, rebuilt with current web technologies. The code is provided here for transparency and as a portfolio demonstration. The content (poems, audio, historical narratives) is hosted privately and is the property of Prairie Home Productions.
-
----
+</div>
 
 ## Tech Stack
 
