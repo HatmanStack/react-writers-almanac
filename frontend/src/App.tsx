@@ -1,10 +1,12 @@
-import { lazy, Suspense, useState, useEffect, useMemo, useCallback } from 'react';
+import { lazy, Suspense, useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Note from './components/Note/Note';
 import Poem from './components/Poem';
 import Search from './components/Search';
 import ErrorBoundary from './components/ErrorBoundary';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import Modal from './components/ui/Modal';
+import { SEOHead, JsonLd } from './components/SEOHead';
 import logo from './assets/logo_writersalmanac.png';
 import sortedAuthorsImport from './assets/Authors_sorted.js';
 import sortedPoemsImport from './assets/Poems_sorted.js';
@@ -112,6 +114,9 @@ interface CalendarDateChange {
 const TRANSCRIPT_UNAVAILABLE = 'Transcript not available for this date.';
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // Zustand store state - single selector with shallow equality for performance
   const {
     currentDate,
@@ -150,7 +155,7 @@ function App() {
   );
 
   // Local component state (not in store)
-  const [linkDate, setLinkDate] = useState<string>(presentDate());
+  const [linkDate, setLinkDateState] = useState<string>(presentDate());
   const [day, setDay] = useState<string | undefined>();
   const [poemByline, setPoemByline] = useState<string | undefined>();
   const { width } = useWindowSize();
@@ -163,6 +168,63 @@ function App() {
   } | null>(null);
   const [searchType, setSearchType] = useState<'author' | 'poem' | null>(null);
   const [isContentHidden, setIsContentHidden] = useState<boolean>(false);
+
+  // Handle URL-based navigation
+  // Track the previous pathname to detect actual navigation changes
+  const previousPathnameRef = useRef(location.pathname);
+
+  useEffect(() => {
+    const path = location.pathname;
+    const previousPath = previousPathnameRef.current;
+
+    // Update ref for next comparison
+    previousPathnameRef.current = path;
+
+    // Handle /poem/:date route
+    const poemMatch = path.match(/^\/poem\/(\d{8})$/);
+    if (poemMatch) {
+      const urlDate = poemMatch[1];
+      // Only update if the date actually changed (avoid loops)
+      if (urlDate !== linkDate || previousPath !== path) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLinkDateState(urlDate);
+        setViewMode(true);
+      }
+      return;
+    }
+
+    // Handle /author/:name route
+    const authorMatch = path.match(/^\/author\/(.+)$/);
+    if (authorMatch) {
+      const authorName = decodeURIComponent(authorMatch[1]);
+      if (sortedAuthorsSet.has(authorName)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSearchTerm(authorName);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSearchType('author');
+        setViewMode(false);
+      }
+      return;
+    }
+
+    // Handle root - redirect to today's poem
+    if (path === '/') {
+      navigate(`/poem/${presentDate()}`, { replace: true });
+    }
+  }, [location.pathname, navigate, setSearchTerm, setViewMode, linkDate]);
+
+  // URL-synced setLinkDate - updates URL when date changes
+  const setLinkDate = useCallback(
+    (dateOrUpdater: string | ((prev: string) => string)) => {
+      setLinkDateState(prev => {
+        const newDate = typeof dateOrUpdater === 'function' ? dateOrUpdater(prev) : dateOrUpdater;
+        // Update URL to reflect new date
+        navigate(`/poem/${newDate}`, { replace: true });
+        return newDate;
+      });
+    },
+    [navigate]
+  );
 
   // Cleanup blob URLs on component unmount to prevent memory leaks
   useEffect(() => {
@@ -182,22 +244,20 @@ function App() {
       if (sortedAuthorsSet.has(query)) {
         setSearchTerm(query);
         setSearchType('author');
-        // Navigate to author page
-        if (isShowingContentByDate) {
-          toggleViewMode();
-        }
+        // Navigate to author page URL
+        navigate(`/author/${encodeURIComponent(query)}`);
       }
       // Check if searching for a poem
       else if (sortedPoemsSet.has(query)) {
         setSearchTerm(query);
         setSearchType('poem');
-        // Navigate to poem dates page
+        // Navigate to poem search - keep on current page but switch view
         if (isShowingContentByDate) {
           toggleViewMode();
         }
       }
     },
-    [setSearchTerm, isShowingContentByDate, toggleViewMode]
+    [setSearchTerm, isShowingContentByDate, toggleViewMode, navigate]
   );
 
   const handlePoemTitleClick = useCallback(
@@ -216,21 +276,19 @@ function App() {
     (authorName: string): void => {
       setSearchTerm(authorName);
       setSearchType('author');
-      // Navigate to author page
-      if (isShowingContentByDate) {
-        toggleViewMode();
-      }
+      // Navigate to author page URL
+      navigate(`/author/${encodeURIComponent(authorName)}`);
     },
-    [setSearchTerm, isShowingContentByDate, toggleViewMode]
+    [setSearchTerm, navigate]
   );
 
   const handleSwitchToDateView = useCallback(
     (_shouldShow?: boolean) => {
-      // Switch to date view mode
-      // Always set to true to show content by date
+      // Switch to date view mode and navigate to current poem date
       setViewMode(true);
+      navigate(`/poem/${linkDate}`);
     },
-    [setViewMode]
+    [setViewMode, navigate, linkDate]
   );
 
   const closeModal = useCallback(() => {
@@ -240,29 +298,29 @@ function App() {
 
   const calendarDate = useCallback(
     (x: CalendarDateChange): void => {
-      setLinkDate(formatDate(x.calendarChangedDate));
+      const newDate = formatDate(x.calendarChangedDate);
+      navigate(`/poem/${newDate}`);
     },
-    [setLinkDate]
+    [navigate]
   );
 
   const shiftContentByAuthorOrDate = useCallback(
     async (x: string): Promise<void> => {
       if (isShowingContentByDate) {
-        // Use functional update to avoid stale closure issues
-        setLinkDate(currentLinkDate => {
-          // Parse date using local time to avoid timezone issues
-          const year = parseInt(currentLinkDate.substring(0, 4), 10);
-          const month = parseInt(currentLinkDate.substring(4, 6), 10) - 1; // Month is 0-indexed
-          const day = parseInt(currentLinkDate.substring(6, 8), 10);
+        // Parse date using local time to avoid timezone issues
+        const year = parseInt(linkDate.substring(0, 4), 10);
+        const month = parseInt(linkDate.substring(4, 6), 10) - 1; // Month is 0-indexed
+        const dayNum = parseInt(linkDate.substring(6, 8), 10);
 
-          const currentDate = new Date(year, month, day);
-          const newDate = new Date(currentDate);
-          newDate.setDate(currentDate.getDate() + (x === 'back' ? -1 : 1));
-          return formatDate(newDate);
-        });
+        const currentDateObj = new Date(year, month, dayNum);
+        const newDateObj = new Date(currentDateObj);
+        newDateObj.setDate(currentDateObj.getDate() + (x === 'back' ? -1 : 1));
+        const newDate = formatDate(newDateObj);
+        navigate(`/poem/${newDate}`);
       } else {
         let sortedList = sortedPoems;
-        if (sortedAuthorsSet.has(searchTerm)) {
+        const isAuthor = sortedAuthorsSet.has(searchTerm);
+        if (isAuthor) {
           sortedList = sortedAuthors;
         }
         const index = sortedList.indexOf(searchTerm);
@@ -271,10 +329,14 @@ function App() {
         }
         const before = index === 0 ? sortedList[sortedList.length - 1] : sortedList[index - 1];
         const after = index === sortedList.length - 1 ? sortedList[0] : sortedList[index + 1];
-        setSearchTerm(x === 'back' ? before : after);
+        const newTerm = x === 'back' ? before : after;
+        setSearchTerm(newTerm);
+        if (isAuthor) {
+          navigate(`/author/${encodeURIComponent(newTerm)}`);
+        }
       }
     },
-    [isShowingContentByDate, searchTerm, setLinkDate, setSearchTerm]
+    [isShowingContentByDate, searchTerm, linkDate, setSearchTerm, navigate]
   );
 
   // Author data is now fetched by the Author component using TanStack Query
@@ -521,8 +583,79 @@ function App() {
     handleAuthorClick,
   ]);
 
+  // Compute SEO data based on current view
+  const seoData = useMemo(() => {
+    if (isShowingContentByDate) {
+      const titleText =
+        Array.isArray(normalizedPoemTitle) && normalizedPoemTitle.length > 0
+          ? normalizedPoemTitle[0]
+          : undefined;
+      const authorText =
+        Array.isArray(normalizedAuthor) && normalizedAuthor.length > 0
+          ? normalizedAuthor[0]
+          : undefined;
+      const descriptionText = titleText && authorText ? `"${titleText}" by ${authorText}` : undefined;
+      return {
+        title: titleText,
+        description: descriptionText,
+        author: authorText,
+        type: 'article' as const,
+        path: `/poem/${linkDate}`,
+        publishedDate: currentDate,
+      };
+    } else {
+      return {
+        title: searchTerm,
+        description: searchType === 'author' ? `Poems by ${searchTerm}` : `"${searchTerm}" poem dates`,
+        type: 'website' as const,
+        path: searchType === 'author' ? `/author/${encodeURIComponent(searchTerm)}` : '/',
+      };
+    }
+  }, [
+    isShowingContentByDate,
+    normalizedPoemTitle,
+    normalizedAuthor,
+    linkDate,
+    currentDate,
+    searchTerm,
+    searchType,
+  ]);
+
+  // Compute JSON-LD data
+  const jsonLdData = useMemo(() => {
+    if (isShowingContentByDate) {
+      const titleText =
+        Array.isArray(normalizedPoemTitle) && normalizedPoemTitle.length > 0
+          ? normalizedPoemTitle[0]
+          : 'Untitled';
+      const authorText =
+        Array.isArray(normalizedAuthor) && normalizedAuthor.length > 0
+          ? normalizedAuthor[0]
+          : 'Unknown';
+      return {
+        type: 'poem' as const,
+        poem: {
+          title: titleText,
+          author: authorText,
+          date: currentDate,
+          datePath: `/poem/${linkDate}`,
+        },
+      };
+    } else if (searchType === 'author') {
+      return {
+        type: 'author' as const,
+        author: {
+          name: searchTerm,
+        },
+      };
+    }
+    return { type: 'website' as const };
+  }, [isShowingContentByDate, normalizedPoemTitle, normalizedAuthor, currentDate, linkDate, searchTerm, searchType]);
+
   return (
     <ErrorBoundary>
+      <SEOHead {...seoData} />
+      <JsonLd {...jsonLdData} />
       <main className="text-center text-[calc(8px+2vmin)] bg-app-bg text-app-text min-h-screen w-full relative">
         {width > 1000 ? (
           <div>
@@ -575,7 +708,7 @@ function App() {
                 <button
                   type="button"
                   className="flex-[1_0_auto] m-4 bg-transparent border-none cursor-pointer text-app-text hover:opacity-70 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                  onClick={() => setViewMode(true)}
+                  onClick={() => navigate(`/poem/${linkDate}`)}
                   aria-label={`Navigate to ${currentDate || 'current date'}`}
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
                 />
@@ -650,7 +783,7 @@ function App() {
                 <button
                   type="button"
                   className="bg-transparent border-none cursor-pointer text-app-text hover:opacity-70 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                  onClick={() => setViewMode(true)}
+                  onClick={() => navigate(`/poem/${linkDate}`)}
                   aria-label={`Navigate to ${currentDate || 'current date'}`}
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
                 />
