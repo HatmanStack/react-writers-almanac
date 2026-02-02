@@ -73,8 +73,8 @@ describe('usePoemQuery', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
 
-    // Verify API was called with correct URL
-    expect(cdnClient.get).toHaveBeenCalledWith('/public/20240101.json');
+    // Verify API was called with correct URL (YYYY/MM/YYYYMMDD format)
+    expect(cdnClient.get).toHaveBeenCalledWith('/public/2024/01/20240101.json');
     expect(cdnClient.get).toHaveBeenCalledTimes(1);
   });
 

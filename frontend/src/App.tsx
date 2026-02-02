@@ -1,5 +1,5 @@
-import { lazy, Suspense, useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { lazy, Suspense, useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Note from './components/Note/Note';
 import Poem from './components/Poem';
 import Search from './components/Search';
@@ -8,26 +8,8 @@ import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import Modal from './components/ui/Modal';
 import { SEOHead, JsonLd } from './components/SEOHead';
 import logo from './assets/logo_writersalmanac.png';
-import sortedAuthorsImport from './assets/Authors_sorted.js';
-import sortedPoemsImport from './assets/Poems_sorted.js';
-
-// Runtime validation for JS imports
-if (
-  !Array.isArray(sortedAuthorsImport) ||
-  !sortedAuthorsImport.every(item => typeof item === 'string')
-) {
-  throw new Error('sortedAuthorsImport is not an array of strings');
-}
-if (
-  !Array.isArray(sortedPoemsImport) ||
-  !sortedPoemsImport.every(item => typeof item === 'string')
-) {
-  throw new Error('sortedPoemsImport is not an array of strings');
-}
-
-// Type assertions for JS imports
-const sortedAuthors = sortedAuthorsImport as string[];
-const sortedPoems = sortedPoemsImport as string[];
+import sortedAuthors from './assets/Authors_sorted';
+import sortedPoems from './assets/Poems_sorted';
 
 // Convert to Sets for O(1) lookups
 const sortedAuthorsSet = new Set(sortedAuthors);
@@ -35,71 +17,22 @@ const sortedPoemsSet = new Set(sortedPoems);
 
 import { useWindowSize } from 'react-use';
 import DOMPurify from 'dompurify';
-import axios from 'axios';
 import { useAppStore } from './store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
-import { formatDate as formatDateUtil } from './utils';
+
+// Custom hooks
+import { useUrlSync } from './hooks/useUrlSync';
+import { usePoemData } from './hooks/usePoemData';
+import { useSeoData } from './hooks/useSeoData';
+
+// Date utilities
+import { formatDate, formatAuthorDate, parseArchiveDate } from './utils/dateMapping';
 
 // Lazy load heavy components for code splitting
 const Audio = lazy(() => import('./components/Audio/Audio'));
 const Author = lazy(() => import('./components/Author/Author'));
 const PoemDates = lazy(() => import('./components/PoemDates/PoemDates'));
 const ParticlesComponent = lazy(() => import('./components/Particles/Particles'));
-
-/**
- * Format date with business logic for min/max date boundaries
- * @param date - Date to format
- * @param notToday - Apply min/max boundaries (default: true)
- * @param separator - Separator character (default: '')
- * @returns Formatted date string (YYYYMMDD or YYYY<sep>MM<sep>DD)
- */
-function formatDate(date: Date, notToday: boolean = true, separator: string = ''): string {
-  let formattedDate = formatDateUtil(date, separator);
-  if (notToday) {
-    if (Number(formattedDate) < 19930101) {
-      formattedDate = '19930101';
-    } else if (Number(formattedDate) > 20171129) {
-      formattedDate = '20171129';
-    }
-  }
-  return formattedDate;
-}
-
-const presentDate = (): string => {
-  const today = formatDate(new Date(), false);
-  const year = today.substring(0, 4);
-  let updatedYear: string;
-  if (year === '2026') {
-    updatedYear = '2015';
-  } else if (year === '2027') {
-    updatedYear = '2010';
-  } else {
-    updatedYear = '2014';
-  }
-  return updatedYear + today.substring(4);
-};
-
-const monthAbbreviations: Record<string, string> = {
-  Jan: '01',
-  Feb: '02',
-  Mar: '03',
-  Apr: '04',
-  May: '05',
-  Jun: '06',
-  Jul: '07',
-  Aug: '08',
-  Sep: '09',
-  Oct: '10',
-  Nov: '11',
-  Dec: '12',
-};
-
-const formatAuthorDate = (dateString: string): string => {
-  const [month, day, year] = dateString.trim().split(' ');
-  const formattedMonth = monthAbbreviations[month.replace('.', '')] || '01';
-  const formattedDay = day.replace(',', '').padStart(2, '0');
-  return `${year}${formattedMonth}${formattedDay}`;
-};
 
 /**
  * Type for calendar date change
@@ -115,7 +48,6 @@ const TRANSCRIPT_UNAVAILABLE = 'Transcript not available for this date.';
 
 function App() {
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Zustand store state - single selector with shallow equality for performance
   const {
@@ -126,14 +58,9 @@ function App() {
     author,
     searchTerm,
     isShowingContentByDate,
-    setCurrentDate: storeSetCurrentDate,
-    setPoemData,
-    setAuthorData,
-    setAudioData,
     setSearchTerm,
     toggleViewMode,
     setViewMode,
-    cleanup,
   } = useAppStore(
     useShallow(state => ({
       currentDate: state.currentDate,
@@ -143,19 +70,20 @@ function App() {
       author: state.author,
       searchTerm: state.searchTerm,
       isShowingContentByDate: state.isShowingContentByDate,
-      setCurrentDate: state.setCurrentDate,
-      setPoemData: state.setPoemData,
-      setAuthorData: state.setAuthorData,
-      setAudioData: state.setAudioData,
       setSearchTerm: state.setSearchTerm,
       toggleViewMode: state.toggleViewMode,
       setViewMode: state.setViewMode,
-      cleanup: state.cleanup,
     }))
   );
 
+  // URL synchronization hook - manages linkDate and searchType from URL
+  const { linkDate, setLinkDate, searchType, setSearchType } = useUrlSync({
+    validAuthors: sortedAuthorsSet,
+    setSearchTerm,
+    setViewMode,
+  });
+
   // Local component state (not in store)
-  const [linkDate, setLinkDateState] = useState<string>(presentDate());
   const [day, setDay] = useState<string | undefined>();
   const [poemByline, setPoemByline] = useState<string | undefined>();
   const { width } = useWindowSize();
@@ -166,65 +94,14 @@ function App() {
     content: string;
     author: string;
   } | null>(null);
-  const [searchType, setSearchType] = useState<'author' | 'poem' | null>(null);
   const [isContentHidden, setIsContentHidden] = useState<boolean>(false);
 
-  // Handle URL-based navigation
-  // Track the previous pathname to detect actual navigation changes
-  const previousPathnameRef = useRef(location.pathname);
-
-  useEffect(() => {
-    const path = location.pathname;
-    const previousPath = previousPathnameRef.current;
-
-    // Update ref for next comparison
-    previousPathnameRef.current = path;
-
-    // Handle /poem/:date route
-    const poemMatch = path.match(/^\/poem\/(\d{8})$/);
-    if (poemMatch) {
-      const urlDate = poemMatch[1];
-      // Only update if the date actually changed (avoid loops)
-      if (urlDate !== linkDate || previousPath !== path) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLinkDateState(urlDate);
-        setViewMode(true);
-      }
-      return;
-    }
-
-    // Handle /author/:name route
-    const authorMatch = path.match(/^\/author\/(.+)$/);
-    if (authorMatch) {
-      const authorName = decodeURIComponent(authorMatch[1]);
-      if (sortedAuthorsSet.has(authorName)) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSearchTerm(authorName);
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSearchType('author');
-        setViewMode(false);
-      }
-      return;
-    }
-
-    // Handle root - redirect to today's poem
-    if (path === '/') {
-      navigate(`/poem/${presentDate()}`, { replace: true });
-    }
-  }, [location.pathname, navigate, setSearchTerm, setViewMode, linkDate]);
-
-  // URL-synced setLinkDate - updates URL when date changes
-  const setLinkDate = useCallback(
-    (dateOrUpdater: string | ((prev: string) => string)) => {
-      setLinkDateState(prev => {
-        const newDate = typeof dateOrUpdater === 'function' ? dateOrUpdater(prev) : dateOrUpdater;
-        // Update URL to reflect new date
-        navigate(`/poem/${newDate}`, { replace: true });
-        return newDate;
-      });
-    },
-    [navigate]
-  );
+  // Fetch poem data when linkDate changes
+  usePoemData({
+    linkDate,
+    setDay,
+    setPoemByline,
+  });
 
   // Cleanup blob URLs on component unmount to prevent memory leaks
   useEffect(() => {
@@ -257,7 +134,7 @@ function App() {
         }
       }
     },
-    [setSearchTerm, isShowingContentByDate, toggleViewMode, navigate]
+    [setSearchTerm, setSearchType, isShowingContentByDate, toggleViewMode, navigate]
   );
 
   const handlePoemTitleClick = useCallback(
@@ -279,7 +156,7 @@ function App() {
       // Navigate to author page URL
       navigate(`/author/${encodeURIComponent(authorName)}`);
     },
-    [setSearchTerm, navigate]
+    [setSearchTerm, setSearchType, navigate]
   );
 
   const handleSwitchToDateView = useCallback(
@@ -307,12 +184,8 @@ function App() {
   const shiftContentByAuthorOrDate = useCallback(
     async (x: string): Promise<void> => {
       if (isShowingContentByDate) {
-        // Parse date using local time to avoid timezone issues
-        const year = parseInt(linkDate.substring(0, 4), 10);
-        const month = parseInt(linkDate.substring(4, 6), 10) - 1; // Month is 0-indexed
-        const dayNum = parseInt(linkDate.substring(6, 8), 10);
-
-        const currentDateObj = new Date(year, month, dayNum);
+        // Parse date using parseArchiveDate utility
+        const currentDateObj = parseArchiveDate(linkDate);
         const newDateObj = new Date(currentDateObj);
         newDateObj.setDate(currentDateObj.getDate() + (x === 'back' ? -1 : 1));
         const newDate = formatDate(newDateObj);
@@ -339,116 +212,8 @@ function App() {
     [isShowingContentByDate, searchTerm, linkDate, setSearchTerm, navigate]
   );
 
-  // Author data is now fetched by the Author component using TanStack Query
-  // No need for local author data fetching here
-
-  useEffect(() => {
-    const abortController = new AbortController();
-
-    async function getData() {
-      let link = linkDate;
-      if (/\d/.test(linkDate)) {
-        const dateString = linkDate.toString();
-        const year = dateString.substring(0, 4);
-        const month = dateString.substring(4, 6);
-        link = `${year}/${month}/` + linkDate.toString();
-      }
-      axios
-        .get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.json', {
-          signal: abortController.signal,
-        })
-        .then(response => {
-          const data = response.data;
-
-          setDay(data.dayofweek);
-          storeSetCurrentDate(data.date);
-          setPoemByline(data.poembyline);
-
-          // Update store with poem data
-          setPoemData({
-            poem: /&amp;#233;/.test(data.poem)
-              ? data.poem.replaceAll(/&amp;#233;/g, 'é')
-              : data.poem,
-            poemTitle: data.poemtitle,
-            note: data.notes,
-          });
-
-          // Update store with author data
-          setAuthorData({
-            author: data.author,
-          });
-
-          // Update store with transcript (with fallback for missing data)
-          const transcriptText =
-            data.transcript && data.transcript.trim() ? data.transcript : TRANSCRIPT_UNAVAILABLE;
-
-          setAudioData({
-            transcript: transcriptText,
-          });
-
-          // Log warning if transcript is missing (for debugging)
-          if (!data.transcript || !data.transcript.trim()) {
-            // eslint-disable-next-line no-console
-            console.warn(`[App] No transcript available for date: ${linkDate}`);
-          }
-        })
-        .catch(error => {
-          // Don't update state if request was aborted
-          if (axios.isCancel(error)) return;
-          // Set fallback state to prevent undefined errors on fetch failure
-          setPoemData({ poem: [], poemTitle: [], note: '' });
-          setAuthorData({ author: [] });
-          setAudioData({ transcript: TRANSCRIPT_UNAVAILABLE });
-        });
-      if (Number(linkDate) > 20090111) {
-        axios
-          .get('https://d3vq6af2mo7fcy.cloudfront.net/public/' + link + '.mp3', {
-            responseType: 'arraybuffer',
-            signal: abortController.signal,
-          })
-          .then(response => {
-            // Cleanup old blob URL before creating new one
-            const currentMp3Url = useAppStore.getState().mp3Url;
-            if (currentMp3Url && currentMp3Url.startsWith('blob:')) {
-              cleanup();
-            }
-            const blob = new window.Blob([response.data]);
-            const audioUrl = URL.createObjectURL(blob);
-            setAudioData({ mp3Url: audioUrl });
-          })
-          .catch(error => {
-            // Don't update state if request was aborted
-            if (axios.isCancel(error)) return;
-            // Set unavailable status on audio fetch failure
-            setAudioData({ mp3Url: 'NotAvailable' });
-          });
-      } else {
-        setAudioData({ mp3Url: 'NotAvailable' });
-      }
-    }
-    getData();
-
-    // Cleanup: abort pending requests when effect re-runs or component unmounts
-    return () => {
-      abortController.abort();
-    };
-  }, [linkDate, storeSetCurrentDate, setPoemData, setAuthorData, setAudioData, cleanup]);
-
-  // Normalize store data to arrays for components that expect arrays
-  const normalizedPoemTitle = useMemo(() => {
-    if (poemTitle === undefined) return undefined;
-    return Array.isArray(poemTitle) ? poemTitle : [poemTitle];
-  }, [poemTitle]);
-
-  const normalizedPoem = useMemo(() => {
-    if (poem === undefined) return undefined;
-    return Array.isArray(poem) ? poem : [poem];
-  }, [poem]);
-
-  const normalizedAuthor = useMemo(() => {
-    if (author === undefined) return undefined;
-    return Array.isArray(author) ? author : [author];
-  }, [author]);
+  // Note: Store data is now normalized to arrays at the setter boundary.
+  // Poem data is now fetched via usePoemData hook.
 
   const body = useMemo(() => {
     if (isShowingContentByDate) {
@@ -473,10 +238,10 @@ function App() {
               <div className="flex flex-row">
                 <div className="flex-[1_0_0] z-10 bg-app-container rounded-l-[3rem] p-4 ml-20">
                   <Poem
-                    poemTitle={normalizedPoemTitle}
-                    poem={normalizedPoem}
+                    poemTitle={poemTitle}
+                    poem={poem}
                     setSearchedTerm={setSearchTerm}
-                    author={normalizedAuthor}
+                    author={author}
                     poemByline={poemByline}
                     onTitleClick={handlePoemTitleClick}
                     onAuthorClick={handleAuthorClick}
@@ -505,10 +270,10 @@ function App() {
 
               <div className="z-10 bg-app-container rounded-t-[3rem]">
                 <Poem
-                  poemTitle={normalizedPoemTitle}
-                  poem={normalizedPoem}
+                  poemTitle={poemTitle}
+                  poem={poem}
                   setSearchedTerm={setSearchTerm}
-                  author={normalizedAuthor}
+                  author={author}
                   poemByline={poemByline}
                   onTitleClick={handlePoemTitleClick}
                   onAuthorClick={handleAuthorClick}
@@ -570,9 +335,9 @@ function App() {
     width,
     isShowing,
     transcript,
-    normalizedPoemTitle,
-    normalizedPoem,
-    normalizedAuthor,
+    poemTitle,
+    poem,
+    author,
     poemByline,
     searchTerm,
     searchType,
@@ -583,74 +348,16 @@ function App() {
     handleAuthorClick,
   ]);
 
-  // Compute SEO data based on current view
-  const seoData = useMemo(() => {
-    if (isShowingContentByDate) {
-      const titleText =
-        Array.isArray(normalizedPoemTitle) && normalizedPoemTitle.length > 0
-          ? normalizedPoemTitle[0]
-          : undefined;
-      const authorText =
-        Array.isArray(normalizedAuthor) && normalizedAuthor.length > 0
-          ? normalizedAuthor[0]
-          : undefined;
-      const descriptionText = titleText && authorText ? `"${titleText}" by ${authorText}` : undefined;
-      return {
-        title: titleText,
-        description: descriptionText,
-        author: authorText,
-        type: 'article' as const,
-        path: `/poem/${linkDate}`,
-        publishedDate: currentDate,
-      };
-    } else {
-      return {
-        title: searchTerm,
-        description: searchType === 'author' ? `Poems by ${searchTerm}` : `"${searchTerm}" poem dates`,
-        type: 'website' as const,
-        path: searchType === 'author' ? `/author/${encodeURIComponent(searchTerm)}` : '/',
-      };
-    }
-  }, [
+  // Compute SEO data using the useSeoData hook
+  const { seoData, jsonLdData } = useSeoData({
     isShowingContentByDate,
-    normalizedPoemTitle,
-    normalizedAuthor,
+    poemTitle,
+    author,
     linkDate,
     currentDate,
     searchTerm,
     searchType,
-  ]);
-
-  // Compute JSON-LD data
-  const jsonLdData = useMemo(() => {
-    if (isShowingContentByDate) {
-      const titleText =
-        Array.isArray(normalizedPoemTitle) && normalizedPoemTitle.length > 0
-          ? normalizedPoemTitle[0]
-          : 'Untitled';
-      const authorText =
-        Array.isArray(normalizedAuthor) && normalizedAuthor.length > 0
-          ? normalizedAuthor[0]
-          : 'Unknown';
-      return {
-        type: 'poem' as const,
-        poem: {
-          title: titleText,
-          author: authorText,
-          date: currentDate,
-          datePath: `/poem/${linkDate}`,
-        },
-      };
-    } else if (searchType === 'author') {
-      return {
-        type: 'author' as const,
-        author: {
-          name: searchTerm,
-        },
-      };
-    }
-    return { type: 'website' as const };
-  }, [isShowingContentByDate, normalizedPoemTitle, normalizedAuthor, currentDate, linkDate, searchTerm, searchType]);
+  });
 
   return (
     <ErrorBoundary>

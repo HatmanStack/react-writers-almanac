@@ -5,8 +5,8 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { apiClient } from '../../api/client';
 import { API_ENDPOINTS } from '../../api/endpoints';
-import type { SearchResponse } from '../../types/api';
-import type { ApiError } from '../../types/api';
+import type { SearchResponse, ApiError } from '../../types/api';
+import { getErrorStatus } from '../../types/errors';
 import { getSearchErrorMessage } from './queryErrors';
 
 /**
@@ -75,12 +75,11 @@ export function useSearchQuery(
     staleTime: 1000 * 60 * 5, // 5 minutes - search results can be cached briefly
     gcTime: 1000 * 60 * 30, // 30 minutes
     retry: (failureCount, error) => {
-      // Safely extract HTTP status from different error shapes (ApiError or AxiosError)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const status = (error as any)?.status ?? (error as any)?.response?.status;
+      // Type-safe HTTP status extraction using error type guards
+      const status = getErrorStatus(error);
 
       // Don't retry any 4xx client errors (bad request, not found, etc.)
-      if (status && status >= 400 && status < 500) {
+      if (status !== undefined && status >= 400 && status < 500) {
         return false;
       }
 

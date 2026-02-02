@@ -10,17 +10,21 @@
 
 /**
  * ContentSlice manages poem, author, date, and notes state.
+ *
+ * State fields use strict array types (string[]) - never raw strings.
+ * Setters accept both string and string[] for backward compatibility
+ * and normalize to arrays internally.
  */
 export interface ContentSlice {
-  // State
+  // State - always arrays, never raw strings
   currentDate: string | undefined;
-  poem: string | string[] | undefined;
-  poemTitle: string | string[] | undefined;
-  author: string | string[] | undefined;
-  note: string | string[] | undefined;
+  poem: string[] | undefined;
+  poemTitle: string[] | undefined;
+  author: string[] | undefined;
+  note: string[] | undefined;
   isShowingContentByDate: boolean;
 
-  // Actions
+  // Actions - accept unions for backward compatibility, normalize internally
   setCurrentDate: (date: string | undefined) => void;
   setPoemData: (data: {
     poem?: string | string[];
