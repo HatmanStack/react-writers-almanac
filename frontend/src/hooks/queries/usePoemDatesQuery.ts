@@ -7,6 +7,7 @@ import { cdnClient } from '../../api/client';
 import { CDN_ENDPOINTS, nameToSlug } from '../../api/endpoints';
 import type { PoemDates } from '../../types/poemDates';
 import type { ApiError } from '../../types/api';
+import { getErrorStatus } from '../../types/errors';
 
 /**
  * Query key factory for poem dates queries
@@ -52,12 +53,11 @@ export function usePoemDatesQuery(title: string): UseQueryResult<PoemDates, ApiE
     staleTime: 1000 * 60 * 60 * 24, // 24 hours - poem dates rarely change
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - keep in cache for a week
     retry: (failureCount, error) => {
-      // Safely extract HTTP status from different error shapes
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const status = (error as any)?.status ?? (error as any)?.response?.status;
+      // Type-safe HTTP status extraction using error type guards
+      const status = getErrorStatus(error);
 
       // Don't retry 404 (poem not found) or other client errors
-      if (status && status >= 400 && status < 500) {
+      if (status !== undefined && status >= 400 && status < 500) {
         return false;
       }
 
