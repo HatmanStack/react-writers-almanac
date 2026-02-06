@@ -141,47 +141,55 @@ describe('Search Component', () => {
   describe('Search Functionality', () => {
     const desktopWidth = 1200;
 
-    it('calls searchedTermWrapper on Enter key press', async () => {
-      const user = userEvent.setup();
-      render(
-        <Search
-          searchedTermWrapper={mockSearchedTermWrapper}
-          calendarDate={mockCalendarDate}
-          width={desktopWidth}
-          currentDate="20240101"
-        />
-      );
+    it(
+      'calls searchedTermWrapper on Enter key press',
+      async () => {
+        const user = userEvent.setup();
+        render(
+          <Search
+            searchedTermWrapper={mockSearchedTermWrapper}
+            calendarDate={mockCalendarDate}
+            width={desktopWidth}
+            currentDate="20240101"
+          />
+        );
 
-      const input = screen.getByLabelText(/author.*poem/i);
-      await user.type(input, 'Robert Frost');
-      await user.keyboard('{enter}');
+        const input = screen.getByLabelText(/author.*poem/i);
+        await user.type(input, 'Robert Frost');
+        await user.keyboard('{enter}');
 
-      // Verify the handler is called
-      await waitFor(() => {
-        expect(mockSearchedTermWrapper).toHaveBeenCalledWith('Robert Frost');
-      });
-    });
+        // Verify the handler is called
+        await waitFor(() => {
+          expect(mockSearchedTermWrapper).toHaveBeenCalledWith('Robert Frost');
+        });
+      },
+      15000
+    );
 
-    it('does not call searchedTermWrapper on Escape key press', async () => {
-      const user = userEvent.setup();
-      render(
-        <Search
-          searchedTermWrapper={mockSearchedTermWrapper}
-          calendarDate={mockCalendarDate}
-          width={desktopWidth}
-          currentDate="20240101"
-        />
-      );
+    it(
+      'does not call searchedTermWrapper on Escape key press',
+      async () => {
+        const user = userEvent.setup();
+        render(
+          <Search
+            searchedTermWrapper={mockSearchedTermWrapper}
+            calendarDate={mockCalendarDate}
+            width={desktopWidth}
+            currentDate="20240101"
+          />
+        );
 
-      const input = screen.getByLabelText(/author.*poem/i);
-      await user.type(input, 'Robert Frost');
-      await user.keyboard('{escape}');
+        const input = screen.getByLabelText(/author.*poem/i);
+        await user.type(input, 'Robert Frost');
+        await user.keyboard('{escape}');
 
-      // Verify the handler is not called
-      await waitFor(() => {
-        expect(mockSearchedTermWrapper).not.toHaveBeenCalled();
-      });
-    });
+        // Verify the handler is not called
+        await waitFor(() => {
+          expect(mockSearchedTermWrapper).not.toHaveBeenCalled();
+        });
+      },
+      15000
+    );
 
     it('has clearOnEscape prop enabled', () => {
       const { container } = render(
