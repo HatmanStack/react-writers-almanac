@@ -25,11 +25,13 @@ export interface AuthorMetadata {
 }
 
 /**
- * Poem item with date and optional title
+ * Poem item with date and optional title.
+ * May include a `dates` array for poems featured on multiple dates.
  */
 export interface PoemItem {
   date: string;
   title?: string;
+  dates?: string[] | Array<{ date: string; title?: string }>;
 }
 
 /**

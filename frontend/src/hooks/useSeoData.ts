@@ -91,12 +91,25 @@ export function useSeoData({
     }
 
     // Search view
+    let description: string;
+    let path: string;
+
+    if (searchType === 'author') {
+      description = `Poems by ${searchTerm}`;
+      path = `/author/${encodeURIComponent(searchTerm)}`;
+    } else if (searchType === 'poem') {
+      description = `"${searchTerm}" poem dates`;
+      path = `/`;
+    } else {
+      description = `Search results for "${searchTerm}"`;
+      path = `/`;
+    }
+
     return {
       title: searchTerm,
-      description:
-        searchType === 'author' ? `Poems by ${searchTerm}` : `"${searchTerm}" poem dates`,
+      description,
       type: 'website',
-      path: searchType === 'author' ? `/author/${encodeURIComponent(searchTerm)}` : '/',
+      path,
     };
   }, [isShowingContentByDate, poemTitle, author, linkDate, currentDate, searchTerm, searchType]);
 

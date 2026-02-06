@@ -126,7 +126,15 @@ export function presentDate(): string {
  * formatAuthorDate('December 1, 2010') // '20101201'
  */
 export function formatAuthorDate(dateString: string): string {
-  const [month, day, year] = dateString.trim().split(' ');
+  const parts = dateString.trim().split(' ');
+  const month = parts[0];
+  const day = parts[1];
+  const year = parts[2];
+
+  if (!month || !day || !year) {
+    return '';
+  }
+
   // Remove trailing period from month abbreviation
   const monthKey = month.replace('.', '').substring(0, 3);
   const formattedMonth = MONTH_ABBREVIATIONS[monthKey] || '01';

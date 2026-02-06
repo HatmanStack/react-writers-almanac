@@ -122,7 +122,7 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
         }
 
         // Set fallback state to prevent undefined errors on fetch failure
-        setPoemData({ poem: [], poemTitle: [], note: '' });
+        setPoemData({ poem: [], poemTitle: [], note: [] });
         setAuthorData({ author: [] });
         setAudioData({ transcript: TRANSCRIPT_UNAVAILABLE });
       }
