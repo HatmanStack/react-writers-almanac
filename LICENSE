@@ -176,6 +176,16 @@
 
    END OF TERMS AND CONDITIONS
 
+   SCOPE OF LICENSE
+
+   This license applies solely to the software source code, configuration
+   files, build scripts, and infrastructure-as-code contained in this
+   repository. It does NOT apply to any literary content (poems, author
+   biographies, transcripts, audio recordings, or other creative works)
+   served by or displayed through this software. Such content is the
+   property of its respective authors and rights holders and may be
+   subject to separate copyright protections.
+
    Copyright 2024 HatmanStack
 
    Licensed under the Apache License, Version 2.0 (the "License");
