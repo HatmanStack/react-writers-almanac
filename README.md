@@ -165,23 +165,3 @@ VITE_DEBUG=true
 
 **Note:** Debug mode only works in development builds, not in production.
 
----
-
-## License
-
-**Code**: MIT License
-
-**Content**: All poems, historical narratives, and audio recordings are the property of **Prairie Home Productions** and may not be reproduced without permission.
-
----
-
-## Acknowledgments
-
-- **Garrison Keillor** - Creator of The Writer's Almanac
-- **Prairie Home Productions** - Content provider
-- **Poetry Foundation** - Author biographies
-- **OpenAI Whisper** - Audio transcription
-
----
-
-**Version**: 0.1.0 | **Last Updated**: 2025-10-24
