@@ -140,12 +140,18 @@ function transformPoemEntries(
       return { date: '', title: item };
     }
 
-    // Object with date/title
+    // Object with date/title/dates
     if (item && typeof item === 'object') {
-      return {
-        date: item.date || '',
+      const poemItem: PoemItem = {
+        date: item.date || (Array.isArray(item.dates) && item.dates.length > 0
+          ? (typeof item.dates[0] === 'string' ? item.dates[0] : item.dates[0]?.date || '')
+          : ''),
         title: item.title || '',
       };
+      if (item.dates) {
+        poemItem.dates = item.dates;
+      }
+      return poemItem;
     }
 
     // Fallback

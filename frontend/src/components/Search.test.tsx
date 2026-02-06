@@ -183,10 +183,11 @@ describe('Search Component', () => {
         await user.type(input, 'Robert Frost');
         await user.keyboard('{escape}');
 
+        // Brief delay to ensure no async calls are pending
+        await new Promise(r => setTimeout(r, 50));
+
         // Verify the handler is not called
-        await waitFor(() => {
-          expect(mockSearchedTermWrapper).not.toHaveBeenCalled();
-        });
+        expect(mockSearchedTermWrapper).not.toHaveBeenCalled();
       },
       15000
     );
