@@ -12,20 +12,28 @@ import { formatDate, slugify } from '../utils';
  */
 export const CDN_ENDPOINTS = {
   /**
-   * Get daily poem by date
+   * Get daily poem by date (archived path structure)
    * @param date - Date in YYYYMMDD format (e.g., "20240101")
-   * @returns Path to poem JSON file
-   * @example getPoemByDate("20240101") → "/public/20240101.json"
+   * @returns Path to poem JSON file using YYYY/MM/YYYYMMDD structure
+   * @example getPoemByDate("20240101") → "/public/2024/01/20240101.json"
    */
-  getPoemByDate: (date: string) => `/public/${date}.json`,
+  getPoemByDate: (date: string) => {
+    const year = date.substring(0, 4);
+    const month = date.substring(4, 6);
+    return `/public/${year}/${month}/${date}.json`;
+  },
 
   /**
-   * Get poem audio file
+   * Get poem audio file (archived path structure)
    * @param date - Date in YYYYMMDD format
-   * @returns Path to MP3 file
-   * @example getPoemAudio("20240101") → "/public/20240101.mp3"
+   * @returns Path to MP3 file using YYYY/MM/YYYYMMDD structure
+   * @example getPoemAudio("20240101") → "/public/2024/01/20240101.mp3"
    */
-  getPoemAudio: (date: string) => `/public/${date}.mp3`,
+  getPoemAudio: (date: string) => {
+    const year = date.substring(0, 4);
+    const month = date.substring(4, 6);
+    return `/public/${year}/${month}/${date}.mp3`;
+  },
 
   /**
    * Get author by slug

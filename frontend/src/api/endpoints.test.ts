@@ -141,12 +141,12 @@ describe('endpoints utility functions', () => {
   });
 
   describe('CDN_ENDPOINTS', () => {
-    it('should generate correct poem endpoint', () => {
-      expect(CDN_ENDPOINTS.getPoemByDate('20240101')).toBe('/public/20240101.json');
+    it('should generate correct poem endpoint with YYYY/MM/YYYYMMDD path', () => {
+      expect(CDN_ENDPOINTS.getPoemByDate('20240101')).toBe('/public/2024/01/20240101.json');
     });
 
-    it('should generate correct audio endpoint', () => {
-      expect(CDN_ENDPOINTS.getPoemAudio('20240101')).toBe('/public/20240101.mp3');
+    it('should generate correct audio endpoint with YYYY/MM/YYYYMMDD path', () => {
+      expect(CDN_ENDPOINTS.getPoemAudio('20240101')).toBe('/public/2024/01/20240101.mp3');
     });
 
     it('should generate correct author endpoint', () => {
