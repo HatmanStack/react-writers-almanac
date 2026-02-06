@@ -1,6 +1,15 @@
 import type { ContentSlice, SliceCreator } from '../types';
 
 /**
+ * Normalize a value to an array.
+ * Ensures state always contains arrays, never raw strings.
+ */
+function normalizeToArray(value: string | string[] | undefined): string[] | undefined {
+  if (value === undefined) return undefined;
+  return Array.isArray(value) ? value : [value];
+}
+
+/**
  * Content Slice - Manages poem, author, date, and notes state
  *
  * This slice handles all content-related state including:
@@ -8,6 +17,9 @@ import type { ContentSlice, SliceCreator } from '../types';
  * - Poem text, title, and notes
  * - Author information
  * - View mode toggle (by date vs by search)
+ *
+ * All array fields are normalized at the setter boundary.
+ * State always contains string[] (never raw strings).
  */
 export const createContentSlice: SliceCreator<ContentSlice> = set => ({
   // ============================================================================
@@ -33,23 +45,25 @@ export const createContentSlice: SliceCreator<ContentSlice> = set => ({
 
   /**
    * Set poem data (title, content, notes)
-   * Accepts partial updates - only provided fields will be updated
+   * Accepts partial updates - only provided fields will be updated.
+   * Normalizes string inputs to arrays for consistent state shape.
    */
   setPoemData: data => {
     set({
-      ...(data.poem !== undefined && { poem: data.poem }),
-      ...(data.poemTitle !== undefined && { poemTitle: data.poemTitle }),
-      ...(data.note !== undefined && { note: data.note }),
+      ...(data.poem !== undefined && { poem: normalizeToArray(data.poem) }),
+      ...(data.poemTitle !== undefined && { poemTitle: normalizeToArray(data.poemTitle) }),
+      ...(data.note !== undefined && { note: normalizeToArray(data.note) }),
     });
   },
 
   /**
    * Set author data
-   * Accepts partial updates - only provided fields will be updated
+   * Accepts partial updates - only provided fields will be updated.
+   * Normalizes string inputs to arrays for consistent state shape.
    */
   setAuthorData: data => {
     set({
-      ...(data.author !== undefined && { author: data.author }),
+      ...(data.author !== undefined && { author: normalizeToArray(data.author) }),
     });
   },
 
