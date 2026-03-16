@@ -18,7 +18,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
-    "postinstall": "lefthook install"
+    "postinstall": "lefthook install || true"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1009.0",
