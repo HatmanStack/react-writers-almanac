@@ -47,7 +47,7 @@ jobs:
         run: npm ci && cd frontend && npm ci
 
       - name: Run tests
-        run: npm test -- --reporter=verbose --coverage
+        run: npm test -- --reporter=verbose
 
   validate-sam:
     name: Validate SAM Template
