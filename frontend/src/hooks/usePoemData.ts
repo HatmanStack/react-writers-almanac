@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import axios from 'axios';
 import { cdnClient } from '../api/client';
 import { CDN_ENDPOINTS, isAudioAvailable } from '../api/endpoints';
+import { sanitizePoemText, sanitizePoemLines } from '../api/transforms';
 import { useAppStore } from '../store/useAppStore';
 
 /** Default transcript message when not available */
@@ -80,14 +81,12 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
         storeSetCurrentDate(data.date);
         setPoemByline(data.poembyline);
 
-        // Sanitize poem text - fix encoding issues
+        // Sanitize poem text - fix encoding issues via transforms layer
         let poem = data.poem;
-        if (typeof poem === 'string' && /&amp;#233;/.test(poem)) {
-          poem = poem.replace(/&amp;#233;/g, 'é');
+        if (typeof poem === 'string') {
+          poem = sanitizePoemText(poem);
         } else if (Array.isArray(poem)) {
-          poem = poem.map(line =>
-            typeof line === 'string' ? line.replace(/&amp;#233;/g, 'é') : line
-          );
+          poem = sanitizePoemLines(poem);
         }
 
         // Update store with poem data

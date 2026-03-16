@@ -68,7 +68,7 @@ export function toArrayOrUndefined(
  * @param text - Raw poem text
  * @returns Sanitized text
  */
-function sanitizePoemText(text: string): string {
+export function sanitizePoemText(text: string): string {
   // Fix common encoding issue: &amp;#233; should be é
   return text.replace(/&amp;#233;/g, 'é');
 }
@@ -79,7 +79,7 @@ function sanitizePoemText(text: string): string {
  * @param lines - Raw poem lines
  * @returns Sanitized lines
  */
-function sanitizePoemLines(lines: string[]): string[] {
+export function sanitizePoemLines(lines: string[]): string[] {
   return lines.map(line => sanitizePoemText(line));
 }
 
