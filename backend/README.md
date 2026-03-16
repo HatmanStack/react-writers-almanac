@@ -5,7 +5,7 @@ This directory contains AWS Lambda functions for The Writer's Almanac API, manag
 ## Quick Start
 
 ```bash
-cd lambda
+cd backend
 sam build
 sam deploy
 ```
@@ -30,7 +30,7 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 ## Lambda Functions
 
 ### 1. get-author
-- **Path**: `lambda/get-author/`
+- **Path**: `lambdas/get-author/`
 - **Purpose**: Fetch individual author data by name/slug from S3
 - **Endpoint**: `GET /api/author/{name}`
 - **Handler**: `index.handler`
@@ -38,7 +38,7 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 - **Timeout**: 30 seconds
 
 ### 2. get-authors-by-letter
-- **Path**: `lambda/get-authors-by-letter/`
+- **Path**: `lambdas/get-authors-by-letter/`
 - **Purpose**: Fetch all authors starting with a specific letter
 - **Endpoint**: `GET /api/authors/letter/{letter}`
 - **Handler**: `index.handler`
@@ -46,7 +46,7 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 - **Timeout**: 30 seconds
 
 ### 3. search-autocomplete
-- **Path**: `lambda/search-autocomplete/`
+- **Path**: `lambdas/search-autocomplete/`
 - **Purpose**: Search autocomplete for authors with in-memory caching
 - **Endpoint**: `GET /api/search/autocomplete?q={query}&limit={limit}`
 - **Handler**: `index.handler`
@@ -130,8 +130,7 @@ Your AWS user/role needs permissions for:
    ```toml
    parameter_overrides = [
        "Environment=prod",
-       "S3BucketName=your-actual-bucket-name",  # ← UPDATE THIS
-       "AWSRegion=us-east-1"                    # ← UPDATE IF NEEDED
+       "S3BucketName=your-actual-bucket-name"   # ← UPDATE THIS
    ]
    ```
 
@@ -154,7 +153,7 @@ Your AWS user/role needs permissions for:
 
    You'll be asked to confirm:
    - Stack name: `writers-almanac-backend-prod`
-   - AWS region: `us-east-1`
+   - AWS region: `us-west-2`
    - Parameter values (S3 bucket, environment)
    - Confirm IAM role creation: `Y`
    - Confirm changeset: `Y`
@@ -253,10 +252,10 @@ curl "http://localhost:3000/api/search/autocomplete?q=billy&limit=5"
 All Lambda functions receive these environment variables automatically from SAM template:
 
 - `S3_BUCKET`: S3 bucket name containing author/poem data (from parameter)
-- `AWS_REGION`: AWS region (from parameter)
 - `NODE_ENV`: `production` (set globally)
+- `AWS_REGION`: Set automatically by AWS Lambda runtime (not a template parameter)
 
-Configure these in `samconfig.toml`, not in individual Lambda functions.
+Configure `S3_BUCKET` via the `S3BucketName` parameter in `samconfig.toml`.
 
 ### SAM Template Parameters
 
@@ -265,8 +264,7 @@ Edit `samconfig.toml` to change deployment configuration:
 ```toml
 parameter_overrides = [
     "Environment=prod",              # Environment name (dev/staging/prod)
-    "S3BucketName=your-bucket-name", # Existing S3 bucket
-    "AWSRegion=us-east-1"           # AWS region
+    "S3BucketName=your-bucket-name"  # Existing S3 bucket
 ]
 ```
 
@@ -287,8 +285,7 @@ First, add a `[staging]` section to `samconfig.toml`:
 stack_name = "writers-almanac-backend-staging"
 parameter_overrides = [
     "Environment=staging",
-    "S3BucketName=your-staging-bucket-name",
-    "AWSRegion=us-east-1"
+    "S3BucketName=your-staging-bucket-name"
 ]
 ```
 
