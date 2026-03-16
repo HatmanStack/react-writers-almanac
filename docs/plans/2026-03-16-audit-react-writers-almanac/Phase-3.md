@@ -191,10 +191,10 @@ ci(testing): add coverage reporting with threshold enforcement
 - Do NOT spend more than 30 minutes trying to fix failing tests. If they require significant work, remove them with a clear comment.
 
 **Verification Checklist:**
-- [ ] No `it.skip` in `Audio.test.tsx`
-- [ ] All remaining tests pass
-- [ ] If tests were removed, a comment explains why
-- [ ] `npm run check` passes
+- [x] No `it.skip` in `Audio.test.tsx`
+- [x] All remaining tests pass
+- [x] If tests were removed, a comment explains why
+- [x] `npm run check` passes
 
 **Testing Instructions:**
 - Run `npm test` to verify all tests pass
