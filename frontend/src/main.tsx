@@ -10,6 +10,11 @@ import './index.css';
 
 const rootElement = document.getElementById('root') as HTMLElement;
 
+// Global handler for unhandled promise rejections
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+});
+
 // Initialize Web Vitals performance monitoring
 initPerformanceMonitoring();
 
