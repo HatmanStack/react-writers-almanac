@@ -18,10 +18,10 @@ const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/c
 // Initialize S3 client
 const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
 
-// Configuration - S3_BUCKET is required (validated at handler invocation)
+// Configuration - S3_BUCKET is required
 const BUCKET_NAME = process.env.S3_BUCKET;
 if (!BUCKET_NAME) {
-  console.warn('S3_BUCKET environment variable is not set at init; handler will return 500');
+  throw new Error('S3_BUCKET environment variable is required');
 }
 const AUTHORS_PREFIX = 'authors/by-name/';
 const DEFAULT_LIMIT = 10;
@@ -199,11 +199,6 @@ async function searchAuthors(query, limit) {
  * @returns {Object} API Gateway response
  */
 exports.handler = async (event) => {
-  // Validate S3_BUCKET is configured (deferred from init to avoid cold-start 502)
-  if (!BUCKET_NAME) {
-    return errorResponse(500, 'S3_BUCKET environment variable not configured', 'CONFIGURATION_ERROR');
-  }
-
   // Log request details (excluding sensitive headers)
   console.log('Request:', JSON.stringify({
     httpMethod: event.httpMethod,
