@@ -81,7 +81,7 @@ Address structural code issues: DRY violations in both backend and frontend, dat
 - Run `npm test` to verify both frontend and backend tests pass
 
 **Commit Message Template:**
-```
+```text
 refactor(lambda): extract shared utilities into common module
 
 - Create backend/lambdas/shared/utils.js with getCorsHeaders, errorResponse, streamToString
@@ -117,16 +117,16 @@ refactor(lambda): extract shared utilities into common module
 - This matches the pattern in `get-author/index.js:22-24` and `get-authors-by-letter/index.js:22-24`.
 
 **Verification Checklist:**
-- [x]`search-autocomplete/index.js` throws on missing `S3_BUCKET` at module scope
-- [x]No redundant `S3_BUCKET` check inside the handler
-- [x]Pattern matches the other two Lambdas
-- [x]`npm run check` passes
+- [x] `search-autocomplete/index.js` throws on missing `S3_BUCKET` at module scope
+- [x] No redundant `S3_BUCKET` check inside the handler
+- [x] Pattern matches the other two Lambdas
+- [x] `npm run check` passes
 
 **Testing Instructions:**
 - No new tests needed — this is a consistency fix. The module-level throw is not easily unit-testable without process-level isolation, which is out of scope.
 
 **Commit Message Template:**
-```
+```text
 fix(lambda): align S3_BUCKET validation in search-autocomplete
 
 - Change console.warn to throw for missing S3_BUCKET, matching other Lambdas
@@ -157,18 +157,18 @@ fix(lambda): align S3_BUCKET validation in search-autocomplete
 - Run existing tests to confirm behavior is unchanged.
 
 **Verification Checklist:**
-- [x]`sanitizePoemText` is exported from `transforms.ts`
-- [x]`sanitizePoemLines` is exported from `transforms.ts`
-- [x]No inline `&amp;#233;` replacement in `usePoemData.ts`
-- [x]Correct sanitize function imported and used in `usePoemData.ts` (matching the input type)
-- [x]`npm run check` passes
+- [x] `sanitizePoemText` is exported from `transforms.ts`
+- [x] `sanitizePoemLines` is exported from `transforms.ts`
+- [x] No inline `&amp;#233;` replacement in `usePoemData.ts`
+- [x] Correct sanitize function imported and used in `usePoemData.ts` (matching the input type)
+- [x] `npm run check` passes
 
 **Testing Instructions:**
 - Existing tests should cover this — run `npm test`
 - Verify that existing callers of `sanitizePoemText` and `sanitizePoemLines` within `transforms.ts` (e.g., `transformPoemResponse`) still work correctly after adding the `export` keyword
 
 **Commit Message Template:**
-```
+```text
 refactor(frontend): use transforms layer for poem text sanitization
 
 - Replace inline sanitization in usePoemData with sanitizePoemText from transforms.ts
@@ -200,17 +200,17 @@ refactor(frontend): use transforms layer for poem text sanitization
 - Alternatively, import the CDN base URL from `client.ts` if it's exported as a constant. Check `client.ts` — if `CDN_BASE_URL` is exported, import it. If not, extract it as a named export and use it in both places.
 
 **Verification Checklist:**
-- [x]No hardcoded `d3vq6af2mo7fcy.cloudfront.net` string in `Author.tsx`
-- [x]CDN URL sourced from env var with fallback
-- [x]`npm run check` passes
-- [x]`Author.test.tsx` passes
+- [x] No hardcoded `d3vq6af2mo7fcy.cloudfront.net` string in `Author.tsx`
+- [x] CDN URL sourced from env var with fallback
+- [x] `npm run check` passes
+- [x] `Author.test.tsx` passes
 
 **Testing Instructions:**
 - No new tests — existing Author tests should still pass
 - Run `npm test`
 
 **Commit Message Template:**
-```
+```text
 refactor(author): replace hardcoded CloudFront URL with env var
 
 - Use VITE_CDN_BASE_URL from environment with fallback default
@@ -234,17 +234,17 @@ refactor(author): replace hardcoded CloudFront URL with env var
 - Update the comment to reflect the new value: `// 10 seconds`
 
 **Verification Checklist:**
-- [x]CDN client timeout is 10000
-- [x]API client timeout is unchanged (15000)
-- [x]`npm run check` passes
-- [x]`client.test.ts` passes (update test assertions if they check timeout value)
+- [x] CDN client timeout is 10000
+- [x] API client timeout is unchanged (15000)
+- [x] `npm run check` passes
+- [x] `client.test.ts` passes (update test assertions if they check timeout value)
 
 **Testing Instructions:**
 - Check `client.test.ts` — if it asserts on the timeout value, update the expected value to 10000
 - Run `npm test`
 
 **Commit Message Template:**
-```
+```text
 perf(frontend): reduce CDN client timeout from 30s to 10s
 
 - Static CDN content should not take 30 seconds; reduce to 10s
@@ -275,12 +275,12 @@ perf(frontend): reduce CDN client timeout from 30s to 10s
 - Optionally, you may want to first do a lightweight HEAD request or rely on the `isAudioAvailable` check (already present) to avoid setting an invalid URL. The existing `isAudioAvailable` check is sufficient — if audio is not available, `mp3Url` is set to `'NotAvailable'` and the audio component already handles this case.
 
 **Verification Checklist:**
-- [x]No `responseType: 'arraybuffer'` in `usePoemData.ts`
-- [x]No `Blob` construction or `URL.createObjectURL` in `usePoemData.ts`
-- [x]`mp3Url` is a direct CDN URL (e.g., `https://...cloudfront.net/audio/20150315.mp3`)
-- [x]Audio still plays correctly (manual verification needed)
-- [x]`npm run check` passes
-- [x]Audio tests pass (check `Audio.test.tsx`)
+- [x] No `responseType: 'arraybuffer'` in `usePoemData.ts`
+- [x] No `Blob` construction or `URL.createObjectURL` in `usePoemData.ts`
+- [x] `mp3Url` is a direct CDN URL (e.g., `https://...cloudfront.net/audio/20150315.mp3`)
+- [x] Audio still plays correctly (manual verification needed)
+- [x] `npm run check` passes
+- [x] Audio tests pass (check `Audio.test.tsx`)
 
 **Testing Instructions:**
 - Run `npm test` and verify Audio component tests pass
@@ -288,7 +288,7 @@ perf(frontend): reduce CDN client timeout from 30s to 10s
 - Manual verification: run `npm run dev` and verify audio playback works on a poem with audio
 
 **Commit Message Template:**
-```
+```text
 perf(frontend): stream audio via direct CDN URL instead of arraybuffer
 
 - Replace full MP3 download into memory with direct CDN URL for <audio src>
@@ -319,17 +319,17 @@ perf(frontend): stream audio via direct CDN URL instead of arraybuffer
 - This runs once at app startup and catches any promise rejections that are not caught by component-level error handling.
 
 **Verification Checklist:**
-- [x]`unhandledrejection` listener added in `main.tsx`
-- [x]Handler logs to `console.error`
-- [x]Does not call `event.preventDefault()`
-- [x]`npm run check` passes
+- [x] `unhandledrejection` listener added in `main.tsx`
+- [x] Handler logs to `console.error`
+- [x] Does not call `event.preventDefault()`
+- [x] `npm run check` passes
 
 **Testing Instructions:**
 - No unit test needed — this is a global runtime handler
 - Run `npm test` to verify no regressions
 
 **Commit Message Template:**
-```
+```text
 fix(frontend): add global unhandled promise rejection handler
 
 - Log unhandled rejections to console.error in main.tsx
@@ -358,9 +358,9 @@ fix(frontend): add global unhandled promise rejection handler
 - 200 characters is generous for author/poem name searches while preventing abuse.
 
 **Verification Checklist:**
-- [x]Query strings longer than 200 characters return 400 error
-- [x]Short queries still work
-- [x]`npm run check` passes
+- [x] Query strings longer than 200 characters return 400 error
+- [x] Short queries still work
+- [x] `npm run check` passes
 
 **Testing Instructions:**
 - Add a test case in the Lambda's test file (create if needed) verifying:
@@ -368,7 +368,7 @@ fix(frontend): add global unhandled promise rejection handler
   - Query of 201 chars returns 400 error with code `QUERY_TOO_LONG`
 
 **Commit Message Template:**
-```
+```text
 fix(lambda): add input length validation to search endpoint
 
 - Reject queries longer than 200 characters with 400 error
@@ -397,17 +397,17 @@ fix(lambda): add input length validation to search endpoint
 - If you remove `dangerouslySetInnerHTML`, also remove the corresponding `DOMPurify.sanitize()` call for that element since it's no longer needed.
 
 **Verification Checklist:**
-- [x]Each `dangerouslySetInnerHTML` usage reviewed — removed where content is plain text
-- [x]Remaining `dangerouslySetInnerHTML` uses still have `DOMPurify.sanitize()`
-- [x]`npm run check` passes
-- [x]Visual rendering unchanged (manual verification)
+- [x] Each `dangerouslySetInnerHTML` usage reviewed — removed where content is plain text
+- [x] Remaining `dangerouslySetInnerHTML` uses still have `DOMPurify.sanitize()`
+- [x] `npm run check` passes
+- [x] Visual rendering unchanged (manual verification)
 
 **Testing Instructions:**
 - Run `npm test` — existing Poem and App tests should cover rendering
 - Check that `Poem.test.tsx` XSS sanitization tests still pass
 
 **Commit Message Template:**
-```
+```text
 refactor(frontend): remove unnecessary dangerouslySetInnerHTML for plain text
 
 - Replace dangerouslySetInnerHTML with direct text rendering where content is plain text

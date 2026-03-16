@@ -66,7 +66,7 @@ Fix all documentation drift, broken links, stale references, and config drift id
 - Manually verify all internal links resolve to existing files
 
 **Commit Message Template:**
-```
+```text
 docs(readme): fix directory paths, version, structure, and stale sections
 
 - Replace lambda/ with backend/ throughout
@@ -108,7 +108,7 @@ docs(readme): fix directory paths, version, structure, and stale sections
 - Verify `backend/template.yaml` parameters match what's documented
 
 **Commit Message Template:**
-```
+```text
 docs(backend): fix paths, parameters, and stale deployment references
 
 - Fix Lambda directory paths from lambda/ to lambdas/
@@ -144,7 +144,7 @@ docs(backend): fix paths, parameters, and stale deployment references
 - Cross-reference with `playwright.config.ts` and `.github/workflows/ci.yml`
 
 **Commit Message Template:**
-```
+```text
 docs(e2e): fix base URL, Node version, and CI section
 
 - Change baseURL from localhost:5173 to localhost:3000
@@ -169,7 +169,7 @@ docs(e2e): fix base URL, Node version, and CI section
 - Remove `VITE_AWS_REGION=` and its comment — grep confirms no `import.meta.env.VITE_AWS_REGION` exists in frontend source.
 - Do NOT add `VITE_DEBUG` — the debug utility was deleted in Phase 1, so this variable is also unused.
 - The resulting file should contain only:
-  ```
+  ```text
   # API Configuration
   # Copy this file to .env and replace with your actual values
 
@@ -192,7 +192,7 @@ docs(e2e): fix base URL, Node version, and CI section
 - Verify with grep that only `VITE_API_BASE_URL` and `VITE_CDN_BASE_URL` are used in `frontend/src/`
 
 **Commit Message Template:**
-```
+```text
 docs(config): remove phantom env vars from .env.example
 
 - Remove VITE_S3_BUCKET and VITE_AWS_REGION — not used in frontend code

@@ -34,10 +34,12 @@ describe('search-autocomplete Lambda', () => {
       };
 
       const response = await handler(event);
-      // Should not return 400 with QUERY_TOO_LONG
-      if (response.statusCode === 400) {
+      // Should not be rejected as too long (400 QUERY_TOO_LONG)
+      expect(response.statusCode).not.toBe(400);
+      if (response.statusCode === 200) {
         const body = JSON.parse(response.body);
-        expect(body.code).not.toBe('QUERY_TOO_LONG');
+        expect(body).toHaveProperty('results');
+        expect(body).toHaveProperty('query', query);
       }
     });
 

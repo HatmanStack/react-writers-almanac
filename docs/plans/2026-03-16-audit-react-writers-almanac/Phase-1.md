@@ -49,7 +49,7 @@ Remove dead code, unused files, and simplify the codebase before structural fixe
 - Run `npm test` to verify no existing tests reference the deleted module
 
 **Commit Message Template:**
-```
+```text
 chore(frontend): remove unused debug utility module
 
 - Remove debug.ts (149 lines) and debug.test.ts — not imported by any production code
@@ -84,7 +84,7 @@ chore(frontend): remove unused debug utility module
 - Run `npm test` to verify no test failures
 
 **Commit Message Template:**
-```
+```text
 chore(frontend): remove unused usePoemQuery hook
 
 - Remove usePoemQuery.ts and usePoemQuery.test.tsx — not imported by any component
@@ -120,7 +120,7 @@ chore(frontend): remove unused usePoemQuery hook
 - Run `npm test` to verify
 
 **Commit Message Template:**
-```
+```text
 style(frontend): remove dead markup and fix loose equality
 
 - Remove empty FormattingContainer div from App.tsx
@@ -156,7 +156,7 @@ style(frontend): remove dead markup and fix loose equality
 - Run `npm test` to verify
 
 **Commit Message Template:**
-```
+```text
 refactor(search): use shared date boundary constants
 
 - Replace hardcoded maxDate/minDate in Search.tsx with imports from dateMapping.ts
@@ -193,7 +193,7 @@ refactor(search): use shared date boundary constants
 - Run `npm test` and `npm run build` to verify
 
 **Commit Message Template:**
-```
+```text
 chore(deps): fix known vulnerabilities via npm audit fix
 
 - Apply npm audit fix to reduce vulnerability count

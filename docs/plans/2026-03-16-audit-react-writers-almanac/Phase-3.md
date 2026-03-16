@@ -51,7 +51,7 @@ Add automated guardrails to prevent regression: enable stricter lint rules, re-i
 - Run `npm run check` to verify
 
 **Commit Message Template:**
-```
+```text
 style(frontend): enable eqeqeq and strict no-explicit-any lint rules
 
 - Add eqeqeq rule to prevent loose equality operators
@@ -99,7 +99,7 @@ style(frontend): enable eqeqeq and strict no-explicit-any lint rules
 - Verify it runs lint and typecheck successfully
 
 **Commit Message Template:**
-```
+```text
 ci(hooks): re-introduce pre-commit hooks with lefthook
 
 - Add lefthook for pre-commit lint and typecheck
@@ -161,7 +161,7 @@ ci(hooks): re-introduce pre-commit hooks with lefthook
 - Verify thresholds are met (adjust if needed)
 
 **Commit Message Template:**
-```
+```text
 ci(testing): add coverage reporting with threshold enforcement
 
 - Add V8 coverage provider configuration to vitest
@@ -201,7 +201,7 @@ ci(testing): add coverage reporting with threshold enforcement
 - Run `npm test -- --reporter=verbose` to see individual test results
 
 **Commit Message Template:**
-```
+```text
 fix(tests): resolve skipped tests in Audio.test.tsx
 
 - [Unskip/Remove] accessibility tests that were skipped without tracking issue

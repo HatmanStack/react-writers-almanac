@@ -165,8 +165,8 @@ const Search = memo(function Search({
                   `${currentDate.substring(0, 4)}-${currentDate.substring(4, 6)}-${currentDate.substring(6, 8)}`
                 )}
                 onChange={e => calendarChange(e)}
-                maxDate={dayjs(DATE_BOUNDARIES.MAX_DATE_STRING)}
-                minDate={dayjs(DATE_BOUNDARIES.MIN_DATE_STRING)}
+                maxDate={dayjs(DATE_BOUNDARIES.MAX_DATE_STRING, 'YYYYMMDD')}
+                minDate={dayjs(DATE_BOUNDARIES.MIN_DATE_STRING, 'YYYYMMDD')}
                 sx={{
                   zIndex: 1,
                   textDecorationColor: 'black',
@@ -253,8 +253,8 @@ const Search = memo(function Search({
                   `${currentDate.substring(0, 4)}-${currentDate.substring(4, 6)}-${currentDate.substring(6, 8)}`
                 )}
                 onChange={e => calendarChange(e)}
-                maxDate={dayjs(DATE_BOUNDARIES.MAX_DATE_STRING)}
-                minDate={dayjs(DATE_BOUNDARIES.MIN_DATE_STRING)}
+                maxDate={dayjs(DATE_BOUNDARIES.MAX_DATE_STRING, 'YYYYMMDD')}
+                minDate={dayjs(DATE_BOUNDARIES.MIN_DATE_STRING, 'YYYYMMDD')}
                 sx={{
                   zIndex: 1,
                   textDecorationColor: 'black',

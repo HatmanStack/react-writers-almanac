@@ -34,6 +34,7 @@ function errorResponse(statusCode, message, code, headerOverrides) {
     statusCode,
     headers: {
       ...getCorsHeaders(),
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
       ...headerOverrides,
     },
     body: JSON.stringify({
@@ -53,7 +54,7 @@ function errorResponse(statusCode, message, code, headerOverrides) {
 async function streamToString(stream) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    stream.on('data', chunk => chunks.push(chunk));
+    stream.on('data', chunk => chunks.push(typeof chunk === 'string' ? Buffer.from(chunk, 'utf8') : chunk));
     stream.on('error', reject);
     stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
   });

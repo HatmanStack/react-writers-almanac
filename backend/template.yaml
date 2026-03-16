@@ -71,8 +71,8 @@ Resources:
     Properties:
       FunctionName: !Sub 'writers-almanac-get-author-${Environment}'
       Description: Fetch author data from S3 by author name/slug
-      CodeUri: lambdas/get-author/
-      Handler: index.handler
+      CodeUri: lambdas/
+      Handler: get-author/index.handler
       Policies:
         - S3ReadPolicy:
             BucketName: !Ref S3BucketName
@@ -99,8 +99,8 @@ Resources:
     Properties:
       FunctionName: !Sub 'writers-almanac-get-authors-by-letter-${Environment}'
       Description: Fetch all authors whose names start with a given letter
-      CodeUri: lambdas/get-authors-by-letter/
-      Handler: index.handler
+      CodeUri: lambdas/
+      Handler: get-authors-by-letter/index.handler
       Policies:
         - S3ReadPolicy:
             BucketName: !Ref S3BucketName
@@ -127,8 +127,8 @@ Resources:
     Properties:
       FunctionName: !Sub 'writers-almanac-search-autocomplete-${Environment}'
       Description: Search for authors and poems by query string
-      CodeUri: lambdas/search-autocomplete/
-      Handler: index.handler
+      CodeUri: lambdas/
+      Handler: search-autocomplete/index.handler
       # Higher memory than default (256 MB) due to in-memory search operations
       # across full author and poem datasets. Performance testing recommended
       # to optimize this value based on actual dataset size.

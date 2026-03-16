@@ -14,6 +14,7 @@
  */
 
 const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getCorsHeaders, errorResponse: baseErrorResponse } = require('../shared/utils');
 
 // Initialize S3 client
 const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
@@ -31,8 +32,6 @@ const MAX_LIMIT = 50;
 let authorSlugsCache = null;
 let cacheTimestamp = null;
 const CACHE_TTL = 3600000; // 1 hour in milliseconds
-
-const { getCorsHeaders, errorResponse: baseErrorResponse } = require('../shared/utils');
 
 /**
  * Search-specific error response that overrides Cache-Control to prevent caching errors

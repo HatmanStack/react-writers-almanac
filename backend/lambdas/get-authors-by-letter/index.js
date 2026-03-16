@@ -14,6 +14,7 @@
  */
 
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getCorsHeaders, errorResponse, streamToString } = require('../shared/utils');
 
 // Initialize S3 client
 const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
@@ -24,8 +25,6 @@ if (!BUCKET_NAME) {
   throw new Error('S3_BUCKET environment variable is required');
 }
 const AUTHORS_BY_LETTER_PREFIX = 'authors/by-letter/';
-
-const { getCorsHeaders, errorResponse, streamToString } = require('../shared/utils');
 
 /**
  * Validate letter parameter

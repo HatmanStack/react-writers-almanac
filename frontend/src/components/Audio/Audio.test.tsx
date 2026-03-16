@@ -199,10 +199,19 @@ describe('Audio Component', () => {
   });
 
   describe('Accessibility', () => {
-    // Removed: "should have no axe violations when rendered with audio" - requires browser audio API not available in jsdom;
-    // axe-core hangs on HTML5 audio elements in test environments. See: https://github.com/dequelabs/axe-core/issues/2765
-    // Removed: "should have no axe violations in mobile view" - same axe-core/audio hang issue.
+    // axe-core hangs on HTML5 audio elements in jsdom. See: https://github.com/dequelabs/axe-core/issues/2765
     // Manual accessibility testing should be performed for audio controls.
+    it.skip('should have no axe violations when rendered with audio (skipped: axe-core/jsdom audio API limitation)', async () => {
+      const { container } = render(<Audio {...defaultProps} />);
+      const results = await axe(container);
+      expect(results.violations).toEqual([]);
+    });
+
+    it.skip('should have no axe violations in mobile view (skipped: axe-core/jsdom audio API limitation)', async () => {
+      const { container } = render(<Audio {...defaultProps} width={800} />);
+      const results = await axe(container);
+      expect(results.violations).toEqual([]);
+    });
 
     it('should have no axe violations in search mode (no audio)', async () => {
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue('NotAvailable');

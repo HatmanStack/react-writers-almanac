@@ -44,7 +44,7 @@ This phase establishes conventions, architectural decisions, and strategies that
 
 All commits use conventional commits format:
 
-```
+```text
 type(scope): brief description
 
 - Detail 1

@@ -49,9 +49,16 @@ describe('shared Lambda utilities', () => {
       expect(response.headers['Access-Control-Allow-Origin']).toBe('*');
     });
 
-    it('should use default headers when no overrides provided', () => {
+    it('should use non-cacheable Cache-Control by default', () => {
       const response = errorResponse(404, 'not found', 'NOT_FOUND');
-      expect(response.headers['Cache-Control']).toBe('public, max-age=3600');
+      expect(response.headers['Cache-Control']).toBe('no-store, no-cache, must-revalidate, max-age=0');
+    });
+
+    it('should allow callers to override Cache-Control', () => {
+      const response = errorResponse(503, 'retry later', 'RETRY', {
+        'Cache-Control': 'private, no-cache, max-age=0',
+      });
+      expect(response.headers['Cache-Control']).toBe('private, no-cache, max-age=0');
     });
   });
 
