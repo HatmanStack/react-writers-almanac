@@ -40,9 +40,9 @@ Remove dead code, unused files, and simplify the codebase before structural fixe
 - Run `npm run check` to confirm no build or test failures
 
 **Verification Checklist:**
-- [ ] No file in `frontend/src/` (excluding test files) imports from `debug.ts`
-- [ ] Both files are deleted
-- [ ] `npm run check` passes
+- [x] No file in `frontend/src/` (excluding test files) imports from `debug.ts`
+- [x] Both files are deleted
+- [x] `npm run check` passes
 
 **Testing Instructions:**
 - No new tests needed — this is a deletion task
@@ -75,9 +75,9 @@ chore(frontend): remove unused debug utility module
 - Run `npm run check` to confirm no build or test failures
 
 **Verification Checklist:**
-- [ ] No production file imports `usePoemQuery`
-- [ ] Both files deleted
-- [ ] `npm run check` passes
+- [x] No production file imports `usePoemQuery`
+- [x] Both files deleted
+- [x] `npm run check` passes
 
 **Testing Instructions:**
 - No new tests — deletion task
@@ -110,10 +110,10 @@ chore(frontend): remove unused usePoemQuery hook
 - Run `npm run check` to verify
 
 **Verification Checklist:**
-- [ ] No `<div className="FormattingContainer" />` in `App.tsx`
-- [ ] No `==` or `!=` operators in `Poem.tsx` (except inside strings or comments)
-- [ ] `npm run check` passes
-- [ ] Existing `Poem.test.tsx` tests pass
+- [x] No `<div className="FormattingContainer" />` in `App.tsx`
+- [x] No `==` or `!=` operators in `Poem.tsx` (except inside strings or comments)
+- [x] `npm run check` passes
+- [x] Existing `Poem.test.tsx` tests pass
 
 **Testing Instructions:**
 - No new tests — these are trivial fixes covered by existing tests
@@ -146,10 +146,10 @@ style(frontend): remove dead markup and fix loose equality
 - Run `npm run check` to verify
 
 **Verification Checklist:**
-- [ ] No hardcoded `'2017-11-30'` or `'1993-01-01'` date strings in `Search.tsx`
-- [ ] Date boundaries imported from `dateMapping.ts`
-- [ ] `npm run check` passes
-- [ ] `Search.test.tsx` tests pass
+- [x] No hardcoded `'2017-11-30'` or `'1993-01-01'` date strings in `Search.tsx`
+- [x] Date boundaries imported from `dateMapping.ts`
+- [x] `npm run check` passes
+- [x] `Search.test.tsx` tests pass
 
 **Testing Instructions:**
 - No new tests — this is a refactor covered by existing tests
@@ -183,10 +183,10 @@ refactor(search): use shared date boundary constants
 - If `npm audit fix` cannot fix some vulnerabilities without breaking changes, document which ones remain. Do NOT run `npm audit fix --force`.
 
 **Verification Checklist:**
-- [ ] `npm audit` shows reduced vulnerability count
-- [ ] `npm run check` passes
-- [ ] No `--force` flag used
-- [ ] Any remaining vulnerabilities documented in the commit message
+- [x] `npm audit` shows reduced vulnerability count
+- [x] `npm run check` passes
+- [x] No `--force` flag used
+- [x] Any remaining vulnerabilities documented in the commit message
 
 **Testing Instructions:**
 - No new tests — this is a dependency update
