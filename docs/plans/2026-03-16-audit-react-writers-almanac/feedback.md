@@ -12,16 +12,17 @@
 - **Resolution:** (filled when resolved)
 -->
 
-### [CODE_REVIEW] FB-004: backend/README.md TOC has broken anchor to removed Legacy Manual Deployment section
-- **Status:** OPEN
-- **Phase:** Phase-4
-- **Task:** Task 2
-- **Description:** Line 26 of `backend/README.md` still contains `- [Legacy Manual Deployment](#legacy-manual-deployment)` in the Table of Contents, but the actual "Legacy Manual Deployment" section was removed as part of this phase. This is a broken internal anchor link. Remove this TOC entry. Additionally, there is a cosmetic double `---` separator at lines 429-430 (a remnant of the section removal) that should be collapsed to a single `---`.
-- **Resolution:**
 
 ## Resolved Feedback
 
 <!-- Resolved items are moved here with resolution notes -->
+
+### [CODE_REVIEW] FB-004: backend/README.md TOC has broken anchor to removed Legacy Manual Deployment section
+- **Status:** RESOLVED
+- **Phase:** Phase-4
+- **Task:** Task 2
+- **Description:** Line 26 of `backend/README.md` still contains `- [Legacy Manual Deployment](#legacy-manual-deployment)` in the Table of Contents, but the actual "Legacy Manual Deployment" section was removed as part of this phase. This is a broken internal anchor link. Remove this TOC entry. Additionally, there is a cosmetic double `---` separator at lines 429-430 (a remnant of the section removal) that should be collapsed to a single `---`.
+- **Resolution:** Removed the broken `[Legacy Manual Deployment](#legacy-manual-deployment)` TOC entry from line 26 of `backend/README.md`. Collapsed the double `---` separator (lines 429-430) to a single `---`.
 
 ### [PLAN_REVIEW] FB-001: Backend test file will not be picked up by vitest
 - **Status:** RESOLVED

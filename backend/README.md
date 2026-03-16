@@ -23,7 +23,6 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 - [Configuration](#configuration)
 - [Troubleshooting](#troubleshooting)
 - [Monitoring](#monitoring)
-- [Legacy Manual Deployment](#legacy-manual-deployment)
 
 ---
 
@@ -424,8 +423,6 @@ git checkout <previous-commit>
 cd backend
 sam build && sam deploy
 ```
-
----
 
 ---
 
