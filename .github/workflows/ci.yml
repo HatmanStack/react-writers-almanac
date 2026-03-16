@@ -47,7 +47,7 @@ jobs:
         run: npm ci && cd frontend && npm ci
 
       - name: Run tests
-        run: npm test -- --reporter=verbose
+        run: npm test -- --reporter=verbose --coverage
 
   test-backend:
     name: Backend Tests

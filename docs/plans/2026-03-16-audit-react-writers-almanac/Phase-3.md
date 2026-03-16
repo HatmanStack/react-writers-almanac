@@ -150,11 +150,11 @@ ci(hooks): re-introduce pre-commit hooks with lefthook
 - The `@vitest/coverage-v8` package is already in root devDependencies, so no new dependency is needed.
 
 **Verification Checklist:**
-- [ ] `vitest.config.ts` has coverage configuration with thresholds
-- [ ] CI test step includes `--coverage` flag
-- [ ] `npm test -- --coverage` passes locally
-- [ ] Coverage thresholds are met
-- [ ] `npm run check` passes
+- [x] `vitest.config.ts` has coverage configuration with thresholds
+- [x] CI test step includes `--coverage` flag
+- [x] `npm test -- --coverage` passes locally
+- [x] Coverage thresholds are met
+- [x] `npm run check` passes
 
 **Testing Instructions:**
 - Run `npm test -- --coverage` locally and verify coverage report is generated

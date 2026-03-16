@@ -16,6 +16,23 @@ export default defineConfig({
     environmentMatchGlobs: [
       ['backend/**', 'node'],
     ],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'text-summary'],
+      exclude: [
+        '**/node_modules/**',
+        '**/test/**',
+        '**/*.test.*',
+        '**/dist/**',
+        'backend/lambdas/shared/utils.test.js',
+      ],
+      thresholds: {
+        statements: 50,
+        branches: 50,
+        functions: 50,
+        lines: 50,
+      },
+    },
   },
   resolve: {
     alias: {
