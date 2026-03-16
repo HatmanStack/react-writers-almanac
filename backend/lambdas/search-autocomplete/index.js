@@ -235,6 +235,11 @@ exports.handler = async (event) => {
       return errorResponse(400, 'Query must be at least 1 character', 'QUERY_TOO_SHORT');
     }
 
+    // Reject excessively long queries to prevent abuse
+    if (query.length > 200) {
+      return errorResponse(400, 'Query too long (max 200 characters)', 'QUERY_TOO_LONG');
+    }
+
     // Parse limit
     let limit = DEFAULT_LIMIT;
     if (limitParam) {
