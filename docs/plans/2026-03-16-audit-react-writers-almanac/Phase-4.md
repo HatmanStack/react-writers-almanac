@@ -53,13 +53,13 @@ Fix all documentation drift, broken links, stale references, and config drift id
   - Line 120: Remove "Accessibility compliance (WCAG AA)" claim or qualify as "Accessibility testing with vitest-axe".
 
 **Verification Checklist:**
-- [ ] No `lambda/` references in README (should all be `backend/`)
-- [ ] Node.js version is 22
-- [ ] Project structure matches actual directory layout
-- [ ] Link to backend README resolves correctly
-- [ ] No reference to `docs/SAM_DEPLOYMENT.md`
-- [ ] No "Transcript Debugging" section
-- [ ] Developer claims are accurate or qualified
+- [x] No `lambda/` references in README (should all be `backend/`)
+- [x] Node.js version is 22
+- [x] Project structure matches actual directory layout
+- [x] Link to backend README resolves correctly
+- [x] No reference to `docs/SAM_DEPLOYMENT.md`
+- [x] No "Transcript Debugging" section
+- [x] Developer claims are accurate or qualified
 
 **Testing Instructions:**
 - No code tests — documentation only
@@ -97,11 +97,11 @@ docs(readme): fix directory paths, version, structure, and stale sections
 - **Fix broken link** (broken link #2): Near line 435 — remove the reference to `docs/SAM_DEPLOYMENT.md` (file does not exist).
 
 **Verification Checklist:**
-- [ ] No `lambda/` path references (should be `lambdas/` or `backend/lambdas/`)
-- [ ] No `AWSRegion` parameter references
-- [ ] No `package-all.sh` references
-- [ ] No `docs/SAM_DEPLOYMENT.md` reference
-- [ ] Region references consistent with `samconfig.toml` (`us-west-2`)
+- [x] No `lambda/` path references (should be `lambdas/` or `backend/lambdas/`)
+- [x] No `AWSRegion` parameter references
+- [x] No `package-all.sh` references
+- [x] No `docs/SAM_DEPLOYMENT.md` reference
+- [x] Region references consistent with `samconfig.toml` (`us-west-2`)
 
 **Testing Instructions:**
 - No code tests — documentation only
@@ -135,9 +135,9 @@ docs(backend): fix paths, parameters, and stale deployment references
 - **Fix CI section** (stale code example #3): Near lines 275-298 — update the CI/CD section to reflect actual CI config: `node-version: '22'` and `@v4` actions. Remove the "Future" label since CI already exists.
 
 **Verification Checklist:**
-- [ ] Base URL is `http://localhost:3000`
-- [ ] Node.js requirement is `22+`
-- [ ] CI section matches actual `.github/workflows/ci.yml`
+- [x] Base URL is `http://localhost:3000`
+- [x] Node.js requirement is `22+`
+- [x] CI section matches actual `.github/workflows/ci.yml`
 
 **Testing Instructions:**
 - No code tests — documentation only
@@ -181,11 +181,11 @@ docs(e2e): fix base URL, Node version, and CI section
   ```
 
 **Verification Checklist:**
-- [ ] No `VITE_S3_BUCKET` in `.env.example`
-- [ ] No `VITE_AWS_REGION` in `.env.example`
-- [ ] No `VITE_DEBUG` in `.env.example`
-- [ ] `VITE_API_BASE_URL` and `VITE_CDN_BASE_URL` remain
-- [ ] Both listed variables are actually used in `client.ts`
+- [x] No `VITE_S3_BUCKET` in `.env.example`
+- [x] No `VITE_AWS_REGION` in `.env.example`
+- [x] No `VITE_DEBUG` in `.env.example`
+- [x] `VITE_API_BASE_URL` and `VITE_CDN_BASE_URL` remain
+- [x] Both listed variables are actually used in `client.ts`
 
 **Testing Instructions:**
 - No code tests — config file cleanup
