@@ -120,12 +120,19 @@ ci(hooks): re-introduce pre-commit hooks with lefthook
 **Prerequisites:** None
 
 **Implementation Steps:**
-- Open the root `vitest.config.ts` and add coverage configuration:
+- **Dependency note:** Phase 2 Task 1 expanded `vitest.config.ts` to include backend test files (`backend/lambdas/**`) and added `environmentMatchGlobs` for the `node` environment. The coverage configuration below builds on that already-modified `vitest.config.ts`.
+- Open the root `vitest.config.ts` and add coverage configuration. The `exclude` list must account for both frontend and backend source that should not be measured:
   ```ts
   coverage: {
     provider: 'v8',
     reporter: ['text', 'text-summary'],
-    exclude: ['**/node_modules/**', '**/test/**', '**/*.test.*', '**/dist/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/test/**',
+      '**/*.test.*',
+      '**/dist/**',
+      'backend/lambdas/shared/utils.test.js',
+    ],
     thresholds: {
       statements: 50,
       branches: 50,
@@ -134,8 +141,8 @@ ci(hooks): re-introduce pre-commit hooks with lefthook
     },
   },
   ```
-  Note: Set thresholds conservatively at 50% to start. These can be ratcheted up over time. The exact current coverage is unknown — if tests fail at 50%, lower the threshold to match current coverage minus 2%.
-- In `.github/workflows/ci.yml`, modify the test command in the `test-frontend` job to include coverage:
+  Note: Set thresholds conservatively at 50% to start. These can be ratcheted up over time. The exact current coverage is unknown — if tests fail at 50%, lower the threshold to match current coverage minus 2%. Since backend Lambda tests now run in the same vitest invocation (per Phase 2 Task 1), the coverage report will include backend source files. The thresholds apply globally across both frontend and backend. If backend code significantly lowers overall coverage, consider setting per-directory thresholds or adjusting the global threshold accordingly.
+- In `.github/workflows/ci.yml`, modify the test command in the `test-frontend` job to include coverage. Since vitest now runs both frontend and backend tests (per Phase 2 Task 1 changes), this single CI step covers both:
   ```yaml
   - name: Run tests
     run: npm test -- --reporter=verbose --coverage

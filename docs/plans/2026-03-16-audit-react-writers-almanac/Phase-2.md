@@ -35,6 +35,7 @@ Address structural code issues: DRY violations in both backend and frontend, dat
 - `backend/lambdas/get-author/index.js` — Remove duplicated functions, import from shared
 - `backend/lambdas/get-authors-by-letter/index.js` — Remove duplicated functions, import from shared
 - `backend/lambdas/search-autocomplete/index.js` — Remove duplicated functions, import from shared
+- `vitest.config.ts` (root) — Expand `include` pattern to cover `backend/lambdas/**` test files; add `environmentMatchGlobs` to use `node` environment for backend tests
 
 **Prerequisites:** None
 
@@ -63,7 +64,21 @@ Address structural code issues: DRY violations in both backend and frontend, dat
   - `getCorsHeaders()` returns expected headers including `Access-Control-Allow-Origin: '*'`
   - `errorResponse(400, 'test', 'TEST')` returns correct shape with statusCode, headers, and JSON body
   - `streamToString()` converts a mock readable stream to string (use Node's `Readable.from()` to create a test stream)
-- Run `npm test` to verify
+- **Important:** The root `vitest.config.ts` only includes `frontend/src/**/*.{test,spec}.*` — backend tests are excluded. Before running backend tests, update the root `vitest.config.ts` `include` array to also match backend test files:
+  ```ts
+  include: [
+    'frontend/src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+    'backend/lambdas/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+  ],
+  ```
+  Note: Backend Lambda tests run in a Node environment, not jsdom. Add an inline `// @vitest-environment node` comment at the top of `utils.test.js` to override the default jsdom environment for this test file. Alternatively, use a `test.environment` per-file annotation via the `environmentMatchGlobs` option in `vitest.config.ts`:
+  ```ts
+  environmentMatchGlobs: [
+    ['backend/**', 'node'],
+  ],
+  ```
+  The `environmentMatchGlobs` approach is preferred as it applies automatically to all backend tests.
+- Run `npm test` to verify both frontend and backend tests pass
 
 **Commit Message Template:**
 ```
@@ -127,26 +142,30 @@ fix(lambda): align S3_BUCKET validation in search-autocomplete
 
 **Files to Modify/Create:**
 - `frontend/src/hooks/usePoemData.ts` — Replace inline sanitization with import from transforms
-- `frontend/src/api/transforms.ts` — Verify `sanitizePoemText` handles both string and array inputs (may need minor adjustment)
+- `frontend/src/api/transforms.ts` — Export `sanitizePoemText` and `sanitizePoemLines` (currently module-private)
 
 **Prerequisites:** None
 
 **Implementation Steps:**
-- Open `frontend/src/api/transforms.ts` and locate the `sanitizePoemText` function. Verify it handles the same `&amp;#233;` replacement pattern and works on both `string` and `string[]` inputs.
-- In `frontend/src/hooks/usePoemData.ts`, import `sanitizePoemText` from `../api/transforms`.
-- Replace lines 84-91 (the inline sanitization block) with a call to `sanitizePoemText(data.poem)`.
-- If `sanitizePoemText` only handles strings, update it to handle `string | string[]` and return the same type. If it already handles both, no change needed in transforms.ts.
+- Open `frontend/src/api/transforms.ts` and locate the `sanitizePoemText` function (line 71). **This function is currently module-private (not exported).** Add `export` to its declaration: `export function sanitizePoemText(text: string): string {`
+- Also export `sanitizePoemLines` (line 82) which handles `string[]` inputs by mapping `sanitizePoemText` over each line: `export function sanitizePoemLines(lines: string[]): string[] {`
+- In `frontend/src/hooks/usePoemData.ts`, determine the type of `data.poem`:
+  - If `data.poem` is a `string`, import and use `sanitizePoemText` from `../api/transforms`
+  - If `data.poem` is a `string[]` (array of lines), import and use `sanitizePoemLines` from `../api/transforms`
+  - The codebase already has both functions — use the appropriate one for the input type rather than modifying `sanitizePoemText` to accept arrays
+- Replace lines 84-91 (the inline sanitization block) with the appropriate call: `sanitizePoemText(data.poem)` for string input or `sanitizePoemLines(data.poem)` for array input.
 - Run existing tests to confirm behavior is unchanged.
 
 **Verification Checklist:**
+- [ ] `sanitizePoemText` is exported from `transforms.ts`
+- [ ] `sanitizePoemLines` is exported from `transforms.ts`
 - [ ] No inline `&amp;#233;` replacement in `usePoemData.ts`
-- [ ] `sanitizePoemText` imported and used in `usePoemData.ts`
-- [ ] `sanitizePoemText` in `transforms.ts` handles both `string` and `string[]` inputs
+- [ ] Correct sanitize function imported and used in `usePoemData.ts` (matching the input type)
 - [ ] `npm run check` passes
 
 **Testing Instructions:**
 - Existing tests should cover this — run `npm test`
-- If `sanitizePoemText` was modified to accept arrays, add a test case in the transforms test file for array input
+- Verify that existing callers of `sanitizePoemText` and `sanitizePoemLines` within `transforms.ts` (e.g., `transformPoemResponse`) still work correctly after adding the `export` keyword
 
 **Commit Message Template:**
 ```
