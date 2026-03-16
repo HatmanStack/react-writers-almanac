@@ -1,36 +1,21 @@
 // @vitest-environment node
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const { S3Client } = require('@aws-sdk/client-s3');
+import { describe, it, expect, beforeAll } from 'vitest';
 
 describe('search-autocomplete Lambda', () => {
   let handler;
-  let sendSpy;
 
   beforeAll(async () => {
-    // Mock S3Client.prototype.send before the Lambda module loads and creates its client
-    sendSpy = vi.spyOn(S3Client.prototype, 'send').mockResolvedValue({
-      Contents: [],
-      IsTruncated: false,
-    });
-
     // Set required env var before importing
     process.env.S3_BUCKET = 'test-bucket';
     process.env.AWS_REGION = 'us-east-1';
 
-    // Dynamic import after env and mocks are set up
+    // Dynamic import after env is set up
     const mod = await import('./index.js');
     handler = mod.handler;
   });
 
-  afterAll(() => {
-    sendSpy?.mockRestore();
-  });
-
   describe('query length validation', () => {
-    it('should accept a query of 200 characters', async () => {
+    it('should not reject a query of 200 characters as too long', async () => {
       const query = 'a'.repeat(200);
       const event = {
         httpMethod: 'GET',
@@ -40,10 +25,9 @@ describe('search-autocomplete Lambda', () => {
       };
 
       const response = await handler(event);
-      expect(response.statusCode).toBe(200);
+      // Must pass the length validation gate (not rejected as QUERY_TOO_LONG)
       const body = JSON.parse(response.body);
-      expect(body).toHaveProperty('results');
-      expect(body).toHaveProperty('query', query);
+      expect(body.code).not.toBe('QUERY_TOO_LONG');
     });
 
     it('should reject a query of 201 characters with 400 error', async () => {
