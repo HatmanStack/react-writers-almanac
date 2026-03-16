@@ -5,7 +5,7 @@ This directory contains AWS Lambda functions for The Writer's Almanac API, manag
 ## Quick Start
 
 ```bash
-cd lambda
+cd backend
 sam build
 sam deploy
 ```
@@ -23,14 +23,13 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 - [Configuration](#configuration)
 - [Troubleshooting](#troubleshooting)
 - [Monitoring](#monitoring)
-- [Legacy Manual Deployment](#legacy-manual-deployment)
 
 ---
 
 ## Lambda Functions
 
 ### 1. get-author
-- **Path**: `lambda/get-author/`
+- **Path**: `lambdas/get-author/`
 - **Purpose**: Fetch individual author data by name/slug from S3
 - **Endpoint**: `GET /api/author/{name}`
 - **Handler**: `index.handler`
@@ -38,7 +37,7 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 - **Timeout**: 30 seconds
 
 ### 2. get-authors-by-letter
-- **Path**: `lambda/get-authors-by-letter/`
+- **Path**: `lambdas/get-authors-by-letter/`
 - **Purpose**: Fetch all authors starting with a specific letter
 - **Endpoint**: `GET /api/authors/letter/{letter}`
 - **Handler**: `index.handler`
@@ -46,7 +45,7 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 - **Timeout**: 30 seconds
 
 ### 3. search-autocomplete
-- **Path**: `lambda/search-autocomplete/`
+- **Path**: `lambdas/search-autocomplete/`
 - **Purpose**: Search autocomplete for authors with in-memory caching
 - **Endpoint**: `GET /api/search/autocomplete?q={query}&limit={limit}`
 - **Handler**: `index.handler`
@@ -130,14 +129,13 @@ Your AWS user/role needs permissions for:
    ```toml
    parameter_overrides = [
        "Environment=prod",
-       "S3BucketName=your-actual-bucket-name",  # ← UPDATE THIS
-       "AWSRegion=us-east-1"                    # ← UPDATE IF NEEDED
+       "S3BucketName=your-actual-bucket-name"   # ← UPDATE THIS
    ]
    ```
 
 2. **Validate template**:
    ```bash
-   cd lambda
+   cd backend
    sam validate --lint
    ```
 
@@ -154,7 +152,7 @@ Your AWS user/role needs permissions for:
 
    You'll be asked to confirm:
    - Stack name: `writers-almanac-backend-prod`
-   - AWS region: `us-east-1`
+   - AWS region: `us-west-2`
    - Parameter values (S3 bucket, environment)
    - Confirm IAM role creation: `Y`
    - Confirm changeset: `Y`
@@ -167,7 +165,7 @@ Your AWS user/role needs permissions for:
 After the first deployment, updating is simple:
 
 ```bash
-cd lambda
+cd backend
 sam build && sam deploy
 ```
 
@@ -184,11 +182,11 @@ Outputs
 ---------------------------------------------------------
 Key                 ApiUrl
 Description         API Gateway endpoint URL for production stage
-Value               https://abc123xyz.execute-api.us-east-1.amazonaws.com/Prod
+Value               https://abc123xyz.execute-api.us-west-2.amazonaws.com/Prod
 
 Key                 GetAuthorFunctionArn
 Description         ARN of the GetAuthor Lambda function
-Value               arn:aws:lambda:us-east-1:123456789:function:writers-almanac-get-author-prod
+Value               arn:aws:lambda:us-west-2:123456789:function:writers-almanac-get-author-prod
 ...
 ```
 
@@ -196,7 +194,7 @@ Value               arn:aws:lambda:us-east-1:123456789:function:writers-almanac-
 
 ```bash
 # In project root .env file
-VITE_API_BASE_URL=https://abc123xyz.execute-api.us-east-1.amazonaws.com/Prod
+VITE_API_BASE_URL=https://abc123xyz.execute-api.us-west-2.amazonaws.com/Prod
 ```
 
 ---
@@ -209,7 +207,7 @@ Create test event files in `events/` directory (already provided):
 
 ```bash
 # Build functions first
-cd lambda
+cd backend
 sam build
 
 # Invoke specific function with test event
@@ -223,7 +221,7 @@ sam local invoke GetAuthorFunction --event events/get-author-event.json
 Start local API Gateway emulator:
 
 ```bash
-cd lambda
+cd backend
 sam local start-api
 
 # API runs at http://localhost:3000
@@ -253,10 +251,10 @@ curl "http://localhost:3000/api/search/autocomplete?q=billy&limit=5"
 All Lambda functions receive these environment variables automatically from SAM template:
 
 - `S3_BUCKET`: S3 bucket name containing author/poem data (from parameter)
-- `AWS_REGION`: AWS region (from parameter)
 - `NODE_ENV`: `production` (set globally)
+- `AWS_REGION`: Set automatically by AWS Lambda runtime (not a template parameter)
 
-Configure these in `samconfig.toml`, not in individual Lambda functions.
+Configure `S3_BUCKET` via the `S3BucketName` parameter in `samconfig.toml`.
 
 ### SAM Template Parameters
 
@@ -265,8 +263,7 @@ Edit `samconfig.toml` to change deployment configuration:
 ```toml
 parameter_overrides = [
     "Environment=prod",              # Environment name (dev/staging/prod)
-    "S3BucketName=your-bucket-name", # Existing S3 bucket
-    "AWSRegion=us-east-1"           # AWS region
+    "S3BucketName=your-bucket-name"  # Existing S3 bucket
 ]
 ```
 
@@ -287,8 +284,7 @@ First, add a `[staging]` section to `samconfig.toml`:
 stack_name = "writers-almanac-backend-staging"
 parameter_overrides = [
     "Environment=staging",
-    "S3BucketName=your-staging-bucket-name",
-    "AWSRegion=us-east-1"
+    "S3BucketName=your-staging-bucket-name"
 ]
 ```
 
@@ -424,39 +420,8 @@ aws cloudformation delete-stack --stack-name writers-almanac-backend-prod
 git checkout <previous-commit>
 
 # Redeploy
-cd lambda
+cd backend
 sam build && sam deploy
-```
-
----
-
-## SAM Template Architecture
-
-See `docs/SAM_DEPLOYMENT.md` for detailed technical documentation on:
-- Template structure and design decisions
-- Parameter descriptions
-- Resource definitions
-- IAM policies and security
-- Multi-environment strategy
-- Performance optimization
-
----
-
-## Legacy Manual Deployment
-
-**⚠️ DEPRECATED**: Manual deployment via `package-all.sh` is deprecated. Use SAM deployment instead.
-
-For emergency manual deployment only, see legacy documentation in git history:
-
-```bash
-git show HEAD~1:lambda/README.md
-```
-
-Or use the deprecated script (not recommended):
-
-```bash
-./package-all.sh
-# Then manually upload ZIP files via AWS Console or CLI
 ```
 
 ---
@@ -504,4 +469,4 @@ Dependencies are automatically installed by `sam build`.
 - [AWS Lambda Best Practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html)
 - [API Gateway REST API](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-rest-api.html)
 
-For questions or issues, check the troubleshooting section or consult `docs/SAM_DEPLOYMENT.md` for technical details.
+For questions or issues, check the troubleshooting section above.

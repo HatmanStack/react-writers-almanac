@@ -14,14 +14,15 @@
  */
 
 const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getCorsHeaders, errorResponse } = require('../shared/utils');
 
 // Initialize S3 client
 const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
 
-// Configuration - S3_BUCKET is required (validated at handler invocation)
+// Configuration - S3_BUCKET is required
 const BUCKET_NAME = process.env.S3_BUCKET;
 if (!BUCKET_NAME) {
-  console.warn('S3_BUCKET environment variable is not set at init; handler will return 500');
+  throw new Error('S3_BUCKET environment variable is required');
 }
 const AUTHORS_PREFIX = 'authors/by-name/';
 const DEFAULT_LIMIT = 10;
@@ -31,43 +32,6 @@ const MAX_LIMIT = 50;
 let authorSlugsCache = null;
 let cacheTimestamp = null;
 const CACHE_TTL = 3600000; // 1 hour in milliseconds
-
-/**
- * Get CORS headers
- * @returns {Object} CORS headers
- */
-function getCorsHeaders() {
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
-  };
-}
-
-/**
- * Create error response
- * @param {number} statusCode - HTTP status code
- * @param {string} message - Error message
- * @param {string} code - Error code
- * @returns {Object} API Gateway response
- */
-function errorResponse(statusCode, message, code) {
-  return {
-    statusCode,
-    headers: {
-      ...getCorsHeaders(),
-      'Cache-Control': 'no-store, no-cache, must-revalidate', // Never cache errors
-    },
-    body: JSON.stringify({
-      message,
-      status: statusCode,
-      code,
-      timestamp: new Date().toISOString(),
-    }),
-  };
-}
 
 /**
  * Convert slug back to display name (best effort)
@@ -221,11 +185,6 @@ async function searchAuthors(query, limit) {
  * @returns {Object} API Gateway response
  */
 exports.handler = async (event) => {
-  // Validate S3_BUCKET is configured (deferred from init to avoid cold-start 502)
-  if (!BUCKET_NAME) {
-    return errorResponse(500, 'S3_BUCKET environment variable not configured', 'CONFIGURATION_ERROR');
-  }
-
   // Log request details (excluding sensitive headers)
   console.log('Request:', JSON.stringify({
     httpMethod: event.httpMethod,
@@ -260,6 +219,11 @@ exports.handler = async (event) => {
     // Then check for empty string or whitespace (too short)
     if (query.trim().length < 1) {
       return errorResponse(400, 'Query must be at least 1 character', 'QUERY_TOO_SHORT');
+    }
+
+    // Reject excessively long queries to prevent abuse
+    if (query.length > 200) {
+      return errorResponse(400, 'Query too long (max 200 characters)', 'QUERY_TOO_LONG');
     }
 
     // Parse limit

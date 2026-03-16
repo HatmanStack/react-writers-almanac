@@ -19,7 +19,7 @@ interface ApiErrorResponse {
 }
 
 // Environment variables
-const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || 'https://d3vq6af2mo7fcy.cloudfront.net';
+export const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || 'https://d3vq6af2mo7fcy.cloudfront.net';
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'https://placeholder-api-gateway.amazonaws.com/prod';
 
@@ -29,7 +29,7 @@ const API_BASE_URL =
  */
 export const cdnClient: AxiosInstance = axios.create({
   baseURL: CDN_BASE_URL,
-  timeout: 30000, // 30 seconds
+  timeout: 10000, // 10 seconds
   headers: {
     'Content-Type': 'application/json',
   },

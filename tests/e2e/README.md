@@ -13,7 +13,7 @@ The E2E test suite covers all critical user flows:
 
 ## Prerequisites
 
-- Node.js 16+ (tested with v22.20.0)
+- Node.js 22+ (tested with v22.20.0)
 - Chromium browser (automatically installed by Playwright)
 - System dependencies (Linux only):
   ```bash
@@ -262,7 +262,7 @@ npx playwright show-trace test-results/<test-name>/trace.zip
 
 Test configuration is in `playwright.config.ts`:
 
-- **baseURL**: `http://localhost:5173` (Vite dev server)
+- **baseURL**: `http://localhost:3000` (Vite dev server)
 - **webServer**: Auto-starts dev server before tests
 - **timeout**: 30 seconds per test
 - **retries**: 0 locally, 2 in CI
@@ -270,27 +270,22 @@ Test configuration is in `playwright.config.ts`:
 - **videos**: On failure
 - **trace**: On first retry
 
-## CI/CD Integration (Future)
+## CI/CD Integration
 
-To add CI/CD (e.g., GitHub Actions):
+E2E tests can be added to the existing CI pipeline (`.github/workflows/ci.yml`). The current CI uses Node.js 22 and `actions/checkout@v4` / `actions/setup-node@v4`:
 
 ```yaml
-name: E2E Tests
-
-on: [push, pull_request]
-
-jobs:
   e2e:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '18'
-      - run: npm ci
+          node-version: '22'
+      - run: npm ci && cd frontend && npm ci
       - run: npx playwright install --with-deps
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-report
@@ -343,10 +338,10 @@ npx playwright install chromium
 npx playwright install-deps
 ```
 
-### "Port 5173 already in use"
+### "Port 3000 already in use"
 ```bash
 # Kill existing dev server
-lsof -ti:5173 | xargs kill -9
+lsof -ti:3000 | xargs kill -9
 ```
 
 ### Tests timeout

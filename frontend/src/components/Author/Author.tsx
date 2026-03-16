@@ -3,6 +3,7 @@ import type { AuthorProps } from './types';
 import { useAuthorQuery } from '../../hooks/queries/useAuthorQuery';
 import type { AuthorSource, PoemItem } from '../../types/author';
 import { sanitizeHtml } from '../../utils';
+import { CDN_BASE_URL } from '../../api/client';
 
 /**
  * Author Component - Displays author biography and poems
@@ -56,7 +57,7 @@ function Author({
         const filename = (photosData as { primary: string }).primary;
         if (filename) {
           // Construct CloudFront URL with /public/images/ path
-          const photoUrl = `https://d3vq6af2mo7fcy.cloudfront.net/public/images/${filename}`;
+          const photoUrl = `${CDN_BASE_URL}/public/images/${filename}`;
           photosList.push(photoUrl);
         }
       }

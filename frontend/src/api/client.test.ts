@@ -17,7 +17,7 @@ describe('API Client', () => {
     });
 
     it('should have correct timeout', () => {
-      expect(cdnClient.defaults.timeout).toBe(30000);
+      expect(cdnClient.defaults.timeout).toBe(10000);
     });
 
     it('should have correct content-type header', () => {

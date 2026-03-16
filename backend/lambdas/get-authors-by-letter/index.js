@@ -14,6 +14,7 @@
  */
 
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getCorsHeaders, errorResponse, streamToString } = require('../shared/utils');
 
 // Initialize S3 client
 const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
@@ -24,40 +25,6 @@ if (!BUCKET_NAME) {
   throw new Error('S3_BUCKET environment variable is required');
 }
 const AUTHORS_BY_LETTER_PREFIX = 'authors/by-letter/';
-
-/**
- * Get CORS headers
- * @returns {Object} CORS headers
- */
-function getCorsHeaders() {
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
-  };
-}
-
-/**
- * Create error response
- * @param {number} statusCode - HTTP status code
- * @param {string} message - Error message
- * @param {string} code - Error code
- * @returns {Object} API Gateway response
- */
-function errorResponse(statusCode, message, code) {
-  return {
-    statusCode,
-    headers: getCorsHeaders(),
-    body: JSON.stringify({
-      message,
-      status: statusCode,
-      code,
-      timestamp: new Date().toISOString(),
-    }),
-  };
-}
 
 /**
  * Validate letter parameter
@@ -94,20 +61,6 @@ async function fetchAuthorsByLetterFromS3(letter) {
 }
 
 /**
- * Convert stream to string
- * @param {Stream} stream - Readable stream
- * @returns {Promise<string>} String contents
- */
-async function streamToString(stream) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    stream.on('data', chunk => chunks.push(chunk));
-    stream.on('error', reject);
-    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-  });
-}
-
-/**
  * Lambda handler
  * @param {Object} event - API Gateway event
  * @returns {Object} API Gateway response
@@ -124,8 +77,11 @@ exports.handler = async (event) => {
   // Handle OPTIONS request for CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
-      statusCode: 200,
-      headers: getCorsHeaders(),
+      statusCode: 204,
+      headers: {
+        ...getCorsHeaders(),
+        'Access-Control-Max-Age': '600',
+      },
       body: '',
     };
   }

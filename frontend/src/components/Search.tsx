@@ -7,6 +7,7 @@ import { CalendarMonth, Close, Search as SearchIcon } from '@mui/icons-material'
 import dayjs, { Dayjs } from 'dayjs';
 
 import listImport from '../assets/searchJson';
+import { DATE_BOUNDARIES } from '../utils/dateMapping';
 
 interface CalendarDateChange {
   calendarChangedDate: Date;
@@ -164,8 +165,8 @@ const Search = memo(function Search({
                   `${currentDate.substring(0, 4)}-${currentDate.substring(4, 6)}-${currentDate.substring(6, 8)}`
                 )}
                 onChange={e => calendarChange(e)}
-                maxDate={dayjs('2017-11-30')}
-                minDate={dayjs('1993-01-01')}
+                maxDate={dayjs(DATE_BOUNDARIES.MAX_DATE_STRING, 'YYYYMMDD')}
+                minDate={dayjs(DATE_BOUNDARIES.MIN_DATE_STRING, 'YYYYMMDD')}
                 sx={{
                   zIndex: 1,
                   textDecorationColor: 'black',
@@ -252,8 +253,8 @@ const Search = memo(function Search({
                   `${currentDate.substring(0, 4)}-${currentDate.substring(4, 6)}-${currentDate.substring(6, 8)}`
                 )}
                 onChange={e => calendarChange(e)}
-                maxDate={dayjs('2017-11-30')}
-                minDate={dayjs('1993-01-01')}
+                maxDate={dayjs(DATE_BOUNDARIES.MAX_DATE_STRING, 'YYYYMMDD')}
+                minDate={dayjs(DATE_BOUNDARIES.MIN_DATE_STRING, 'YYYYMMDD')}
                 sx={{
                   zIndex: 1,
                   textDecorationColor: 'black',

@@ -23,7 +23,7 @@ A modern React application delivering daily poems and historical narratives, fea
 - **Playwright** - E2E testing
 
 ### Backend
-- **AWS Lambda** - Serverless API (Node.js 18)
+- **AWS Lambda** - Serverless API (Node.js 22)
 - **AWS SAM** - Infrastructure as Code
 - **API Gateway** - REST API endpoints
 - **S3** - Content storage
@@ -70,42 +70,44 @@ The backend uses AWS SAM for automated Lambda deployment:
 
 ```bash
 # Deploy Lambda functions and API Gateway
-cd lambda
+cd backend
 sam build && sam deploy
 
 # Test API locally (requires Docker)
 sam local start-api
 ```
 
-See [`lambda/README.md`](lambda/README.md) for detailed deployment instructions.
+See [`backend/README.md`](backend/README.md) for detailed deployment instructions.
 
 ---
 
 ## Project Structure
 
 ```text
-src/
+frontend/src/
 ├── api/              # API client and endpoints
+├── assets/           # Static assets
 ├── components/       # React components
+│   ├── ui/           # Reusable UI components
+│   ├── PoemDates/    # Date navigation components
+│   └── SEOHead/      # SEO meta components
 ├── hooks/            # Custom React hooks
 ├── store/            # Zustand state management
 ├── types/            # TypeScript definitions
 └── utils/            # Utility functions
 
-lambda/
-├── get-author/       # Lambda: Fetch author data
-├── get-authors-by-letter/  # Lambda: Authors by letter
-├── search-autocomplete/    # Lambda: Search API
+backend/
+├── lambdas/
+│   ├── get-author/          # Lambda: Fetch author data
+│   ├── get-authors-by-letter/  # Lambda: Authors by letter
+│   ├── search-autocomplete/    # Lambda: Search API
+│   └── shared/              # Shared Lambda utilities
+├── scripts/          # Deployment scripts
 ├── template.yaml     # SAM infrastructure definition
-├── samconfig.toml    # SAM deployment configuration
-└── events/           # Test events for local testing
+└── samconfig.toml    # SAM deployment configuration
 
 tests/
 └── e2e/              # Playwright E2E tests
-
-docs/
-├── SAM_DEPLOYMENT.md # Detailed SAM documentation
-└── plans/            # Implementation plans
 ```
 
 ---
@@ -115,53 +117,12 @@ docs/
 This codebase demonstrates:
 - Modern React patterns (hooks, lazy loading, memoization)
 - Type-safe development with strict TypeScript (zero `any` types)
-- Comprehensive testing (75%+ coverage)
+- Testing with coverage enforcement
 - Performance optimization (code splitting, virtualization)
-- Accessibility compliance (WCAG AA)
+- Accessibility testing with vitest-axe
 - Security best practices (DOMPurify sanitization)
 
 The application uses AWS infrastructure:
 - **S3**: Stores daily poems, author data, and audio files (not managed by this repo)
-- **Lambda + API Gateway**: Managed via AWS SAM (see `lambda/` directory)
+- **Lambda + API Gateway**: Managed via AWS SAM (see `backend/` directory)
 - **CloudFront**: CDN for content delivery (not managed by this repo)
-
----
-
-## Debugging
-
-### Transcript Debugging
-
-If transcript content is not loading or displaying correctly, enable debug mode:
-
-**Enable debug mode:**
-```javascript
-// In browser console:
-localStorage.setItem('DEBUG_TRANSCRIPT', 'true')
-// Then reload the page
-```
-
-**Check debug output:**
-- Open browser DevTools Console tab
-- Look for messages prefixed with `[Transcript Debug]` or `[Transcript Metrics]`
-- Debug messages show transcript data flow through the application
-
-**Debug messages include:**
-- `[Transcript Debug] Poem data received` - Shows if transcript in API response
-- `[Transcript Debug] Setting to store` - Shows if transcript sent to Zustand store
-- `[App] No transcript available for date: YYYYMMDD` - Identifies dates without transcripts
-- `[Transcript Metrics]` - Shows transcript quality metrics (length, word count)
-
-**Disable debug mode:**
-```javascript
-// In browser console:
-localStorage.removeItem('DEBUG_TRANSCRIPT')
-```
-
-**Alternative: Enable via environment variable**
-```bash
-# In .env file:
-VITE_DEBUG=true
-```
-
-**Note:** Debug mode only works in development builds, not in production.
-

@@ -199,12 +199,16 @@ describe('Audio Component', () => {
   });
 
   describe('Accessibility', () => {
-    // NOTE: Audio element axe tests skipped due to timeout issues
-    // HTML5 audio elements are known to cause axe-core to hang in test environments
-    // Manual accessibility testing should be performed for audio controls
-    // See: https://github.com/dequelabs/axe-core/issues/2765
-    it.skip('should have no axe violations when rendered with audio', async () => {
+    // axe-core hangs on HTML5 audio elements in jsdom. See: https://github.com/dequelabs/axe-core/issues/2765
+    // Manual accessibility testing should be performed for audio controls.
+    it.skip('should have no axe violations when rendered with audio (skipped: axe-core/jsdom audio API limitation)', async () => {
       const { container } = render(<Audio {...defaultProps} />);
+      const results = await axe(container);
+      expect(results.violations).toEqual([]);
+    });
+
+    it.skip('should have no axe violations in mobile view (skipped: axe-core/jsdom audio API limitation)', async () => {
+      const { container } = render(<Audio {...defaultProps} width={800} />);
       const results = await axe(container);
       expect(results.violations).toEqual([]);
     });
@@ -212,12 +216,6 @@ describe('Audio Component', () => {
     it('should have no axe violations in search mode (no audio)', async () => {
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue('NotAvailable');
       const { container } = render(<Audio {...defaultProps} isShowingContentByDate={false} />);
-      const results = await axe(container);
-      expect(results.violations).toEqual([]);
-    });
-
-    it.skip('should have no axe violations in mobile view', async () => {
-      const { container } = render(<Audio {...defaultProps} width={500} />);
       const results = await axe(container);
       expect(results.violations).toEqual([]);
     });

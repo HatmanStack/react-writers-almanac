@@ -31,8 +31,8 @@ jobs:
       - name: Type check
         run: cd frontend && npm run typecheck
 
-  test-frontend:
-    name: Frontend Tests
+  test:
+    name: Tests (Frontend + Backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,8 +49,8 @@ jobs:
       - name: Run tests
         run: npm test -- --reporter=verbose
 
-  test-backend:
-    name: Backend Tests
+  validate-sam:
+    name: Validate SAM Template
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,10 +62,7 @@ jobs:
           cache: npm
 
       - name: Install Lambda dependencies
-        run: |
-          cd backend/lambdas/get-author && npm ci
-          cd ../get-authors-by-letter && npm ci
-          cd ../search-autocomplete && npm ci
+        run: cd backend/lambdas && npm ci
 
       - name: Validate SAM template
         run: |
@@ -75,7 +72,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, test-frontend, test-backend]
+    needs: [lint, test, validate-sam]
     steps:
       - uses: actions/checkout@v4
 
@@ -94,14 +91,14 @@ jobs:
   status-check:
     name: All Checks Passed
     runs-on: ubuntu-latest
-    needs: [lint, test-frontend, test-backend, build]
+    needs: [lint, test, validate-sam, build]
     if: always()
     steps:
       - name: Verify all jobs passed
         run: |
           if [ "${{ needs.lint.result }}" != "success" ] || \
-             [ "${{ needs.test-frontend.result }}" != "success" ] || \
-             [ "${{ needs.test-backend.result }}" != "success" ] || \
+             [ "${{ needs.test.result }}" != "success" ] || \
+             [ "${{ needs.validate-sam.result }}" != "success" ] || \
              [ "${{ needs.build.result }}" != "success" ]; then
             echo "One or more checks failed"
             exit 1

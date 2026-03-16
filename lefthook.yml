@@ -1,0 +1,7 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      run: cd frontend && npm run lint -- --max-warnings 0
+    typecheck:
+      run: cd frontend && npm run typecheck
