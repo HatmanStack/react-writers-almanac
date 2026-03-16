@@ -2,6 +2,23 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { S3Client } from '@aws-sdk/client-s3';
 
+describe('search-autocomplete module init', () => {
+  it('should throw when S3_BUCKET is not set', async () => {
+    const saved = process.env.S3_BUCKET;
+    delete process.env.S3_BUCKET;
+    vi.resetModules();
+
+    try {
+      await expect(() => import('./index.js')).rejects.toThrow(
+        'S3_BUCKET environment variable is required'
+      );
+    } finally {
+      process.env.S3_BUCKET = saved;
+      vi.resetModules();
+    }
+  });
+});
+
 describe('search-autocomplete Lambda', () => {
   let handler;
   let sendSpy;

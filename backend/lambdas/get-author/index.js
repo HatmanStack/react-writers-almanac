@@ -13,6 +13,7 @@
  */
 
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getCorsHeaders, errorResponse, streamToString } = require('../shared/utils');
 
 // Initialize S3 client
 const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
@@ -39,8 +40,6 @@ function nameToSlug(name) {
     .replace(/-+/g, '-')           // Replace multiple hyphens with single
     .replace(/^-+|-+$/g, '');      // Trim leading/trailing hyphens
 }
-
-const { getCorsHeaders, errorResponse, streamToString } = require('../shared/utils');
 
 /**
  * Fetch author data from S3
