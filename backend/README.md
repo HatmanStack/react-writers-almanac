@@ -136,7 +136,7 @@ Your AWS user/role needs permissions for:
 
 2. **Validate template**:
    ```bash
-   cd lambda
+   cd backend
    sam validate --lint
    ```
 
@@ -166,7 +166,7 @@ Your AWS user/role needs permissions for:
 After the first deployment, updating is simple:
 
 ```bash
-cd lambda
+cd backend
 sam build && sam deploy
 ```
 
@@ -183,11 +183,11 @@ Outputs
 ---------------------------------------------------------
 Key                 ApiUrl
 Description         API Gateway endpoint URL for production stage
-Value               https://abc123xyz.execute-api.us-east-1.amazonaws.com/Prod
+Value               https://abc123xyz.execute-api.us-west-2.amazonaws.com/Prod
 
 Key                 GetAuthorFunctionArn
 Description         ARN of the GetAuthor Lambda function
-Value               arn:aws:lambda:us-east-1:123456789:function:writers-almanac-get-author-prod
+Value               arn:aws:lambda:us-west-2:123456789:function:writers-almanac-get-author-prod
 ...
 ```
 
@@ -195,7 +195,7 @@ Value               arn:aws:lambda:us-east-1:123456789:function:writers-almanac-
 
 ```bash
 # In project root .env file
-VITE_API_BASE_URL=https://abc123xyz.execute-api.us-east-1.amazonaws.com/Prod
+VITE_API_BASE_URL=https://abc123xyz.execute-api.us-west-2.amazonaws.com/Prod
 ```
 
 ---
@@ -208,7 +208,7 @@ Create test event files in `events/` directory (already provided):
 
 ```bash
 # Build functions first
-cd lambda
+cd backend
 sam build
 
 # Invoke specific function with test event
@@ -222,7 +222,7 @@ sam local invoke GetAuthorFunction --event events/get-author-event.json
 Start local API Gateway emulator:
 
 ```bash
-cd lambda
+cd backend
 sam local start-api
 
 # API runs at http://localhost:3000
@@ -421,40 +421,11 @@ aws cloudformation delete-stack --stack-name writers-almanac-backend-prod
 git checkout <previous-commit>
 
 # Redeploy
-cd lambda
+cd backend
 sam build && sam deploy
 ```
 
 ---
-
-## SAM Template Architecture
-
-See `docs/SAM_DEPLOYMENT.md` for detailed technical documentation on:
-- Template structure and design decisions
-- Parameter descriptions
-- Resource definitions
-- IAM policies and security
-- Multi-environment strategy
-- Performance optimization
-
----
-
-## Legacy Manual Deployment
-
-**⚠️ DEPRECATED**: Manual deployment via `package-all.sh` is deprecated. Use SAM deployment instead.
-
-For emergency manual deployment only, see legacy documentation in git history:
-
-```bash
-git show HEAD~1:lambda/README.md
-```
-
-Or use the deprecated script (not recommended):
-
-```bash
-./package-all.sh
-# Then manually upload ZIP files via AWS Console or CLI
-```
 
 ---
 
@@ -501,4 +472,4 @@ Dependencies are automatically installed by `sam build`.
 - [AWS Lambda Best Practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html)
 - [API Gateway REST API](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-rest-api.html)
 
-For questions or issues, check the troubleshooting section or consult `docs/SAM_DEPLOYMENT.md` for technical details.
+For questions or issues, check the troubleshooting section above.
