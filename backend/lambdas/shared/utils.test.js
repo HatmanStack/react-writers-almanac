@@ -80,5 +80,11 @@ describe('shared Lambda utilities', () => {
       const result = await streamToString(stream);
       expect(result).toBe('test data');
     });
+
+    it('should handle string chunks', async () => {
+      const stream = Readable.from(['hello', ' ', 'world']);
+      const result = await streamToString(stream);
+      expect(result).toBe('hello world');
+    });
   });
 });

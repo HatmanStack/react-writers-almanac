@@ -84,8 +84,11 @@ exports.handler = async (event) => {
   // Handle OPTIONS request for CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
-      statusCode: 200,
-      headers: getCorsHeaders(),
+      statusCode: 204,
+      headers: {
+        ...getCorsHeaders(),
+        'Access-Control-Max-Age': '600',
+      },
       body: '',
     };
   }

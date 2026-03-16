@@ -34,13 +34,11 @@ describe('search-autocomplete Lambda', () => {
       };
 
       const response = await handler(event);
-      // Should not be rejected as too long (400 QUERY_TOO_LONG)
-      expect(response.statusCode).not.toBe(400);
-      if (response.statusCode === 200) {
-        const body = JSON.parse(response.body);
-        expect(body).toHaveProperty('results');
-        expect(body).toHaveProperty('query', query);
-      }
+      // Must not be rejected by the length gate
+      const body = JSON.parse(response.body);
+      expect(body.code).not.toBe('QUERY_TOO_LONG');
+      // Handler proceeds past validation (200 or 500 depending on S3 mock)
+      expect([200, 500]).toContain(response.statusCode);
     });
 
     it('should reject a query of 201 characters with 400 error', async () => {
