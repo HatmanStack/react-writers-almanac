@@ -19,7 +19,7 @@ interface ApiErrorResponse {
 }
 
 // Environment variables
-const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || 'https://d3vq6af2mo7fcy.cloudfront.net';
+export const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || 'https://d3vq6af2mo7fcy.cloudfront.net';
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'https://placeholder-api-gateway.amazonaws.com/prod';
 
