@@ -9,7 +9,13 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './frontend/src/test/setup.ts',
     css: true,
-    include: ['frontend/src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: [
+      'frontend/src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      'backend/lambdas/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+    ],
+    environmentMatchGlobs: [
+      ['backend/**', 'node'],
+    ],
   },
   resolve: {
     alias: {

@@ -1,6 +1,7 @@
-const { describe, it, expect } = require('vitest');
-const { Readable } = require('stream');
-const { getCorsHeaders, errorResponse, streamToString } = require('./utils');
+// @vitest-environment node
+import { describe, it, expect } from 'vitest';
+import { Readable } from 'stream';
+import { getCorsHeaders, errorResponse, streamToString } from './utils.js';
 
 describe('shared Lambda utilities', () => {
   describe('getCorsHeaders', () => {
@@ -56,7 +57,7 @@ describe('shared Lambda utilities', () => {
 
   describe('streamToString', () => {
     it('should convert a readable stream to string', async () => {
-      const stream = Readable.from(['hello', ' ', 'world']);
+      const stream = Readable.from([Buffer.from('hello'), Buffer.from(' '), Buffer.from('world')]);
       const result = await streamToString(stream);
       expect(result).toBe('hello world');
     });

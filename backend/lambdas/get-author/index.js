@@ -40,39 +40,7 @@ function nameToSlug(name) {
     .replace(/^-+|-+$/g, '');      // Trim leading/trailing hyphens
 }
 
-/**
- * Get CORS headers
- * @returns {Object} CORS headers
- */
-function getCorsHeaders() {
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
-  };
-}
-
-/**
- * Create error response
- * @param {number} statusCode - HTTP status code
- * @param {string} message - Error message
- * @param {string} code - Error code
- * @returns {Object} API Gateway response
- */
-function errorResponse(statusCode, message, code) {
-  return {
-    statusCode,
-    headers: getCorsHeaders(),
-    body: JSON.stringify({
-      message,
-      status: statusCode,
-      code,
-      timestamp: new Date().toISOString(),
-    }),
-  };
-}
+const { getCorsHeaders, errorResponse, streamToString } = require('../shared/utils');
 
 /**
  * Fetch author data from S3
@@ -97,20 +65,6 @@ async function fetchAuthorFromS3(slug) {
     }
     throw error; // Re-throw other errors
   }
-}
-
-/**
- * Convert stream to string
- * @param {Stream} stream - Readable stream
- * @returns {Promise<string>} String contents
- */
-async function streamToString(stream) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    stream.on('data', chunk => chunks.push(chunk));
-    stream.on('error', reject);
-    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-  });
 }
 
 /**

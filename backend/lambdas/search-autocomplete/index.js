@@ -32,41 +32,19 @@ let authorSlugsCache = null;
 let cacheTimestamp = null;
 const CACHE_TTL = 3600000; // 1 hour in milliseconds
 
-/**
- * Get CORS headers
- * @returns {Object} CORS headers
- */
-function getCorsHeaders() {
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
-  };
-}
+const { getCorsHeaders, errorResponse: baseErrorResponse } = require('../shared/utils');
 
 /**
- * Create error response
+ * Search-specific error response that overrides Cache-Control to prevent caching errors
  * @param {number} statusCode - HTTP status code
  * @param {string} message - Error message
  * @param {string} code - Error code
  * @returns {Object} API Gateway response
  */
 function errorResponse(statusCode, message, code) {
-  return {
-    statusCode,
-    headers: {
-      ...getCorsHeaders(),
-      'Cache-Control': 'no-store, no-cache, must-revalidate', // Never cache errors
-    },
-    body: JSON.stringify({
-      message,
-      status: statusCode,
-      code,
-      timestamp: new Date().toISOString(),
-    }),
-  };
+  return baseErrorResponse(statusCode, message, code, {
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+  });
 }
 
 /**
