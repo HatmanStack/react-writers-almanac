@@ -161,13 +161,10 @@ function App() {
 
   const handleSwitchToDateView = useCallback(
     (_shouldShow?: boolean) => {
-      // Switch to date view mode and navigate to current poem date
+      // Only set view mode — callers handle navigation via setLinkDate
       setViewMode(true);
-      const plainDate = currentDate?.replace(/<[^>]*>/g, '').trim() || '';
-      const yyyymmdd = plainDate ? formatAuthorDate(plainDate) : linkDate;
-      navigate(`/poem/${yyyymmdd}`);
     },
-    [setViewMode, navigate, linkDate, currentDate]
+    [setViewMode]
   );
 
   const closeModal = useCallback(() => {
