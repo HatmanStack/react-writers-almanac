@@ -389,7 +389,7 @@ function App() {
                   {isContentHidden ? 'Show Content' : 'Hide Content'}
                 </button>
               </div>
-              <div className="FormattingContainer" />
+
               <div className="z-10 bg-app-container rounded-[3rem] flex p-4">
                 <ErrorBoundary
                   fallback={error => (

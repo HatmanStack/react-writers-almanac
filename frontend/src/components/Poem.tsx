@@ -43,8 +43,8 @@ const Poem = memo(function Poem({
           {poemTitle &&
           poemTitle.length > 1 &&
           author &&
-          author.length == 1 &&
-          index != 0 ? null : (
+          author.length === 1 &&
+          index !== 0 ? null : (
             <button
               type="button"
               className="text-2xl bg-transparent bg-no-repeat border-none cursor-pointer overflow-hidden font-bold text-app-text flex-[2_0_0] justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
