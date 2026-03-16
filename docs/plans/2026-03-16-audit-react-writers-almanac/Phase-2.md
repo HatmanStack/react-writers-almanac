@@ -52,12 +52,12 @@ Address structural code issues: DRY violations in both backend and frontend, dat
 - Verify each Lambda still handles its specific error response formatting correctly. The search-autocomplete's `errorResponse` overrides `Cache-Control` — make sure this behavior is preserved.
 
 **Verification Checklist:**
-- [ ] `backend/lambdas/shared/utils.js` exists with three exported functions
-- [ ] No `getCorsHeaders` function definition in any Lambda `index.js`
-- [ ] No `errorResponse` function definition in any Lambda `index.js`
-- [ ] No `streamToString` function definition in any Lambda `index.js`
-- [ ] Each Lambda imports from `../shared/utils`
-- [ ] `npm run check` passes (SAM validate still passes in CI)
+- [x] `backend/lambdas/shared/utils.js` exists with three exported functions
+- [x] No `getCorsHeaders` function definition in any Lambda `index.js`
+- [x] No `errorResponse` function definition in any Lambda `index.js`
+- [x] No `streamToString` function definition in any Lambda `index.js`
+- [x] Each Lambda imports from `../shared/utils`
+- [x] `npm run check` passes (SAM validate still passes in CI)
 
 **Testing Instructions:**
 - Create `backend/lambdas/shared/utils.test.js` with unit tests for:
@@ -117,10 +117,10 @@ refactor(lambda): extract shared utilities into common module
 - This matches the pattern in `get-author/index.js:22-24` and `get-authors-by-letter/index.js:22-24`.
 
 **Verification Checklist:**
-- [ ] `search-autocomplete/index.js` throws on missing `S3_BUCKET` at module scope
-- [ ] No redundant `S3_BUCKET` check inside the handler
-- [ ] Pattern matches the other two Lambdas
-- [ ] `npm run check` passes
+- [x]`search-autocomplete/index.js` throws on missing `S3_BUCKET` at module scope
+- [x]No redundant `S3_BUCKET` check inside the handler
+- [x]Pattern matches the other two Lambdas
+- [x]`npm run check` passes
 
 **Testing Instructions:**
 - No new tests needed — this is a consistency fix. The module-level throw is not easily unit-testable without process-level isolation, which is out of scope.
@@ -157,11 +157,11 @@ fix(lambda): align S3_BUCKET validation in search-autocomplete
 - Run existing tests to confirm behavior is unchanged.
 
 **Verification Checklist:**
-- [ ] `sanitizePoemText` is exported from `transforms.ts`
-- [ ] `sanitizePoemLines` is exported from `transforms.ts`
-- [ ] No inline `&amp;#233;` replacement in `usePoemData.ts`
-- [ ] Correct sanitize function imported and used in `usePoemData.ts` (matching the input type)
-- [ ] `npm run check` passes
+- [x]`sanitizePoemText` is exported from `transforms.ts`
+- [x]`sanitizePoemLines` is exported from `transforms.ts`
+- [x]No inline `&amp;#233;` replacement in `usePoemData.ts`
+- [x]Correct sanitize function imported and used in `usePoemData.ts` (matching the input type)
+- [x]`npm run check` passes
 
 **Testing Instructions:**
 - Existing tests should cover this — run `npm test`
@@ -200,10 +200,10 @@ refactor(frontend): use transforms layer for poem text sanitization
 - Alternatively, import the CDN base URL from `client.ts` if it's exported as a constant. Check `client.ts` — if `CDN_BASE_URL` is exported, import it. If not, extract it as a named export and use it in both places.
 
 **Verification Checklist:**
-- [ ] No hardcoded `d3vq6af2mo7fcy.cloudfront.net` string in `Author.tsx`
-- [ ] CDN URL sourced from env var with fallback
-- [ ] `npm run check` passes
-- [ ] `Author.test.tsx` passes
+- [x]No hardcoded `d3vq6af2mo7fcy.cloudfront.net` string in `Author.tsx`
+- [x]CDN URL sourced from env var with fallback
+- [x]`npm run check` passes
+- [x]`Author.test.tsx` passes
 
 **Testing Instructions:**
 - No new tests — existing Author tests should still pass
@@ -234,10 +234,10 @@ refactor(author): replace hardcoded CloudFront URL with env var
 - Update the comment to reflect the new value: `// 10 seconds`
 
 **Verification Checklist:**
-- [ ] CDN client timeout is 10000
-- [ ] API client timeout is unchanged (15000)
-- [ ] `npm run check` passes
-- [ ] `client.test.ts` passes (update test assertions if they check timeout value)
+- [x]CDN client timeout is 10000
+- [x]API client timeout is unchanged (15000)
+- [x]`npm run check` passes
+- [x]`client.test.ts` passes (update test assertions if they check timeout value)
 
 **Testing Instructions:**
 - Check `client.test.ts` — if it asserts on the timeout value, update the expected value to 10000
@@ -275,12 +275,12 @@ perf(frontend): reduce CDN client timeout from 30s to 10s
 - Optionally, you may want to first do a lightweight HEAD request or rely on the `isAudioAvailable` check (already present) to avoid setting an invalid URL. The existing `isAudioAvailable` check is sufficient — if audio is not available, `mp3Url` is set to `'NotAvailable'` and the audio component already handles this case.
 
 **Verification Checklist:**
-- [ ] No `responseType: 'arraybuffer'` in `usePoemData.ts`
-- [ ] No `Blob` construction or `URL.createObjectURL` in `usePoemData.ts`
-- [ ] `mp3Url` is a direct CDN URL (e.g., `https://...cloudfront.net/audio/20150315.mp3`)
-- [ ] Audio still plays correctly (manual verification needed)
-- [ ] `npm run check` passes
-- [ ] Audio tests pass (check `Audio.test.tsx`)
+- [x]No `responseType: 'arraybuffer'` in `usePoemData.ts`
+- [x]No `Blob` construction or `URL.createObjectURL` in `usePoemData.ts`
+- [x]`mp3Url` is a direct CDN URL (e.g., `https://...cloudfront.net/audio/20150315.mp3`)
+- [x]Audio still plays correctly (manual verification needed)
+- [x]`npm run check` passes
+- [x]Audio tests pass (check `Audio.test.tsx`)
 
 **Testing Instructions:**
 - Run `npm test` and verify Audio component tests pass
@@ -319,10 +319,10 @@ perf(frontend): stream audio via direct CDN URL instead of arraybuffer
 - This runs once at app startup and catches any promise rejections that are not caught by component-level error handling.
 
 **Verification Checklist:**
-- [ ] `unhandledrejection` listener added in `main.tsx`
-- [ ] Handler logs to `console.error`
-- [ ] Does not call `event.preventDefault()`
-- [ ] `npm run check` passes
+- [x]`unhandledrejection` listener added in `main.tsx`
+- [x]Handler logs to `console.error`
+- [x]Does not call `event.preventDefault()`
+- [x]`npm run check` passes
 
 **Testing Instructions:**
 - No unit test needed — this is a global runtime handler
@@ -358,9 +358,9 @@ fix(frontend): add global unhandled promise rejection handler
 - 200 characters is generous for author/poem name searches while preventing abuse.
 
 **Verification Checklist:**
-- [ ] Query strings longer than 200 characters return 400 error
-- [ ] Short queries still work
-- [ ] `npm run check` passes
+- [x]Query strings longer than 200 characters return 400 error
+- [x]Short queries still work
+- [x]`npm run check` passes
 
 **Testing Instructions:**
 - Add a test case in the Lambda's test file (create if needed) verifying:
@@ -397,10 +397,10 @@ fix(lambda): add input length validation to search endpoint
 - If you remove `dangerouslySetInnerHTML`, also remove the corresponding `DOMPurify.sanitize()` call for that element since it's no longer needed.
 
 **Verification Checklist:**
-- [ ] Each `dangerouslySetInnerHTML` usage reviewed — removed where content is plain text
-- [ ] Remaining `dangerouslySetInnerHTML` uses still have `DOMPurify.sanitize()`
-- [ ] `npm run check` passes
-- [ ] Visual rendering unchanged (manual verification)
+- [x]Each `dangerouslySetInnerHTML` usage reviewed — removed where content is plain text
+- [x]Remaining `dangerouslySetInnerHTML` uses still have `DOMPurify.sanitize()`
+- [x]`npm run check` passes
+- [x]Visual rendering unchanged (manual verification)
 
 **Testing Instructions:**
 - Run `npm test` — existing Poem and App tests should cover rendering
