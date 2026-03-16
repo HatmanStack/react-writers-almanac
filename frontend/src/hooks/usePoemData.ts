@@ -7,7 +7,7 @@
 
 import { useEffect } from 'react';
 import axios from 'axios';
-import { cdnClient } from '../api/client';
+import { cdnClient, CDN_BASE_URL } from '../api/client';
 import { CDN_ENDPOINTS, isAudioAvailable } from '../api/endpoints';
 import { sanitizePoemText, sanitizePoemLines } from '../api/transforms';
 import { useAppStore } from '../store/useAppStore';
@@ -58,7 +58,6 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
   const setPoemData = useAppStore(state => state.setPoemData);
   const setAuthorData = useAppStore(state => state.setAuthorData);
   const setAudioData = useAppStore(state => state.setAudioData);
-  const cleanup = useAppStore(state => state.cleanup);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -127,42 +126,21 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
       }
     }
 
-    async function fetchAudioData() {
+    function setAudioUrl() {
       // Audio only available after 2009-01-11
       if (!isAudioAvailable(linkDate)) {
         setAudioData({ mp3Url: 'NotAvailable' });
         return;
       }
 
-      try {
-        const response = await cdnClient.get(CDN_ENDPOINTS.getPoemAudio(linkDate), {
-          responseType: 'arraybuffer',
-          signal: abortController.signal,
-        });
-
-        // Cleanup old blob URL before creating new one
-        const currentMp3Url = useAppStore.getState().mp3Url;
-        if (currentMp3Url && currentMp3Url.startsWith('blob:')) {
-          cleanup();
-        }
-
-        const blob = new Blob([response.data]);
-        const audioUrl = URL.createObjectURL(blob);
-        setAudioData({ mp3Url: audioUrl });
-      } catch (error) {
-        // Don't update state if request was aborted
-        if (axios.isCancel(error)) {
-          return;
-        }
-
-        // Set unavailable status on audio fetch failure
-        setAudioData({ mp3Url: 'NotAvailable' });
-      }
+      // Use direct CDN URL - browser handles streaming and range requests natively
+      const directUrl = `${CDN_BASE_URL}${CDN_ENDPOINTS.getPoemAudio(linkDate)}`;
+      setAudioData({ mp3Url: directUrl });
     }
 
-    // Fetch both poem and audio data
+    // Fetch poem data and set audio URL
     fetchPoemData();
-    fetchAudioData();
+    setAudioUrl();
 
     // Cleanup: abort pending requests when effect re-runs or component unmounts
     return () => {
@@ -176,6 +154,5 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
     setPoemData,
     setAuthorData,
     setAudioData,
-    cleanup,
   ]);
 }
