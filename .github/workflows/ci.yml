@@ -62,10 +62,7 @@ jobs:
           cache: npm
 
       - name: Install Lambda dependencies
-        run: |
-          cd backend/lambdas/get-author && npm ci
-          cd ../get-authors-by-letter && npm ci
-          cd ../search-autocomplete && npm ci
+        run: cd backend/lambdas && npm ci
 
       - name: Validate SAM template
         run: |

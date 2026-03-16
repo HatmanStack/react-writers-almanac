@@ -1,19 +1,18 @@
 // @vitest-environment node
-import { describe, it, expect, vi, beforeAll } from 'vitest';
-
-// Mock the AWS SDK before anything else
-vi.mock('@aws-sdk/client-s3', () => ({
-  S3Client: vi.fn().mockImplementation(() => ({
-    send: vi.fn().mockResolvedValue({ Contents: [] }),
-  })),
-  ListObjectsV2Command: vi.fn(),
-  GetObjectCommand: vi.fn(),
-}));
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { S3Client } from '@aws-sdk/client-s3';
 
 describe('search-autocomplete Lambda', () => {
   let handler;
+  let sendSpy;
 
   beforeAll(async () => {
+    // Mock S3Client.prototype.send before the Lambda module loads and creates its client
+    sendSpy = vi.spyOn(S3Client.prototype, 'send').mockResolvedValue({
+      Contents: [],
+      IsTruncated: false,
+    });
+
     // Set required env var before importing
     process.env.S3_BUCKET = 'test-bucket';
     process.env.AWS_REGION = 'us-east-1';
@@ -21,6 +20,10 @@ describe('search-autocomplete Lambda', () => {
     // Dynamic import after env and mocks are set up
     const mod = await import('./index.js');
     handler = mod.handler;
+  });
+
+  afterAll(() => {
+    sendSpy?.mockRestore();
   });
 
   describe('query length validation', () => {
@@ -34,11 +37,10 @@ describe('search-autocomplete Lambda', () => {
       };
 
       const response = await handler(event);
-      // Must not be rejected by the length gate
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
-      expect(body.code).not.toBe('QUERY_TOO_LONG');
-      // Handler proceeds past validation (200 or 500 depending on S3 mock)
-      expect([200, 500]).toContain(response.statusCode);
+      expect(body).toHaveProperty('results');
+      expect(body).toHaveProperty('query', query);
     });
 
     it('should reject a query of 201 characters with 400 error', async () => {
