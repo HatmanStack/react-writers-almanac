@@ -312,7 +312,6 @@ function App() {
               setIsShowingContentByDate={handleSwitchToDateView}
               formatAuthorDate={formatAuthorDate}
               setLinkDate={setLinkDate}
-              width={width}
             />
           </Suspense>
         );

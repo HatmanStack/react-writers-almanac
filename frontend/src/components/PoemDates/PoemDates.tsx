@@ -6,7 +6,6 @@ interface PoemDatesProps {
   setIsShowingContentByDate: (value: boolean) => void;
   formatAuthorDate: (date: string) => string;
   setLinkDate: (date: string) => void;
-  width: number;
 }
 
 /**
@@ -24,7 +23,6 @@ function PoemDates({
   setIsShowingContentByDate,
   formatAuthorDate,
   setLinkDate,
-  width,
 }: PoemDatesProps) {
   // Fetch poem dates using TanStack Query
   const { data: poemData, isLoading, error, refetch } = usePoemDatesQuery(poemTitle);
@@ -119,7 +117,6 @@ function PoemDates({
 
           return (
             <div key={`${date}-${index}`} className="flex justify-center">
-              {width <= 1000 && <div className="flex-[1_0_auto]" />}
               <button
                 type="button"
                 className="bg-app-container text-app-text border-none font-bold text-base cursor-pointer m-4 flex justify-center items-center z-10 rounded-[3rem] px-4 py-4 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"

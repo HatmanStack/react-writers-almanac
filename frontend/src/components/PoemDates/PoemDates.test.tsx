@@ -21,7 +21,6 @@ describe('PoemDates Component', () => {
     setIsShowingContentByDate: mockSetIsShowingContentByDate,
     formatAuthorDate: mockFormatAuthorDate,
     setLinkDate: mockSetLinkDate,
-    width: 1200,
   };
 
   beforeEach(() => {
@@ -292,35 +291,6 @@ describe('PoemDates Component', () => {
   });
 
   describe('Responsive Behavior', () => {
-    it('should render without formatting container on desktop (width > 1000)', () => {
-      vi.mocked(usePoemDatesQuery).mockReturnValue({
-        data: { dates: ['2024-01-01'] },
-        isLoading: false,
-        error: null,
-        refetch: mockRefetch,
-      } as unknown as ReturnType<typeof usePoemDatesQuery>);
-
-      const { container } = render(<PoemDates {...defaultProps} width={1200} />);
-
-      // Check that flex-[1_0_auto] class is not present (this is added only for mobile)
-      const flexElements = container.querySelectorAll('.flex-\\[1_0_auto\\]');
-      expect(flexElements).toHaveLength(0);
-    });
-
-    it('should render with formatting container on mobile (width <= 1000)', () => {
-      vi.mocked(usePoemDatesQuery).mockReturnValue({
-        data: { dates: ['2024-01-01'] },
-        isLoading: false,
-        error: null,
-        refetch: mockRefetch,
-      } as unknown as ReturnType<typeof usePoemDatesQuery>);
-
-      const { container } = render(<PoemDates {...defaultProps} width={800} />);
-
-      // Check that flex-[1_0_auto] class is present (added for mobile)
-      const flexElements = container.querySelectorAll('.flex-\\[1_0_auto\\]');
-      expect(flexElements.length).toBeGreaterThan(0);
-    });
   });
 
   describe('Accessibility', () => {
