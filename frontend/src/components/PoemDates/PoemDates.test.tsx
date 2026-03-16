@@ -290,9 +290,6 @@ describe('PoemDates Component', () => {
     });
   });
 
-  describe('Responsive Behavior', () => {
-  });
-
   describe('Accessibility', () => {
     it('should have accessible labels for date buttons', () => {
       vi.mocked(usePoemDatesQuery).mockReturnValue({
