@@ -41,10 +41,10 @@ Add automated guardrails to prevent regression: enable stricter lint rules, re-i
 - Run `cd frontend && npm run lint` to verify no new violations. If any violations appear, fix them in this same task (they should be minimal since Phase 1 already fixed the known `==` usage and the codebase has zero `any` types).
 
 **Verification Checklist:**
-- [ ] `eqeqeq` rule set to `['error', 'always']` in `.eslintrc.cjs`
-- [ ] `@typescript-eslint/no-explicit-any` set to `'error'`
-- [ ] `cd frontend && npm run lint -- --max-warnings 0` passes
-- [ ] `npm run check` passes
+- [x] `eqeqeq` rule set to `['error', 'always']` in `.eslintrc.cjs`
+- [x] `@typescript-eslint/no-explicit-any` set to `'error'`
+- [x] `cd frontend && npm run lint -- --max-warnings 0` passes
+- [x] `npm run check` passes
 
 **Testing Instructions:**
 - No new tests — this is a lint config change
@@ -88,11 +88,11 @@ style(frontend): enable eqeqeq and strict no-explicit-any lint rules
 - Verify the hook works by making a test commit (or running `npx lefthook run pre-commit`).
 
 **Verification Checklist:**
-- [ ] `lefthook` in root `package.json` devDependencies
-- [ ] `postinstall` script calls `lefthook install`
-- [ ] `lefthook.yml` exists at root with lint and typecheck commands
-- [ ] `npx lefthook run pre-commit` succeeds
-- [ ] `npm run check` passes
+- [x] `lefthook` in root `package.json` devDependencies
+- [x] `postinstall` script calls `lefthook install`
+- [x] `lefthook.yml` exists at root with lint and typecheck commands
+- [x] `npx lefthook run pre-commit` succeeds
+- [x] `npm run check` passes
 
 **Testing Instructions:**
 - Run `npx lefthook run pre-commit` to simulate a commit
