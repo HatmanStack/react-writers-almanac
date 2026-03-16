@@ -29,7 +29,7 @@ const API_BASE_URL =
  */
 export const cdnClient: AxiosInstance = axios.create({
   baseURL: CDN_BASE_URL,
-  timeout: 30000, // 30 seconds
+  timeout: 10000, // 10 seconds
   headers: {
     'Content-Type': 'application/json',
   },
