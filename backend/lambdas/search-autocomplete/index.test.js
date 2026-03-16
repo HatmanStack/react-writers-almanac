@@ -1,6 +1,9 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
-import { S3Client } from '@aws-sdk/client-s3';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const { S3Client } = require('@aws-sdk/client-s3');
 
 describe('search-autocomplete Lambda', () => {
   let handler;
