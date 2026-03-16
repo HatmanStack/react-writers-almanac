@@ -12,6 +12,7 @@ const rootElement = document.getElementById('root') as HTMLElement;
 
 // Global handler for unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
+  // eslint-disable-next-line no-console
   console.error('Unhandled promise rejection:', event.reason);
 });
 
