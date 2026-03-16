@@ -410,17 +410,15 @@ function App() {
                   className="flex-[0_3_auto] m-4"
                   role="text"
                   aria-label="Day of week"
-                >
-                  {day || ''}
-                </div>
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }}
+                />
                 <button
                   type="button"
                   className="flex-[1_0_auto] m-4 bg-transparent border-none cursor-pointer text-app-text hover:opacity-70 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                   onClick={() => navigate(`/poem/${linkDate}`)}
                   aria-label={`Navigate to ${currentDate || 'current date'}`}
-                >
-                  {currentDate || ''}
-                </button>
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
+                />
               </div>
             </header>
             <ErrorBoundary
@@ -487,17 +485,15 @@ function App() {
                 <div
                   role="text"
                   aria-label="Day of week"
-                >
-                  {day || ''}
-                </div>
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }}
+                />
                 <button
                   type="button"
                   className="bg-transparent border-none cursor-pointer text-app-text hover:opacity-70 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                   onClick={() => navigate(`/poem/${linkDate}`)}
                   aria-label={`Navigate to ${currentDate || 'current date'}`}
-                >
-                  {currentDate || ''}
-                </button>
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
+                />
               </div>
             </header>
             <ErrorBoundary
