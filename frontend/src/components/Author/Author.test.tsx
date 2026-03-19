@@ -62,7 +62,7 @@ describe('Author Component', () => {
     });
   });
 
-  const renderWithQuery = (ui: React.ReactElement) => {
+  const renderWithQuery = (ui: React.ReactNode) => {
     return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
   };
 

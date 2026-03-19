@@ -9,7 +9,7 @@
  * - FCP (First Contentful Paint): Initial render
  */
 
-import { getCLS, getFID, getLCP, getTTFB, getFCP, type Metric } from 'web-vitals';
+import { onCLS, onINP, onLCP, onTTFB, onFCP, type Metric } from 'web-vitals';
 
 /**
  * Performance thresholds based on Web Vitals recommendations
@@ -120,19 +120,19 @@ function handleMetric(metric: Metric): void {
  */
 export function initPerformanceMonitoring(): void {
   // Track Largest Contentful Paint (loading performance)
-  getLCP(handleMetric);
+  onLCP(handleMetric);
 
-  // Track First Input Delay (interactivity)
-  getFID(handleMetric);
+  // Track Interaction to Next Paint (interactivity, replaces FID)
+  onINP(handleMetric);
 
   // Track Cumulative Layout Shift (visual stability)
-  getCLS(handleMetric);
+  onCLS(handleMetric);
 
   // Track Time to First Byte (server/network performance)
-  getTTFB(handleMetric);
+  onTTFB(handleMetric);
 
   // Track First Contentful Paint (initial render)
-  getFCP(handleMetric);
+  onFCP(handleMetric);
 
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console
