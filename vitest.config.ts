@@ -38,5 +38,6 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './frontend/src'),
     },
+    conditions: ['import', 'module', 'browser', 'default'],
   },
 });

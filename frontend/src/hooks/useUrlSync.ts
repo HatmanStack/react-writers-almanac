@@ -90,9 +90,9 @@ export function useUrlSync({
     if (authorMatch) {
       const authorName = decodeURIComponent(authorMatch[1]);
       if (validAuthors.has(authorName)) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- URL sync requires state update
+         
         setSearchTerm(authorName);
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- URL sync requires state update
+         
         setSearchType('author');
         setViewMode(false);
       }
