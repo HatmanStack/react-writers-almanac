@@ -1,0 +1,8 @@
+[
+  {
+    "skill": "audit",
+    "date": "2026-03-16",
+    "plan": "2026-03-16-audit-react-writers-almanac",
+    "audits": ["health", "eval", "docs"]
+  }
+]
