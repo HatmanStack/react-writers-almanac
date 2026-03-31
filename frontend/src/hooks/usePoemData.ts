@@ -115,7 +115,7 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
         }
       } catch (error) {
         // Don't update state if request was aborted
-        if (axios.isCancel(error)) {
+        if ((error as any).code === 'TIMEOUT_ERROR') {
           return;
         }
 

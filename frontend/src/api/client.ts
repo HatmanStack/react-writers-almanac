@@ -1,12 +1,11 @@
 /**
  * API Client Configuration
  *
- * Provides configured axios instances for:
+ * Provides configured fetch wrappers for:
  * - CDN (CloudFront) - static content (poems, author files)
  * - API Gateway - dynamic endpoints (search)
  */
 
-import axios, { AxiosInstance, AxiosError } from 'axios';
 import type { ApiError } from '../types/api';
 
 /**
@@ -23,62 +22,85 @@ export const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || 'https://d3vq6a
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'https://placeholder-api-gateway.amazonaws.com/prod';
 
-/**
- * CDN Client (CloudFront)
- * For static content: daily poems, author data
- */
-export const cdnClient: AxiosInstance = axios.create({
-  baseURL: CDN_BASE_URL,
-  timeout: 10000, // 10 seconds
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+async function request<T>(
+  baseURL: string,
+  path: string,
+  options: RequestInit = {},
+  timeout: number = 15000
+): Promise<{ data: T }> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
 
-/**
- * API Client (API Gateway)
- * For dynamic endpoints: search, etc.
- */
-export const apiClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 15000, // 15 seconds
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+  try {
+    const response = await fetch(`${baseURL}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      signal: options.signal || controller.signal,
+    });
 
-/**
- * Error interceptor - handle errors and format them consistently
- */
-const errorInterceptor = (error: AxiosError): Promise<never> => {
-  // Network error or timeout
-  if (!error.response) {
-    const apiError: ApiError = {
+    clearTimeout(id);
+
+    if (!response.ok) {
+      const errorData = (await response.json().catch(() => ({}))) as ApiErrorResponse;
+      const apiError: ApiError = {
+        message: errorData?.message || response.statusText || 'An error occurred',
+        status: response.status,
+        code: errorData?.code || 'UNKNOWN_ERROR',
+        details: errorData as Record<string, unknown>,
+        timestamp: errorData?.timestamp || new Date().toISOString(),
+      };
+      throw apiError;
+    }
+
+    if (response.status === 204) {
+      return { data: {} as T };
+    }
+
+    const data = await response.json();
+    return { data };
+  } catch (error: any) {
+    clearTimeout(id);
+
+    if (error.name === 'AbortError') {
+      throw {
+        message: 'Request timeout or cancelled',
+        status: 0,
+        code: 'TIMEOUT_ERROR',
+        timestamp: new Date().toISOString(),
+      } as ApiError;
+    }
+
+    if (error.status !== undefined) {
+      throw error;
+    }
+
+    throw {
       message: error.message || 'Network error occurred',
       status: 0,
       code: 'NETWORK_ERROR',
       timestamp: new Date().toISOString(),
-    };
-
-    return Promise.reject(apiError);
+    } as ApiError;
   }
+}
 
-  // HTTP error response
-  const errorData = error.response.data as ApiErrorResponse;
-  const apiError: ApiError = {
-    message: errorData?.message || error.message || 'An error occurred',
-    status: error.response.status,
-    code: errorData?.code || 'UNKNOWN_ERROR',
-    details: error.response.data as Record<string, unknown>,
-    timestamp: errorData?.timestamp || new Date().toISOString(),
-  };
-
-  return Promise.reject(apiError);
+export const cdnClient = {
+  get: <T>(path: string, options?: RequestInit) =>
+    request<T>(CDN_BASE_URL, path, { ...options, method: 'GET' }, 10000),
 };
 
-// Add error interceptor to clients
-cdnClient.interceptors.response.use(response => response, errorInterceptor);
-apiClient.interceptors.response.use(response => response, errorInterceptor);
+export const apiClient = {
+  get: <T>(path: string, options?: RequestInit) =>
+    request<T>(API_BASE_URL, path, { ...options, method: 'GET' }, 15000),
+  post: <T>(path: string, body?: unknown, options?: RequestInit) =>
+    request<T>(API_BASE_URL, path, {
+      ...options,
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+};
 
 // Export configured clients
 export default {

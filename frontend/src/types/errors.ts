@@ -5,16 +5,14 @@
  * Eliminates need for `any` type casts when working with mixed error shapes.
  */
 
-import type { AxiosError } from 'axios';
 import type { ApiError } from './api';
 
 /**
  * Union type for all possible error shapes in the application.
  * - ApiError: Our normalized error format from interceptors
- * - AxiosError: Raw axios errors (network failures, timeouts)
  * - Error: Standard JavaScript errors
  */
-export type QueryError = ApiError | AxiosError | Error;
+export type QueryError = ApiError | Error;
 
 /**
  * Type guard to check if an error is our ApiError shape.
@@ -36,27 +34,10 @@ export function isApiError(error: unknown): error is ApiError {
 }
 
 /**
- * Type guard to check if an error is an AxiosError.
- * AxiosError has an `isAxiosError` property set to true.
- *
- * @param error - Unknown error to check
- * @returns True if error is an AxiosError
- */
-export function isAxiosError(error: unknown): error is AxiosError {
-  return (
-    error !== null &&
-    typeof error === 'object' &&
-    'isAxiosError' in error &&
-    (error as AxiosError).isAxiosError === true
-  );
-}
-
-/**
  * Extract HTTP status code from any error shape (type-safe).
  *
  * Handles multiple error structures:
  * - ApiError: status is directly on the object
- * - AxiosError: status is in response.status
  * - Other errors: returns undefined
  *
  * @param error - Unknown error to extract status from
@@ -79,11 +60,6 @@ export function getErrorStatus(error: unknown): number | undefined {
     return error.status;
   }
 
-  // Check for raw AxiosError (before interceptor transforms it)
-  if (isAxiosError(error)) {
-    return error.response?.status;
-  }
-
   // Unknown error shape - no status available
   return undefined;
 }
@@ -97,11 +73,6 @@ export function getErrorStatus(error: unknown): number | undefined {
 export function isNetworkError(error: unknown): boolean {
   // ApiError with status 0 indicates network error
   if (isApiError(error) && error.status === 0) {
-    return true;
-  }
-
-  // AxiosError without response indicates network failure
-  if (isAxiosError(error) && !error.response) {
     return true;
   }
 
