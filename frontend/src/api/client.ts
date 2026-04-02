@@ -73,7 +73,7 @@ async function request<T>(
       } as ApiError;
     }
 
-    if (error instanceof Error && 'status' in error) {
+    if (typeof error === 'object' && error !== null && 'status' in error) {
       throw error;
     }
 

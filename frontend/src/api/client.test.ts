@@ -71,7 +71,7 @@ describe('API Client', () => {
       await apiClient.get('/search?q=test');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('placeholder-api-gateway'),
+        expect.stringContaining('/search?q=test'),
         expect.objectContaining({ method: 'GET' })
       );
     });
@@ -86,7 +86,7 @@ describe('API Client', () => {
       await apiClient.post('/submit', { query: 'test' });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('placeholder-api-gateway'),
+        expect.stringContaining('/submit'),
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({ query: 'test' }),
