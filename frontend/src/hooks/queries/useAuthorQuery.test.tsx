@@ -5,12 +5,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { InternalAxiosRequestConfig } from 'axios';
 import { useAuthorQuery } from './useAuthorQuery';
 import { cdnClient } from '../../api/client';
 import type { Author } from '../../types/author';
 
-// Mock the axios client
+// Mock the client
 vi.mock('../../api/client', () => ({
   cdnClient: {
     get: vi.fn(),
@@ -53,10 +52,6 @@ describe('useAuthorQuery', () => {
   it('should fetch author data successfully by slug', async () => {
     vi.mocked(cdnClient.get).mockResolvedValueOnce({
       data: mockAuthorData,
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result } = renderHook(() => useAuthorQuery('billy-collins'), { wrapper });
@@ -76,10 +71,6 @@ describe('useAuthorQuery', () => {
   it('should normalize author name to slug', async () => {
     vi.mocked(cdnClient.get).mockResolvedValueOnce({
       data: mockAuthorData,
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result } = renderHook(() => useAuthorQuery('Billy Collins'), { wrapper });
@@ -118,10 +109,6 @@ describe('useAuthorQuery', () => {
   it('should cache author data for 24 hours', async () => {
     vi.mocked(cdnClient.get).mockResolvedValueOnce({
       data: mockAuthorData,
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {} as InternalAxiosRequestConfig,
     });
 
     const { result: result1 } = renderHook(() => useAuthorQuery('billy-collins'), { wrapper });

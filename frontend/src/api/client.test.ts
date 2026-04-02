@@ -1,143 +1,175 @@
 /**
- * Tests for API client configuration and interceptors
+ * Tests for fetch-based API client configuration and error handling
  */
 
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import axios from 'axios';
-import { cdnClient, apiClient } from './client';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { cdnClient, apiClient, CDN_BASE_URL } from './client';
+
+const mockFetch = vi.fn();
+vi.stubGlobal('fetch', mockFetch);
 
 describe('API Client', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
-  describe('cdnClient configuration', () => {
-    it('should have correct base URL', () => {
-      expect(cdnClient.defaults.baseURL).toBe('https://d3vq6af2mo7fcy.cloudfront.net');
+  describe('cdnClient', () => {
+    it('should have a get method', () => {
+      expect(typeof cdnClient.get).toBe('function');
     });
 
-    it('should have correct timeout', () => {
-      expect(cdnClient.defaults.timeout).toBe(10000);
-    });
-
-    it('should have correct content-type header', () => {
-      expect(cdnClient.defaults.headers['Content-Type']).toBe('application/json');
-    });
-  });
-
-  describe('apiClient configuration', () => {
-    it('should have correct base URL', () => {
-      // Should use placeholder URL when VITE_API_BASE_URL is not set
-      expect(apiClient.defaults.baseURL).toContain('placeholder-api-gateway');
-    });
-
-    it('should have correct timeout', () => {
-      expect(apiClient.defaults.timeout).toBe(15000);
-    });
-
-    it('should have correct content-type header', () => {
-      expect(apiClient.defaults.headers['Content-Type']).toBe('application/json');
-    });
-  });
-
-  describe('Error interceptor', () => {
-    it('should format network errors correctly', async () => {
-      // Create a test client for isolated testing
-      const testClient = axios.create({
-        baseURL: 'http://localhost:9999', // Non-existent server
-        timeout: 100,
+    it('should call fetch with CDN base URL', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ title: 'Test Poem' }),
       });
 
-      // Add the same error interceptor
-      testClient.interceptors.response.use(
-        response => response,
-        error => {
-          if (!error.response) {
-            const apiError = {
-              message: error.message || 'Network error occurred',
-              status: 0,
-              code: 'NETWORK_ERROR',
-              timestamp: new Date().toISOString(),
-            };
-            return Promise.reject(apiError);
-          }
-          return Promise.reject(error);
-        }
+      await cdnClient.get('/poems/today.json');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${CDN_BASE_URL}/poems/today.json`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+          }),
+        })
       );
+    });
+
+    it('should return data wrapper from response', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ title: 'Test Poem' }),
+      });
+
+      const result = await cdnClient.get<{ title: string }>('/poems/today.json');
+      expect(result.data).toEqual({ title: 'Test Poem' });
+    });
+  });
+
+  describe('apiClient', () => {
+    it('should have get and post methods', () => {
+      expect(typeof apiClient.get).toBe('function');
+      expect(typeof apiClient.post).toBe('function');
+    });
+
+    it('should call fetch with API base URL for GET', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ results: [] }),
+      });
+
+      await apiClient.get('/search?q=test');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('placeholder-api-gateway'),
+        expect.objectContaining({ method: 'GET' })
+      );
+    });
+
+    it('should call fetch with POST method and body', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ success: true }),
+      });
+
+      await apiClient.post('/submit', { query: 'test' });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('placeholder-api-gateway'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ query: 'test' }),
+        })
+      );
+    });
+  });
+
+  describe('Error handling', () => {
+    it('should format HTTP errors with response body details', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        json: async () => ({
+          message: 'Not found',
+          code: 'NOT_FOUND',
+          timestamp: '2026-01-01T00:00:00.000Z',
+        }),
+      });
 
       try {
-        await testClient.get('/test');
+        await apiClient.get('/missing');
+        expect.fail('Should have thrown error');
+      } catch (error) {
+        const apiError = error as { code: string; status: number; message: string };
+        expect(apiError.status).toBe(404);
+        expect(apiError.code).toBe('NOT_FOUND');
+        expect(apiError.message).toBe('Not found');
+      }
+    });
+
+    it('should handle non-JSON error responses', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: async () => {
+          throw new Error('not json');
+        },
+      });
+
+      try {
+        await apiClient.get('/broken');
+        expect.fail('Should have thrown error');
+      } catch (error) {
+        const apiError = error as { code: string; status: number; message: string };
+        expect(apiError.status).toBe(500);
+        expect(apiError.code).toBe('UNKNOWN_ERROR');
+        expect(apiError.message).toBe('Internal Server Error');
+      }
+    });
+
+    it('should handle network errors', async () => {
+      mockFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+
+      try {
+        await apiClient.get('/test');
         expect.fail('Should have thrown error');
       } catch (error) {
         const apiError = error as { code: string; status: number; message: string };
         expect(apiError.code).toBe('NETWORK_ERROR');
         expect(apiError.status).toBe(0);
-        expect(apiError.message).toBeTruthy();
+        expect(apiError.message).toBe('Failed to fetch');
       }
     });
 
-    it('should format HTTP errors correctly', async () => {
-      // Create a mock server response
-      const mockError = {
-        response: {
-          status: 404,
-          data: {
-            message: 'Not found',
-            code: 'NOT_FOUND',
-            timestamp: new Date().toISOString(),
-          },
-        },
-        message: 'Request failed with status code 404',
-      };
+    it('should handle 204 No Content responses', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 204,
+      });
 
-      // Test error formatting
-      const apiError = {
-        message: mockError.response.data.message,
-        status: mockError.response.status,
-        code: mockError.response.data.code,
-        details: mockError.response.data,
-        timestamp: mockError.response.data.timestamp,
-      };
-
-      expect(apiError.status).toBe(404);
-      expect(apiError.code).toBe('NOT_FOUND');
-      expect(apiError.message).toBe('Not found');
-    });
-  });
-
-  describe('Interceptors are registered', () => {
-    it('should have request interceptors registered on cdnClient', () => {
-      // Interceptors are registered during module initialization
-      // We can verify by checking the interceptor manager exists
-      expect(cdnClient.interceptors.request).toBeDefined();
-    });
-
-    it('should have response interceptors registered on cdnClient', () => {
-      expect(cdnClient.interceptors.response).toBeDefined();
-    });
-
-    it('should have request interceptors registered on apiClient', () => {
-      expect(apiClient.interceptors.request).toBeDefined();
-    });
-
-    it('should have response interceptors registered on apiClient', () => {
-      expect(apiClient.interceptors.response).toBeDefined();
+      const result = await apiClient.get('/empty');
+      expect(result.data).toEqual({});
     });
   });
 
   describe('Environment variable configuration', () => {
     it('should use CDN_BASE_URL from environment or default', () => {
-      // In test environment, should use default
       const expectedUrl =
         import.meta.env.VITE_CDN_BASE_URL || 'https://d3vq6af2mo7fcy.cloudfront.net';
-      expect(cdnClient.defaults.baseURL).toBe(expectedUrl);
-    });
-
-    it('should use API_BASE_URL from environment or default', () => {
-      // In test environment, should use default
-      const expectedUrl =
-        import.meta.env.VITE_API_BASE_URL || 'https://placeholder-api-gateway.amazonaws.com/prod';
-      expect(apiClient.defaults.baseURL).toBe(expectedUrl);
+      expect(CDN_BASE_URL).toBe(expectedUrl);
     });
   });
 });

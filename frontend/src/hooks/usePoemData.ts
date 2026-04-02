@@ -6,7 +6,6 @@
  */
 
 import { useEffect } from 'react';
-import axios from 'axios';
 import { cdnClient, CDN_BASE_URL } from '../api/client';
 import { CDN_ENDPOINTS, isAudioAvailable } from '../api/endpoints';
 import { sanitizePoemText, sanitizePoemLines } from '../api/transforms';
@@ -115,7 +114,7 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
         }
       } catch (error) {
         // Don't update state if request was aborted
-        if ((error as any).code === 'TIMEOUT_ERROR') {
+        if (error instanceof Error && (error as Error & { code?: string }).code === 'TIMEOUT_ERROR') {
           return;
         }
 

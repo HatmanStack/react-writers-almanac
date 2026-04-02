@@ -61,10 +61,10 @@ async function request<T>(
 
     const data = await response.json();
     return { data };
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(id);
 
-    if (error.name === 'AbortError') {
+    if (error instanceof DOMException && error.name === 'AbortError') {
       throw {
         message: 'Request timeout or cancelled',
         status: 0,
@@ -73,12 +73,12 @@ async function request<T>(
       } as ApiError;
     }
 
-    if (error.status !== undefined) {
+    if (error instanceof Error && 'status' in error) {
       throw error;
     }
 
     throw {
-      message: error.message || 'Network error occurred',
+      message: error instanceof Error ? error.message : 'Network error occurred',
       status: 0,
       code: 'NETWORK_ERROR',
       timestamp: new Date().toISOString(),

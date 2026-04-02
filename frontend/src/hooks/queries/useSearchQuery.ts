@@ -24,12 +24,10 @@ export const searchKeys = {
  * @returns Search response
  */
 async function fetchSearchResults(query: string, limit: number): Promise<SearchResponse> {
-  const response = await apiClient.get<SearchResponse>(API_ENDPOINTS.searchAutocomplete(), {
-    params: {
-      q: query,
-      limit,
-    },
-  });
+  const params = new URLSearchParams({ q: query, limit: String(limit) });
+  const response = await apiClient.get<SearchResponse>(
+    `${API_ENDPOINTS.searchAutocomplete()}?${params}`
+  );
   return response.data;
 }
 
