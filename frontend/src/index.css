@@ -1,16 +1,40 @@
-/* Configure CSS layer ordering for Tailwind + MUI compatibility */
-@layer tailwind-base, mui, tailwind-components, tailwind-utilities;
+@import "tailwindcss";
 
-@layer tailwind-base {
-  @tailwind base;
-}
+/* Tailwind v4 theme configuration (replaces tailwind.config.js) */
+@theme {
+  /* Colors */
+  --color-app-bg: #1c1924;
+  --color-app-text: #FFFFF6;
+  --color-app-container: #8293a2;
+  --color-border-glow-start: rgba(168, 239, 255, 1);
+  --color-border-glow-end: rgba(168, 239, 255, 0.1);
 
-@layer tailwind-components {
-  @tailwind components;
-}
+  /* Font families */
+  --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-@layer tailwind-utilities {
-  @tailwind utilities;
+  /* Keyframes */
+  --animate-border-spin: border-rotate 2.5s linear infinite;
+  --animate-border-spin-reverse: border-rotate 2.5s linear infinite reverse;
+  --animate-particle-pulse: particle-pulse 2s infinite;
+
+  @keyframes border-rotate {
+    to {
+      --angle: 1turn;
+    }
+  }
+
+  @keyframes particle-pulse {
+    0% {
+      filter: blur(5px) contrast(10) saturate(0.8);
+    }
+    50% {
+      filter: blur(10px) contrast(20) saturate(0.8);
+    }
+    100% {
+      filter: blur(5px) contrast(10) saturate(0.8);
+    }
+  }
 }
 
 /* Custom CSS properties for animations */

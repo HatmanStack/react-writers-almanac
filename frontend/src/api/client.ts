@@ -35,7 +35,6 @@ async function request<T>(
     const response = await fetch(`${baseURL}${path}`, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
         ...options.headers,
       },
       signal: options.signal || controller.signal,
