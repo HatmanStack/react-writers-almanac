@@ -113,6 +113,7 @@ export default [
   'Barbara Tanner Angell',
   'Baron Wormser',
   'Barry Spacks',
+  'Bartholomew Griffin',
   'Barton Sutter',
   'Beatrice Hawley',
   'Belle Waring',
