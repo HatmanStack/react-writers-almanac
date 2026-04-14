@@ -129,14 +129,17 @@ const Search = memo(function Search({
                 {...params}
                 label="Author / Poem"
                 onKeyDown={handleKeyDown}
-                InputProps={{
-                  ...params.InputProps,
-                  startAdornment: (
-                    <>
-                      <SearchIcon sx={{ color: '#fffff6', marginRight: '0.5rem' }} />
-                      {params.InputProps.startAdornment}
-                    </>
-                  ),
+                slotProps={{
+                  ...params.slotProps,
+                  input: {
+                    ...params.slotProps.input,
+                    startAdornment: (
+                      <>
+                        <SearchIcon sx={{ color: '#fffff6', marginRight: '0.5rem' }} />
+                        {params.slotProps.input?.startAdornment}
+                      </>
+                    ),
+                  },
                 }}
                 sx={{
                   '& input': {
@@ -217,14 +220,17 @@ const Search = memo(function Search({
                 {...params}
                 label="Author / Poem"
                 onKeyDown={handleKeyDown}
-                InputProps={{
-                  ...params.InputProps,
-                  startAdornment: (
-                    <>
-                      <SearchIcon sx={{ color: '#fffff6', marginRight: '0.5rem' }} />
-                      {params.InputProps.startAdornment}
-                    </>
-                  ),
+                slotProps={{
+                  ...params.slotProps,
+                  input: {
+                    ...params.slotProps.input,
+                    startAdornment: (
+                      <>
+                        <SearchIcon sx={{ color: '#fffff6', marginRight: '0.5rem' }} />
+                        {params.slotProps.input?.startAdornment}
+                      </>
+                    ),
+                  },
                 }}
                 sx={{
                   '& input': {

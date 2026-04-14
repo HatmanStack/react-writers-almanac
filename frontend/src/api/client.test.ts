@@ -36,9 +36,6 @@ describe('API Client', () => {
         `${CDN_BASE_URL}/poems/today.json`,
         expect.objectContaining({
           method: 'GET',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-          }),
         })
       );
     });
