@@ -5,6 +5,7 @@ import { axe } from 'vitest-axe';
 import Author from './Author';
 import { useAuthorQuery } from '../../hooks/queries/useAuthorQuery';
 import type { Author as AuthorType } from '../../types/author';
+import { formatAuthorDate as realFormatAuthorDate } from '../../utils/dateMapping';
 
 // Mock DOMPurify
 vi.mock('dompurify', () => ({
@@ -247,6 +248,82 @@ describe('Author Component', () => {
     });
   });
 
+  describe('Audio Availability Highlighting', () => {
+    // Real-world author dates: audio exists for broadcasts after 2009-01-11
+    const dataWithMixedAudio: AuthorType = {
+      'poetry foundation': {
+        poems: [
+          { date: 'Mar. 4, 2001', title: 'No Audio Poem' },
+          { date: 'Feb. 5, 2015', title: 'Audio Poem' },
+        ],
+      },
+    };
+
+    const renderWithRealDates = () => {
+      (useAuthorQuery as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+        data: dataWithMixedAudio,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetch,
+      });
+
+      return renderWithQuery(<Author {...defaultProps} formatAuthorDate={realFormatAuthorDate} />);
+    };
+
+    it('should highlight poems whose date has an audio recording', () => {
+      renderWithRealDates();
+      const audioButton = screen.getByRole('button', { name: /Audio Poem from Feb\. 5, 2015/ });
+      expect(audioButton).toHaveClass('ring-1');
+      expect(audioButton.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('should not highlight poems from before audio was archived', () => {
+      renderWithRealDates();
+      const noAudioButton = screen.getByRole('button', {
+        name: /No Audio Poem from Mar\. 4, 2001/,
+      });
+      expect(noAudioButton).not.toHaveClass('ring-1');
+      expect(noAudioButton.querySelector('svg')).not.toBeInTheDocument();
+    });
+
+    it('should announce audio availability in the accessible name', () => {
+      renderWithRealDates();
+      expect(
+        screen.getByLabelText('View Audio Poem from Feb. 5, 2015 (audio recording available)')
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText('View No Audio Poem from Mar. 4, 2001')).toBeInTheDocument();
+    });
+
+    it('should show the legend when at least one poem has audio', () => {
+      renderWithRealDates();
+      expect(screen.getByText(/Highlighted poems have an audio recording/)).toBeInTheDocument();
+    });
+
+    it('should hide the legend when no poem has audio', () => {
+      (useAuthorQuery as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+        data: {
+          'poetry foundation': {
+            poems: [{ date: 'Mar. 4, 2001', title: 'No Audio Poem' }],
+          },
+        } as AuthorType,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetch,
+      });
+
+      renderWithQuery(<Author {...defaultProps} formatAuthorDate={realFormatAuthorDate} />);
+      expect(
+        screen.queryByText(/Highlighted poems have an audio recording/)
+      ).not.toBeInTheDocument();
+    });
+
+    it('should have no axe violations when poems are highlighted', async () => {
+      const { container } = renderWithRealDates();
+      const results = await axe(container);
+      expect(results.violations).toEqual([]);
+    });
+  });
+
   describe('Character Sanitization', () => {
     it('should remove non-ASCII characters from titles', () => {
       renderWithQuery(<Author {...defaultProps} />);
@@ -301,6 +378,9 @@ describe('Author Component', () => {
     it('should call all handlers in correct order when clicking', () => {
       renderWithQuery(<Author {...defaultProps} />);
       const secondButton = screen.getByText('Test Poem 2');
+      // Rendering also calls formatAuthorDate (once per poem) to detect audio
+      // availability, so only count the calls made by the click itself
+      mockFormatAuthorDate.mockClear();
       fireEvent.click(secondButton);
 
       expect(mockFormatAuthorDate).toHaveBeenCalledTimes(1);
