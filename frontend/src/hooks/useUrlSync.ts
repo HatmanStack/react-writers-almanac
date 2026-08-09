@@ -94,6 +94,14 @@ export function useUrlSync({
     // Update ref for next comparison
     previousPathnameRef.current = path;
 
+    /**
+     * Fall back to today's poem. Leaving an unmatched route alone would keep
+     * whatever was already on screen under a URL that no longer describes it.
+     */
+    const redirectToToday = () => {
+      navigate(ROUTES.poemByDate(presentDate()), { replace: true });
+    };
+
     // Handle /poem/:date route
     const poemMatch = path.match(ROUTE_PATTERNS.poemByDate);
     if (poemMatch) {
@@ -116,6 +124,8 @@ export function useUrlSync({
 
         setSearchType('author');
         setViewMode(false);
+      } else {
+        redirectToToday();
       }
       return;
     }
@@ -129,13 +139,15 @@ export function useUrlSync({
 
         setSearchType('poem');
         setViewMode(false);
+      } else {
+        redirectToToday();
       }
       return;
     }
 
     // Handle root - redirect to today's poem
     if (path === '/') {
-      navigate(ROUTES.poemByDate(presentDate()), { replace: true });
+      redirectToToday();
     }
   }, [location.pathname, navigate, setSearchTerm, setViewMode, linkDate, validAuthors, validPoems]);
 
