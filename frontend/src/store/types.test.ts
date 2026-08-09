@@ -12,9 +12,11 @@ describe('Store Type Definitions', () => {
         author: ['Author Name'],
         note: ['Note text'],
         isShowingContentByDate: true,
+        activeDate: '20150315',
 
         // Actions
         setCurrentDate: () => {},
+        setActiveDate: () => {},
         setPoemData: () => {},
         setAuthorData: () => {},
         toggleViewMode: () => {},
@@ -44,8 +46,10 @@ describe('Store Type Definitions', () => {
         author: undefined,
         note: undefined,
         isShowingContentByDate: false,
+        activeDate: '20150315',
 
         setCurrentDate: () => {},
+        setActiveDate: () => {},
         setPoemData: () => {},
         setAuthorData: () => {},
         toggleViewMode: () => {},
@@ -154,7 +158,9 @@ describe('Store Type Definitions', () => {
         author: ['Author'],
         note: ['Note'],
         isShowingContentByDate: true,
+        activeDate: '20150315',
         setCurrentDate: () => {},
+        setActiveDate: () => {},
         setPoemData: () => {},
         setAuthorData: () => {},
         toggleViewMode: () => {},
@@ -196,7 +202,9 @@ describe('Store Type Definitions', () => {
         author: undefined,
         note: undefined,
         isShowingContentByDate: false,
+        activeDate: '20150315',
         setCurrentDate: () => {},
+        setActiveDate: () => {},
         setPoemData: () => {},
         setAuthorData: () => {},
         toggleViewMode: () => {},
@@ -243,11 +251,13 @@ describe('Store Type Definitions', () => {
         author: undefined,
         note: undefined,
         isShowingContentByDate: false,
+        activeDate: '20150315',
         setCurrentDate: (date: string | undefined) => {
           // Type test: verify parameter accepts string | undefined
           const _typeCheck: string | undefined = date;
           void _typeCheck; // Use variable to satisfy linter
         },
+        setActiveDate: () => {},
         setPoemData: () => {},
         setAuthorData: () => {},
         toggleViewMode: () => {},
