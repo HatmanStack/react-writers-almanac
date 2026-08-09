@@ -201,6 +201,25 @@ describe('Application routing', () => {
       renderAt('/poem/not-a-date');
       expect(await screen.findByRole('heading', { name: /That page/ })).toBeInTheDocument();
     });
+
+    /*
+     * A name the archive does not have is a bad address. It reports that and
+     * leaves the URL alone, rather than redirecting to today, so the reader can
+     * see what they asked for and correct it.
+     */
+    it('shows a not-found page for an author the archive does not have', async () => {
+      const path = ROUTES.author('Nobody Real');
+      renderAt(path);
+      expect(await screen.findByRole('heading', { name: /That page/ })).toBeInTheDocument();
+      expect(currentPath()).toBe(path);
+    });
+
+    it('shows a not-found page for a poem title the archive does not have', async () => {
+      const path = ROUTES.poemByTitle('No Such Poem');
+      renderAt(path);
+      expect(await screen.findByRole('heading', { name: /That page/ })).toBeInTheDocument();
+      expect(currentPath()).toBe(path);
+    });
   });
 
   describe('stepping through search results', () => {

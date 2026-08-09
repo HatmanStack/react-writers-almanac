@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ROUTES, ROUTE_PATTERNS, ROUTE_PATHS, isValidDateParam } from './routes';
+import { ROUTES, ROUTE_PATHS, isValidDateParam } from './routes';
 
 describe('ROUTES builders', () => {
   it('builds a date path', () => {
@@ -16,22 +16,7 @@ describe('ROUTES builders', () => {
   });
 });
 
-describe('ROUTE_PATTERNS', () => {
-  it('captures a single-segment author name', () => {
-    expect('/author/Billy%20Collins'.match(ROUTE_PATTERNS.author)?.[1]).toBe('Billy%20Collins');
-  });
-
-  it('does not match across path segments', () => {
-    // A two-segment path is not an author named "A/B"; it is simply not a route.
-    expect(ROUTE_PATTERNS.author.test('/author/A/B')).toBe(false);
-    expect(ROUTE_PATTERNS.poemByTitle.test('/poems/A/B')).toBe(false);
-  });
-
-  it('matches only an eight-digit date', () => {
-    expect(ROUTE_PATTERNS.poemByDate.test('/poem/20150315')).toBe(true);
-    expect(ROUTE_PATTERNS.poemByDate.test('/poem/not-a-date')).toBe(false);
-  });
-
+describe('ROUTE_PATHS', () => {
   it('keeps the react-router templates aligned with the builders', () => {
     expect(ROUTE_PATHS.poemByDate).toBe('/poem/:date');
     expect(ROUTE_PATHS.author).toBe('/author/:name');

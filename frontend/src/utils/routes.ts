@@ -29,21 +29,13 @@ export const ROUTES = {
 } as const;
 
 /**
- * Patterns matching the paths built above. Capture group 1 is the raw
- * (still-encoded) parameter.
- */
-export const ROUTE_PATTERNS = {
-  poemByDate: /^\/poem\/(\d{8})$/,
-  // `[^/]+` rather than `.+` so these agree with ROUTE_PATHS below, which bind
-  // a single path segment: /author/A/B is not an author named "A/B".
-  author: /^\/author\/([^/]+)$/,
-  poemByTitle: /^\/poems\/([^/]+)$/,
-} as const;
-
-/**
  * React Router path templates for the same shapes. These are what `<Route path>`
  * and `useMatch()` consume; keeping them beside the builders means a URL change
  * is a one-file edit.
+ *
+ * There is deliberately no table of hand-written regexes here any more. Routes
+ * are matched by React Router, which binds exactly one path segment per
+ * parameter — a second source of truth for the same URLs could only drift.
  */
 export const ROUTE_PATHS = {
   poemByDate: '/poem/:date',

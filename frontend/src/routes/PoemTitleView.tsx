@@ -1,7 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { useParams } from 'react-router-dom';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { POEM_TITLES } from '../utils/searchIndex';
 import { useAppOutletContext } from './useAppOutletContext';
+import NotFound from './NotFound';
 
 const PoemDates = lazy(() => import('../components/PoemDates/PoemDates'));
 
@@ -19,6 +21,11 @@ function PoemTitleView() {
   const { title } = useParams();
   const { goToDate, formatAuthorDate } = useAppOutletContext();
   const poemTitle = title ?? '';
+
+  // A title the archive does not have is a bad address; see AuthorView.
+  if (!POEM_TITLES.has(poemTitle)) {
+    return <NotFound />;
+  }
 
   return (
     <Suspense fallback={<LoadingSpinner size="lg" label="Loading poem dates..." />}>

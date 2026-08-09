@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Search from './Search';
 import Poem from './Poem';
+import type { SearchTarget } from '../utils/searchIndex';
 
 vi.mock('../utils', async () => {
   const actual = await vi.importActual('../utils');
@@ -17,15 +18,16 @@ describe('Core Components Integration', () => {
 
   describe('Search and Poem Integration', () => {
     it('Search component renders alongside Poem component', () => {
-      const mockSearchedTermWrapper = vi.fn();
-      const mockCalendarDate = vi.fn();
+      const mockOnSearch = vi.fn();
+      const mockOnDateSelect = vi.fn();
       const mockSetSearchedTerm = vi.fn();
 
       render(
         <div>
           <Search
-            searchedTermWrapper={mockSearchedTermWrapper}
-            calendarDate={mockCalendarDate}
+            currentTarget={null}
+            onSearch={mockOnSearch}
+            onDateSelect={mockOnDateSelect}
             width={1200}
             currentDate="20240101"
           />
@@ -42,21 +44,22 @@ describe('Core Components Integration', () => {
       );
 
       // Verify both components render
-      expect(screen.getByLabelText(/author.*poem/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/search authors/i)).toBeInTheDocument();
       expect(screen.getByText('Test Poem')).toBeInTheDocument();
       expect(screen.getByText('Test Author')).toBeInTheDocument();
     });
 
     it('Components maintain proper styling when rendered together', () => {
-      const mockSearchedTermWrapper = vi.fn();
-      const mockCalendarDate = vi.fn();
+      const mockOnSearch = vi.fn();
+      const mockOnDateSelect = vi.fn();
       const mockSetSearchedTerm = vi.fn();
 
       render(
         <div>
           <Search
-            searchedTermWrapper={mockSearchedTermWrapper}
-            calendarDate={mockCalendarDate}
+            currentTarget={null}
+            onSearch={mockOnSearch}
+            onDateSelect={mockOnDateSelect}
             width={1200}
             currentDate="20240101"
           />
@@ -85,23 +88,24 @@ describe('Core Components Integration', () => {
 
   describe('TypeScript Type Safety', () => {
     it('Search component accepts properly typed props', () => {
-      const searchedTermWrapper = (query: string) => {
-        expect(typeof query).toBe('string');
+      const onSearch = (target: SearchTarget) => {
+        expect(typeof target.label).toBe('string');
       };
-      const calendarDate = (date: { calendarChangedDate: Date }) => {
-        expect(date.calendarChangedDate).toBeInstanceOf(Date);
+      const onDateSelect = (date: Date) => {
+        expect(date).toBeInstanceOf(Date);
       };
 
       render(
         <Search
-          searchedTermWrapper={searchedTermWrapper}
-          calendarDate={calendarDate}
+          currentTarget={null}
+          onSearch={onSearch}
+          onDateSelect={onDateSelect}
           width={1200}
           currentDate="20240101"
         />
       );
 
-      expect(screen.getByLabelText(/author.*poem/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/search authors/i)).toBeInTheDocument();
     });
 
     it('Poem component accepts properly typed props', () => {
@@ -127,15 +131,16 @@ describe('Core Components Integration', () => {
 
   describe('Accessibility Integration', () => {
     it('All components have proper ARIA labels', () => {
-      const mockSearchedTermWrapper = vi.fn();
-      const mockCalendarDate = vi.fn();
+      const mockOnSearch = vi.fn();
+      const mockOnDateSelect = vi.fn();
       const mockSetSearchedTerm = vi.fn();
 
       render(
         <div>
           <Search
-            searchedTermWrapper={mockSearchedTermWrapper}
-            calendarDate={mockCalendarDate}
+            currentTarget={null}
+            onSearch={mockOnSearch}
+            onDateSelect={mockOnDateSelect}
             width={1200}
             currentDate="20240101"
           />
@@ -152,7 +157,7 @@ describe('Core Components Integration', () => {
       );
 
       // Search component accessibility
-      const searchInput = screen.getByLabelText(/author.*poem/i);
+      const searchInput = screen.getByLabelText(/search authors/i);
       expect(searchInput).toBeInTheDocument();
 
       const calendarButton = screen.getByRole('button', { name: /open calendar/i });
@@ -170,15 +175,16 @@ describe('Core Components Integration', () => {
 
   describe('Responsive Behavior Integration', () => {
     it('Components adapt to mobile width', () => {
-      const mockSearchedTermWrapper = vi.fn();
-      const mockCalendarDate = vi.fn();
+      const mockOnSearch = vi.fn();
+      const mockOnDateSelect = vi.fn();
       const mockSetSearchedTerm = vi.fn();
 
       const { container } = render(
         <div>
           <Search
-            searchedTermWrapper={mockSearchedTermWrapper}
-            calendarDate={mockCalendarDate}
+            currentTarget={null}
+            onSearch={mockOnSearch}
+            onDateSelect={mockOnDateSelect}
             width={800}
             currentDate="20240101"
           />
@@ -203,15 +209,16 @@ describe('Core Components Integration', () => {
     });
 
     it('Components adapt to desktop width', () => {
-      const mockSearchedTermWrapper = vi.fn();
-      const mockCalendarDate = vi.fn();
+      const mockOnSearch = vi.fn();
+      const mockOnDateSelect = vi.fn();
       const mockSetSearchedTerm = vi.fn();
 
       render(
         <div>
           <Search
-            searchedTermWrapper={mockSearchedTermWrapper}
-            calendarDate={mockCalendarDate}
+            currentTarget={null}
+            onSearch={mockOnSearch}
+            onDateSelect={mockOnDateSelect}
             width={1400}
             currentDate="20240101"
           />
@@ -228,7 +235,7 @@ describe('Core Components Integration', () => {
       );
 
       // Both components should render correctly in desktop mode
-      expect(screen.getByLabelText(/author.*poem/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/search authors/i)).toBeInTheDocument();
       expect(screen.getByText('Desktop Poem')).toBeInTheDocument();
     });
   });

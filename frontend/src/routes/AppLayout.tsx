@@ -8,10 +8,7 @@ import { SEOHead, JsonLd } from '../components/SEOHead';
 import logo from '../assets/logo_writersalmanac.png';
 import sortedAuthors from '../assets/Authors_sorted';
 import sortedPoems from '../assets/Poems_sorted';
-
-// Convert to Sets for O(1) lookups
-const sortedAuthorsSet = new Set(sortedAuthors);
-const sortedPoemsSet = new Set(sortedPoems);
+import type { SearchTargetRef } from '../utils/searchIndex';
 
 import { useWindowSize } from 'react-use';
 import DOMPurify from 'dompurify';
@@ -30,13 +27,6 @@ import { ROUTES, isValidDateParam } from '../utils/routes';
 // Lazy load heavy components for code splitting
 const Audio = lazy(() => import('../components/Audio/Audio'));
 const ParticlesComponent = lazy(() => import('../components/Particles/Particles'));
-
-/**
- * Type for calendar date change
- */
-interface CalendarDateChange {
-  calendarChangedDate: Date;
-}
 
 /**
  * Data the layout owns but the routed pages need. Passed through `<Outlet />`
@@ -152,17 +142,26 @@ function AppLayout() {
     [navigate]
   );
 
-  const searchedTermWrapper = useCallback(
-    (query: string): void => {
-      if (!query) return;
-
-      if (sortedAuthorsSet.has(query)) {
-        navigate(ROUTES.author(query));
-      } else if (sortedPoemsSet.has(query)) {
-        navigate(ROUTES.poemByTitle(query));
-      }
+  /**
+   * Go to a resolved search target. The search bar hands over an already
+   * resolved author or poem, so this only has to route — the destination URL
+   * then decides what renders.
+   */
+  const handleSearch = useCallback(
+    ({ label, type }: SearchTargetRef): void => {
+      if (!label) return;
+      navigate(type === 'author' ? ROUTES.author(label) : ROUTES.poemByTitle(label));
     },
     [navigate]
+  );
+
+  /**
+   * What the search field should display. Memoized so the field is not resynced
+   * on every render.
+   */
+  const currentTarget = useMemo<SearchTargetRef | null>(
+    () => (searchTerm ? { label: searchTerm, type: searchType ?? 'author' } : null),
+    [searchTerm, searchType]
   );
 
   const handlePoemTitleClick = useCallback(
@@ -179,9 +178,9 @@ function AppLayout() {
 
   const handleAuthorClick = useCallback(
     (authorName: string): void => {
-      navigate(ROUTES.author(authorName));
+      handleSearch({ label: authorName, type: 'author' });
     },
-    [navigate]
+    [handleSearch]
   );
 
   const closeModal = useCallback(() => {
@@ -189,9 +188,9 @@ function AppLayout() {
     setModalPoemContent(null);
   }, []);
 
-  const calendarDate = useCallback(
-    (x: CalendarDateChange): void => {
-      navigate(ROUTES.poemByDate(formatDate(x.calendarChangedDate)));
+  const handleDateSelect = useCallback(
+    (date: Date): void => {
+      navigate(ROUTES.poemByDate(formatDate(date)));
     },
     [navigate]
   );
@@ -216,7 +215,11 @@ function AppLayout() {
         return;
       }
 
-      const sortedList = searchType === 'author' ? sortedAuthors : sortedPoems;
+      // Step through the list the current view came from. The route says which
+      // that is; deriving it from the term instead would send a poem whose
+      // title is also an author name into the author list.
+      const isAuthor = searchType !== 'poem';
+      const sortedList = isAuthor ? sortedAuthors : sortedPoems;
       const index = sortedList.indexOf(searchTerm);
       if (index === -1) {
         return;
@@ -225,9 +228,9 @@ function AppLayout() {
       // Wrap around at both ends of the list
       const step = x === 'back' ? -1 : 1;
       const neighbour = sortedList[(index + step + sortedList.length) % sortedList.length];
-      navigate(searchType === 'author' ? ROUTES.author(neighbour) : ROUTES.poemByTitle(neighbour));
+      handleSearch({ label: neighbour, type: isAuthor ? 'author' : 'poem' });
     },
-    [isShowingContentByDate, searchType, searchTerm, activeDate, navigate]
+    [isShowingContentByDate, searchType, searchTerm, activeDate, navigate, handleSearch]
   );
 
   // Compute SEO data using the useSeoData hook
@@ -298,8 +301,9 @@ function AppLayout() {
                   )}
                 >
                   <Search
-                    searchedTermWrapper={searchedTermWrapper}
-                    calendarDate={calendarDate}
+                    currentTarget={currentTarget}
+                    onSearch={handleSearch}
+                    onDateSelect={handleDateSelect}
                     width={width}
                     currentDate={activeDate}
                   />
@@ -379,8 +383,9 @@ function AppLayout() {
                   )}
                 >
                   <Search
-                    searchedTermWrapper={searchedTermWrapper}
-                    calendarDate={calendarDate}
+                    currentTarget={currentTarget}
+                    onSearch={handleSearch}
+                    onDateSelect={handleDateSelect}
                     width={width}
                     currentDate={activeDate}
                   />
