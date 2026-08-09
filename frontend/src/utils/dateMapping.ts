@@ -116,6 +116,34 @@ export function presentDate(): string {
 }
 
 /**
+ * True when a YYYYMMDD string names a day that actually exists.
+ *
+ * The digit shape alone would admit 20230229 and 20231301. Anything that
+ * produces a date for the rest of the app validates through here, so a
+ * date-shaped string that is not a date cannot reach a caller.
+ *
+ * @example
+ * isRealCalendarDate('20150315') // true
+ * isRealCalendarDate('20230229') // false — 2023 is not a leap year
+ */
+export function isRealCalendarDate(dateString: string): boolean {
+  if (!/^\d{8}$/.test(dateString)) {
+    return false;
+  }
+
+  const year = Number(dateString.slice(0, 4));
+  const month = Number(dateString.slice(4, 6));
+  const day = Number(dateString.slice(6, 8));
+
+  if (month < 1 || month > 12 || day < 1) {
+    return false;
+  }
+
+  // Day 0 of the following month is the last day of this one, leap years included
+  return day <= new Date(year, month, 0).getDate();
+}
+
+/**
  * Parse a date string to YYYYMMDD.
  *
  * Author and poem records reach us in more than one shape, so all of them are
@@ -134,16 +162,20 @@ export function presentDate(): string {
 export function formatAuthorDate(dateString: string): string {
   const trimmed = dateString.trim();
 
+  /** Every path returns through here, so no impossible date escapes. */
+  const asRealDate = (candidate: string): string =>
+    isRealCalendarDate(candidate) ? candidate : '';
+
   // Already normalised
   if (/^\d{8}$/.test(trimmed)) {
-    return trimmed;
+    return asRealDate(trimmed);
   }
 
   // ISO-style, as stored on some author records
   const isoMatch = trimmed.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
   if (isoMatch) {
     const [, isoYear, isoMonth, isoDay] = isoMatch;
-    return `${isoYear}${isoMonth.padStart(2, '0')}${isoDay.padStart(2, '0')}`;
+    return asRealDate(`${isoYear}${isoMonth.padStart(2, '0')}${isoDay.padStart(2, '0')}`);
   }
 
   const parts = trimmed.split(' ');
@@ -170,7 +202,7 @@ export function formatAuthorDate(dateString: string): string {
     return '';
   }
 
-  return `${year}${formattedMonth}${dayDigits.padStart(2, '0')}`;
+  return asRealDate(`${year}${formattedMonth}${dayDigits.padStart(2, '0')}`);
 }
 
 /**
