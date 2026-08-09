@@ -4,6 +4,35 @@ import { useAuthorQuery } from '../../hooks/queries/useAuthorQuery';
 import type { AuthorSource, PoemItem } from '../../types/author';
 import { sanitizeHtml } from '../../utils';
 import { CDN_BASE_URL } from '../../api/client';
+import { isAudioAvailable } from '../../api/endpoints';
+
+/** Poem entry paired with whether an audio recording exists for its date */
+interface PoemListItem extends PoemItem {
+  hasAudio: boolean;
+}
+
+/**
+ * Speaker icon marking poems that have an audio recording available
+ */
+function AudioIcon() {
+  return (
+    <svg
+      className="w-3.5 h-3.5 shrink-0 text-border-glow-start"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M11 5 6 9H2v6h4l5 4V5z" />
+      <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+      <path d="M19 5a9 9 0 0 1 0 14" />
+    </svg>
+  );
+}
 
 /**
  * Author Component - Displays author biography and poems
@@ -13,6 +42,7 @@ import { CDN_BASE_URL } from '../../api/client';
  * - Displays author biography with sanitized HTML
  * - Lists poems by the searched author with dates
  * - Clickable buttons to view specific poem by date
+ * - Highlights poems whose date has a listenable audio recording
  * - Loading and error states
  * - Responsive design for desktop and mobile
  * - Sanitizes non-ASCII characters from titles
@@ -186,6 +216,26 @@ function Author({
   }, [authorData]);
 
   /**
+   * Tag each poem with audio availability.
+   * Recordings exist on the CDN for broadcast dates after 2009-01-11, so the
+   * date alone determines whether there is something to listen to.
+   */
+  const poemsWithAudio = useMemo<PoemListItem[]>(
+    () =>
+      poems.map(item => ({
+        ...item,
+        hasAudio: isAudioAvailable(formatAuthorDate(item.date)),
+      })),
+    [poems, formatAuthorDate]
+  );
+
+  /** Only show the legend when at least one visible poem is highlighted */
+  const hasAnyAudio = useMemo(
+    () => poemsWithAudio.slice(0, 20).some(item => item.hasAudio),
+    [poemsWithAudio]
+  );
+
+  /**
    * Handle click on a poem date - switches to date view and loads that poem
    * Memoized to prevent unnecessary re-renders of child buttons
    */
@@ -282,15 +332,28 @@ function Author({
                 <h3 className="text-sm font-semibold mb-2 opacity-70">
                   Poems on The Writer&apos;s Almanac:
                 </h3>
+                {hasAnyAudio && (
+                  <p className="flex items-center gap-1.5 text-xs mb-2 opacity-70">
+                    <AudioIcon />
+                    Highlighted poems have an audio recording you can listen to
+                  </p>
+                )}
                 <div className="flex flex-wrap gap-2">
-                  {poems.slice(0, 20).map((item, index) => (
+                  {poemsWithAudio.slice(0, 20).map((item, index) => (
                     <button
                       key={`${item.date}-${index}`}
                       type="button"
                       onClick={() => handleClick(item.date)}
-                      className="inline-flex items-center px-3 py-1 bg-app-bg rounded-full text-sm hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                      aria-label={`View ${item.title || 'poem'} from ${item.date}`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 bg-app-bg rounded-full text-sm hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
+                        item.hasAudio
+                          ? 'ring-1 ring-border-glow-start/70 shadow-[0_0_8px_rgba(168,239,255,0.35)]'
+                          : ''
+                      }`}
+                      aria-label={`View ${item.title || 'poem'} from ${item.date}${
+                        item.hasAudio ? ' (audio recording available)' : ''
+                      }`}
                     >
+                      {item.hasAudio && <AudioIcon />}
                       {item.title ? item.title.replaceAll(/[^\x20-\x7E]/g, '') : item.date}
                     </button>
                   ))}
