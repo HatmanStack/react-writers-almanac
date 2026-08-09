@@ -116,17 +116,69 @@ export function presentDate(): string {
 }
 
 /**
- * Parse a date string in "Mon. DD, YYYY" format to YYYYMMDD.
+ * True when a YYYYMMDD string names a day that actually exists.
  *
- * @param dateString - Date in format like "Jan. 15, 2015" or "January 15, 2015"
- * @returns Date string in YYYYMMDD format
+ * The digit shape alone would admit 20230229 and 20231301. Anything that
+ * produces a date for the rest of the app validates through here, so a
+ * date-shaped string that is not a date cannot reach a caller.
+ *
+ * @example
+ * isRealCalendarDate('20150315') // true
+ * isRealCalendarDate('20230229') // false — 2023 is not a leap year
+ */
+export function isRealCalendarDate(dateString: string): boolean {
+  if (!/^\d{8}$/.test(dateString)) {
+    return false;
+  }
+
+  const year = Number(dateString.slice(0, 4));
+  const month = Number(dateString.slice(4, 6));
+  const day = Number(dateString.slice(6, 8));
+
+  if (month < 1 || month > 12 || day < 1) {
+    return false;
+  }
+
+  // Day 0 of the following month is the last day of this one, leap years included
+  return day <= new Date(year, month, 0).getDate();
+}
+
+/**
+ * Parse a date string to YYYYMMDD.
+ *
+ * Author and poem records reach us in more than one shape, so all of them are
+ * accepted here. A date this cannot parse returns '', and callers treat that
+ * as "no date" — so a format missing from this list becomes a link that
+ * silently does nothing.
+ *
+ * @param dateString - "Jan. 15, 2015", "January 15, 2015", "2015-01-15", or "20150115"
+ * @returns Date string in YYYYMMDD format, or '' if unparseable
  *
  * @example
  * formatAuthorDate('Jan. 15, 2015') // '20150115'
  * formatAuthorDate('December 1, 2010') // '20101201'
+ * formatAuthorDate('2015-01-15') // '20150115'
  */
 export function formatAuthorDate(dateString: string): string {
-  const parts = dateString.trim().split(' ');
+  const trimmed = dateString.trim();
+
+  /** Every path returns through here, so no impossible date escapes. */
+  const asRealDate = (candidate: string): string =>
+    isRealCalendarDate(candidate) ? candidate : '';
+
+  // Already normalised
+  if (/^\d{8}$/.test(trimmed)) {
+    return asRealDate(trimmed);
+  }
+
+  // ISO-style, as stored on some author records
+  const isoMatch = trimmed.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (isoMatch) {
+    const [, isoYear, isoMonth, isoDay] = isoMatch;
+    return asRealDate(`${isoYear}${isoMonth.padStart(2, '0')}${isoDay.padStart(2, '0')}`);
+  }
+
+  const parts = trimmed.split(' ');
   const month = parts[0];
   const day = parts[1];
   const year = parts[2];
@@ -137,9 +189,20 @@ export function formatAuthorDate(dateString: string): string {
 
   // Remove trailing period from month abbreviation
   const monthKey = month.replace('.', '').substring(0, 3);
-  const formattedMonth = MONTH_ABBREVIATIONS[monthKey] || '01';
-  const formattedDay = day.replace(',', '').padStart(2, '0');
-  return `${year}${formattedMonth}${formattedDay}`;
+  const formattedMonth = MONTH_ABBREVIATIONS[monthKey];
+  const dayDigits = day.replace(',', '');
+
+  /*
+   * Reject rather than guess. This used to fall back to January for an
+   * unrecognised month and pass the day and year through unchecked, so
+   * "sometime last spring" came back as "spring01last" — a string that looks
+   * like a date to every caller and is one to none of them.
+   */
+  if (!formattedMonth || !/^\d{1,2}$/.test(dayDigits) || !/^\d{4}$/.test(year)) {
+    return '';
+  }
+
+  return asRealDate(`${year}${formattedMonth}${dayDigits.padStart(2, '0')}`);
 }
 
 /**

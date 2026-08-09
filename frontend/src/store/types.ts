@@ -23,9 +23,16 @@ export interface ContentSlice {
   author: string[] | undefined;
   note: string[] | undefined;
   isShowingContentByDate: boolean;
+  /**
+   * Last broadcast the reader opened, YYYYMMDD. The header and audio player
+   * keep showing it while the reader browses an author or poem-title page,
+   * which is why it outlives the `/poem/:date` route that set it.
+   */
+  activeDate: string;
 
   // Actions - accept unions for backward compatibility, normalize internally
   setCurrentDate: (date: string | undefined) => void;
+  setActiveDate: (date: string) => void;
   setPoemData: (data: {
     poem?: string | string[];
     poemTitle?: string | string[];

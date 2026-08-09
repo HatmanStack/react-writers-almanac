@@ -1,4 +1,5 @@
 import type { ContentSlice, SliceCreator } from '../types';
+import { presentDate } from '../../utils/dateMapping';
 
 /**
  * Normalize a value to an array.
@@ -31,6 +32,7 @@ export const createContentSlice: SliceCreator<ContentSlice> = set => ({
   author: undefined,
   note: undefined,
   isShowingContentByDate: true,
+  activeDate: presentDate(),
 
   // ============================================================================
   // Actions
@@ -41,6 +43,14 @@ export const createContentSlice: SliceCreator<ContentSlice> = set => ({
    */
   setCurrentDate: date => {
     set({ currentDate: date });
+  },
+
+  /**
+   * Record the broadcast the reader is viewing, in YYYYMMDD format.
+   * Survives navigation to author and poem-title pages.
+   */
+  setActiveDate: date => {
+    set({ activeDate: date });
   },
 
   /**
@@ -94,6 +104,7 @@ export const createContentSlice: SliceCreator<ContentSlice> = set => ({
       author: undefined,
       note: undefined,
       isShowingContentByDate: true,
+      activeDate: presentDate(),
     });
   },
 });

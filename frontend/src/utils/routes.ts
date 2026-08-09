@@ -5,6 +5,8 @@
  * that parse them live together so a change to one cannot drift from the other.
  */
 
+import { isRealCalendarDate } from './dateMapping';
+
 /**
  * URL builders. Each takes the canonical value and returns an encoded path.
  */
@@ -29,11 +31,28 @@ export const ROUTES = {
 } as const;
 
 /**
- * Patterns matching the paths built above. Capture group 1 is the raw
- * (still-encoded) parameter.
+ * React Router path templates for the same shapes. These are what `<Route path>`
+ * and `useMatch()` consume; keeping them beside the builders means a URL change
+ * is a one-file edit.
+ *
+ * There is deliberately no table of hand-written regexes here any more. Routes
+ * are matched by React Router, which binds exactly one path segment per
+ * parameter — a second source of truth for the same URLs could only drift.
  */
-export const ROUTE_PATTERNS = {
-  poemByDate: /^\/poem\/(\d{8})$/,
-  author: /^\/author\/(.+)$/,
-  poemByTitle: /^\/poems\/(.+)$/,
+export const ROUTE_PATHS = {
+  poemByDate: '/poem/:date',
+  author: '/author/:name',
+  poemByTitle: '/poems/:title',
 } as const;
+
+/**
+ * A date param is usable only if it is YYYYMMDD *and* names a real day.
+ * The shape check alone would admit 20150230, which would then render an
+ * empty broadcast page instead of the not-found page.
+ *
+ * The calendar rule itself lives with the other date utilities so there is
+ * one definition of what counts as a date, not one per boundary.
+ */
+export function isValidDateParam(date: string | undefined): date is string {
+  return typeof date === 'string' && isRealCalendarDate(date);
+}
