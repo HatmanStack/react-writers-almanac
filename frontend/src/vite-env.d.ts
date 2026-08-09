@@ -21,8 +21,3 @@ declare module '*.js' {
   const content: unknown;
   export default content;
 }
-
-declare module '*/searchJson' {
-  const content: Array<{ label: string; [key: string]: unknown }>;
-  export default content;
-}
