@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
 
 import Search from './Search';
+import type { SearchTargetRef } from '../../utils/searchIndex';
 import SearchBar from './SearchBar';
 import CalendarPicker from './CalendarPicker';
 
@@ -15,7 +16,7 @@ describe('Search', () => {
   const onDateSelect = vi.fn();
 
   const defaultProps = {
-    currentTerm: '',
+    currentTarget: null,
     onSearch,
     onDateSelect,
     currentDate: '20150315',
@@ -57,8 +58,8 @@ describe('SearchBar', () => {
     vi.clearAllMocks();
   });
 
-  const renderBar = (currentTerm = '') =>
-    render(<SearchBar currentTerm={currentTerm} onSearch={onSearch} />);
+  const renderBar = (currentTarget: SearchTargetRef | null = null) =>
+    render(<SearchBar currentTarget={currentTarget} onSearch={onSearch} />);
 
   const getInput = () => screen.getByLabelText(/search authors/i);
 
@@ -140,7 +141,7 @@ describe('SearchBar', () => {
 
     it('re-runs the term already sitting in the field on Enter', async () => {
       const user = userEvent.setup();
-      renderBar('Billy Collins');
+      renderBar({ label: 'Billy Collins', type: 'author' });
 
       await user.click(getInput());
       await user.keyboard('{Enter}');
@@ -179,15 +180,59 @@ describe('SearchBar', () => {
     });
   });
 
+  describe('Labels shared by an author and a poem', () => {
+    // 'NotAvailable' exists in both archive lists, so resolving by text alone
+    // would always pick the author-ranked match.
+    const shared = { label: 'NotAvailable', type: 'poem' } as const;
+
+    it('re-runs the exact target being viewed, not the same-named other type', async () => {
+      const user = userEvent.setup();
+      renderBar(shared);
+
+      await user.click(getInput());
+      await user.keyboard('{Enter}');
+
+      expect(onSearch).toHaveBeenCalledWith(expect.objectContaining({ type: 'poem' }));
+    });
+
+    it('offers the target being viewed as the first suggestion', async () => {
+      const user = userEvent.setup();
+      renderBar(shared);
+
+      await user.click(getInput());
+
+      expect(screen.getAllByRole('option')[0]).toHaveTextContent(/Poem$/);
+    });
+
+    it('still lets the other type be picked from the dropdown', async () => {
+      const user = userEvent.setup();
+      renderBar(shared);
+
+      await user.click(getInput());
+      const authorOption = screen
+        .getAllByRole('option')
+        .find(option => /Author$/.test(option.textContent ?? ''));
+
+      expect(authorOption).toBeDefined();
+      await user.click(authorOption!);
+
+      expect(onSearch).toHaveBeenCalledWith(
+        expect.objectContaining({ label: 'NotAvailable', type: 'author' })
+      );
+    });
+  });
+
   describe('Syncing with the current view', () => {
     it('starts out showing the term being viewed', () => {
-      renderBar('Billy Collins');
+      renderBar({ label: 'Billy Collins', type: 'author' });
       expect(getInput()).toHaveValue('Billy Collins');
     });
 
     it('follows the term when it changes elsewhere', () => {
-      const { rerender } = renderBar('Billy Collins');
-      rerender(<SearchBar currentTerm="Robert Frost" onSearch={onSearch} />);
+      const { rerender } = renderBar({ label: 'Billy Collins', type: 'author' });
+      rerender(
+        <SearchBar currentTarget={{ label: 'Robert Frost', type: 'author' }} onSearch={onSearch} />
+      );
       expect(getInput()).toHaveValue('Robert Frost');
     });
   });

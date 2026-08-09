@@ -4,17 +4,21 @@ import { Search as SearchIcon } from '@mui/icons-material';
 
 import {
   MAX_SUGGESTIONS,
+  findTarget,
   resolveSearchTarget,
   searchTargets,
   type SearchTarget,
+  type SearchTargetRef,
 } from '../../utils/searchIndex';
 
 interface SearchBarProps {
   /**
-   * Canonical term currently on screen. Keeps the field showing what you are
-   * looking at, so the same search can be re-run without retyping it.
+   * What is on screen now, or null when viewing by date. Keeps the field
+   * showing where you are, so the same search can be re-run without retyping
+   * it. Carries the type as well as the label, because a label alone cannot
+   * tell an author from a same-named poem.
    */
-  currentTerm: string;
+  currentTarget: SearchTargetRef | null;
   /** Called with the resolved target whenever a search is submitted */
   onSearch: (target: SearchTarget) => void;
   /** Extra classes for the wrapper (layout is the parent's business) */
@@ -37,16 +41,39 @@ const ACCENT = 'rgba(168, 239, 255, 0.85)';
  *   the first row is always what Enter picks.
  * - Typing something with no matches says so instead of failing silently.
  */
-const SearchBar = memo(function SearchBar({ currentTerm, onSearch, className }: SearchBarProps) {
-  const [inputValue, setInputValue] = useState<string>(currentTerm);
+const SearchBar = memo(function SearchBar({ currentTarget, onSearch, className }: SearchBarProps) {
+  const currentLabel = currentTarget?.label ?? '';
+  const [inputValue, setInputValue] = useState<string>(currentLabel);
 
-  // Follow the app when the term changes elsewhere (a byline click, the back
+  // Follow the app when the target changes elsewhere (a byline click, the back
   // button, a shared link) so the field always describes the current view.
+  // Keyed on the label rather than the object so an equivalent target rendered
+  // fresh does not wipe out what is being typed.
   useEffect(() => {
-    setInputValue(currentTerm);
-  }, [currentTerm]);
+     
+    setInputValue(currentLabel);
+  }, [currentLabel]);
 
-  const options = useMemo(() => searchTargets(inputValue, MAX_SUGGESTIONS), [inputValue]);
+  /**
+   * The exact target the field still names. Text alone cannot tell an author
+   * from a same-named poem, so while the field reads as what is on screen, that
+   * is what submitting means; the other one stays pickable from the dropdown.
+   */
+  const pinnedTarget = useMemo(
+    () => (currentTarget && inputValue === currentTarget.label ? findTarget(currentTarget) : null),
+    [currentTarget, inputValue]
+  );
+
+  const options = useMemo(() => {
+    const matches = searchTargets(inputValue, MAX_SUGGESTIONS);
+    if (!pinnedTarget) return matches;
+
+    // Keep what you are viewing at the top, so re-submitting an untouched field
+    // cannot drift to a same-named result of the other type.
+    const index = matches.findIndex(match => match.key === pinnedTarget.key);
+    if (index <= 0) return matches;
+    return [matches[index], ...matches.slice(0, index), ...matches.slice(index + 1)];
+  }, [inputValue, pinnedTarget]);
 
   const trimmedInput = inputValue.trim();
   const showNoMatches = trimmedInput.length > 0 && options.length === 0;
@@ -66,14 +93,16 @@ const SearchBar = memo(function SearchBar({ currentTerm, onSearch, className }: 
       // A string arrives when Enter is pressed on free text with no highlighted
       // suggestion - resolve it the same way the suggestion list would.
       if (typeof selected === 'string') {
-        const resolved = resolveSearchTarget(selected);
+        // An untouched field means "run this again", so keep the exact target
+        // rather than re-resolving text that may match both types.
+        const resolved = pinnedTarget ?? resolveSearchTarget(selected);
         if (resolved) submit(resolved);
         return;
       }
 
       submit(selected);
     },
-    [submit]
+    [submit, pinnedTarget]
   );
 
   return (

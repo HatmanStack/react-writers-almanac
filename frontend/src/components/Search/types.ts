@@ -1,8 +1,8 @@
-import type { SearchTarget } from '../../utils/searchIndex';
+import type { SearchTarget, SearchTargetRef } from '../../utils/searchIndex';
 
 export interface SearchProps {
-  /** Canonical author name or poem title currently being viewed */
-  currentTerm: string;
+  /** What is on screen now, or null when viewing by date */
+  currentTarget: SearchTargetRef | null;
   /** Called with the resolved target when a search is submitted */
   onSearch: (target: SearchTarget) => void;
   /** Called when a date is picked from the calendar */

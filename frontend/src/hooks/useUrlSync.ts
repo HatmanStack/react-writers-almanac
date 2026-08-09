@@ -21,6 +21,23 @@ interface UseUrlSyncOptions {
   setViewMode: (isShowingByDate: boolean) => void;
 }
 
+/**
+ * Decode a route parameter, tolerating malformed input.
+ *
+ * decodeURIComponent throws URIError on a stray percent (a shared link like
+ * `/author/%`), which would take down the render instead of showing nothing.
+ *
+ * @param value - Raw, still-encoded path segment
+ * @returns The decoded value, or null when it cannot be decoded
+ */
+function safeDecode(value: string): string | null {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return null;
+  }
+}
+
 interface UseUrlSyncResult {
   /** Current date string in YYYYMMDD format */
   linkDate: string;
@@ -93,8 +110,8 @@ export function useUrlSync({
     // Handle /author/:name route
     const authorMatch = path.match(ROUTE_PATTERNS.author);
     if (authorMatch) {
-      const authorName = decodeURIComponent(authorMatch[1]);
-      if (validAuthors.has(authorName)) {
+      const authorName = safeDecode(authorMatch[1]);
+      if (authorName && validAuthors.has(authorName)) {
         setSearchTerm(authorName);
 
         setSearchType('author');
@@ -106,8 +123,8 @@ export function useUrlSync({
     // Handle /poems/:title route
     const poemTitleMatch = path.match(ROUTE_PATTERNS.poemByTitle);
     if (poemTitleMatch) {
-      const poemTitle = decodeURIComponent(poemTitleMatch[1]);
-      if (validPoems.has(poemTitle)) {
+      const poemTitle = safeDecode(poemTitleMatch[1]);
+      if (poemTitle && validPoems.has(poemTitle)) {
         setSearchTerm(poemTitle);
 
         setSearchType('poem');

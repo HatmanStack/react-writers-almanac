@@ -171,7 +171,10 @@ function App() {
         newDateObj.setDate(currentDateObj.getDate() + (x === 'back' ? -1 : 1));
         navigate(ROUTES.poemByDate(formatDate(newDateObj)));
       } else {
-        const isAuthor = AUTHOR_NAMES.has(searchTerm);
+        // Step through the list the current view came from. Deriving the type
+        // from the term instead would send a poem whose title is also an author
+        // name into the author list.
+        const isAuthor = searchType !== 'poem';
         const sortedList = isAuthor ? sortedAuthors : sortedPoems;
         const index = sortedList.indexOf(searchTerm);
         if (index === -1) {
@@ -183,7 +186,16 @@ function App() {
         handleSearch({ label: newTerm, type: isAuthor ? 'author' : 'poem' });
       }
     },
-    [isShowingContentByDate, searchTerm, linkDate, handleSearch, navigate]
+    [isShowingContentByDate, searchTerm, searchType, linkDate, handleSearch, navigate]
+  );
+
+  /**
+   * What the search field should display. Memoized so the field is not resynced
+   * on every render.
+   */
+  const currentTarget = useMemo<SearchTargetRef | null>(
+    () => (searchTerm ? { label: searchTerm, type: searchType ?? 'author' } : null),
+    [searchTerm, searchType]
   );
 
   // Note: Store data is now normalized to arrays at the setter boundary.
@@ -373,7 +385,7 @@ function App() {
                   )}
                 >
                   <Search
-                    currentTerm={searchTerm}
+                    currentTarget={currentTarget}
                     onSearch={handleSearch}
                     onDateSelect={handleDateSelect}
                     width={width}
@@ -454,7 +466,7 @@ function App() {
                   )}
                 >
                   <Search
-                    currentTerm={searchTerm}
+                    currentTarget={currentTarget}
                     onSearch={handleSearch}
                     onDateSelect={handleDateSelect}
                     width={width}

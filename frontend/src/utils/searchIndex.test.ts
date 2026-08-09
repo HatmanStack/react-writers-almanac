@@ -3,6 +3,7 @@ import {
   AUTHOR_NAMES,
   POEM_TITLES,
   MAX_SUGGESTIONS,
+  findTarget,
   getSearchTargets,
   normalizeSearchText,
   resolveSearchTarget,
@@ -84,6 +85,22 @@ describe('searchTargets', () => {
     expect(labels).toContain('Billy Collins');
   });
 
+  it('scores a word-start match wherever it occurs, not just the first hit', () => {
+    // 'ri' appears mid-word in "adrienne" before it starts the word "rich"
+    const labels = searchTargets('ri').map(target => target.label);
+    expect(labels).toContain('Adrienne Rich');
+  });
+
+  it('ranks every word-start match above every mid-word-only match', () => {
+    const startsWord = (normalized: string) =>
+      normalized.startsWith('ri') || normalized.includes(' ri');
+    const ranked = searchTargets('ri').map(target => startsWord(target.normalized));
+
+    const firstMidWord = ranked.indexOf(false);
+    const lastWordStart = ranked.lastIndexOf(true);
+    expect(firstMidWord === -1 || lastWordStart < firstMidWord).toBe(true);
+  });
+
   it('returns an empty list when nothing matches', () => {
     expect(searchTargets('zzzzzqqqq')).toEqual([]);
   });
@@ -91,6 +108,30 @@ describe('searchTargets', () => {
   it('caps results at the requested limit', () => {
     expect(searchTargets('a', 5)).toHaveLength(5);
     expect(searchTargets('a').length).toBeLessThanOrEqual(MAX_SUGGESTIONS);
+  });
+});
+
+describe('findTarget', () => {
+  it('returns the indexed target for an exact label and type', () => {
+    expect(findTarget({ label: 'Billy Collins', type: 'author' })?.key).toBe(
+      'author:Billy Collins'
+    );
+  });
+
+  it('distinguishes a label that exists as both an author and a poem', () => {
+    const shared = [...POEM_TITLES].find(title => AUTHOR_NAMES.has(title));
+    expect(shared).toBeDefined();
+
+    expect(findTarget({ label: shared!, type: 'poem' })?.type).toBe('poem');
+    expect(findTarget({ label: shared!, type: 'author' })?.type).toBe('author');
+  });
+
+  it('returns null for a label the archive does not have', () => {
+    expect(findTarget({ label: 'Nobody At All', type: 'author' })).toBeNull();
+  });
+
+  it('returns null when the label exists under the other type only', () => {
+    expect(findTarget({ label: 'Billy Collins', type: 'poem' })).toBeNull();
   });
 });
 

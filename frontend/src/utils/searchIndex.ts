@@ -93,6 +93,28 @@ export function getSearchTargets(): SearchTarget[] {
   return cachedTargets;
 }
 
+/** Lazily built alongside the index, for exact key lookups */
+let targetsByKey: Map<string, SearchTarget> | null = null;
+
+/**
+ * Look up the indexed target for an exact label and type.
+ *
+ * Type matters: a label can exist as both an author and a poem, and resolving
+ * by text alone would silently pick one of them.
+ *
+ * @param ref - Canonical label and its type
+ * @returns The indexed target, or null when the archive has no such entry
+ *
+ * @example
+ * findTarget({ label: 'Billy Collins', type: 'author' })?.key // 'author:Billy Collins'
+ */
+export function findTarget({ label, type }: SearchTargetRef): SearchTarget | null {
+  if (!targetsByKey) {
+    targetsByKey = new Map(getSearchTargets().map(target => [target.key, target]));
+  }
+  return targetsByKey.get(`${type}:${label}`) ?? null;
+}
+
 /** How a target matched, lower being better on both axes */
 interface MatchQuality {
   /** 0 exact, 1 starts a word, 2 buried mid-word */
@@ -109,17 +131,19 @@ interface MatchQuality {
  * a poem called "Frost at Midnight".
  */
 function matchTarget(target: SearchTarget, normalizedQuery: string): MatchQuality | null {
-  if (target.normalized === normalizedQuery) return { bucket: 0, position: 0 };
-  if (target.normalized.startsWith(normalizedQuery)) return { bucket: 1, position: 0 };
+  const { normalized } = target;
 
-  const index = target.normalized.indexOf(normalizedQuery);
-  if (index === -1) return null;
+  if (normalized === normalizedQuery) return { bucket: 0, position: 0 };
+  if (normalized.startsWith(normalizedQuery)) return { bucket: 1, position: 0 };
 
-  // A match at a word boundary ("frost" in "Robert Frost") beats one buried
-  // mid-word ("frost" in "Defrosting").
-  return target.normalized[index - 1] === ' '
-    ? { bucket: 1, position: 1 }
-    : { bucket: 2, position: 1 };
+  // A match starting any word ("frost" in "Robert Frost") beats one buried
+  // mid-word ("frost" in "Defrosting"). Every occurrence is considered, not
+  // just the first: "ri" starts a word in "Adrienne Rich" even though it also
+  // appears mid-word earlier.
+  if (normalized.includes(` ${normalizedQuery}`)) return { bucket: 1, position: 1 };
+  if (normalized.includes(normalizedQuery)) return { bucket: 2, position: 1 };
+
+  return null;
 }
 
 /** Authors sort ahead of poems when relevance ties */

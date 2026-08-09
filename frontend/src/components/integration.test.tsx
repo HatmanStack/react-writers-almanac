@@ -25,7 +25,7 @@ describe('Core Components Integration', () => {
       render(
         <div>
           <Search
-            currentTerm=""
+            currentTarget={null}
             onSearch={mockOnSearch}
             onDateSelect={mockOnDateSelect}
             width={1200}
@@ -57,7 +57,7 @@ describe('Core Components Integration', () => {
       render(
         <div>
           <Search
-            currentTerm=""
+            currentTarget={null}
             onSearch={mockOnSearch}
             onDateSelect={mockOnDateSelect}
             width={1200}
@@ -97,7 +97,7 @@ describe('Core Components Integration', () => {
 
       render(
         <Search
-          currentTerm=""
+          currentTarget={null}
           onSearch={onSearch}
           onDateSelect={onDateSelect}
           width={1200}
@@ -138,7 +138,7 @@ describe('Core Components Integration', () => {
       render(
         <div>
           <Search
-            currentTerm=""
+            currentTarget={null}
             onSearch={mockOnSearch}
             onDateSelect={mockOnDateSelect}
             width={1200}
@@ -182,7 +182,7 @@ describe('Core Components Integration', () => {
       const { container } = render(
         <div>
           <Search
-            currentTerm=""
+            currentTarget={null}
             onSearch={mockOnSearch}
             onDateSelect={mockOnDateSelect}
             width={800}
@@ -216,7 +216,7 @@ describe('Core Components Integration', () => {
       render(
         <div>
           <Search
-            currentTerm=""
+            currentTarget={null}
             onSearch={mockOnSearch}
             onDateSelect={mockOnDateSelect}
             width={1400}

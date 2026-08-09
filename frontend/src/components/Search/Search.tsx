@@ -10,7 +10,7 @@ import type { SearchProps } from './types';
  * serves both breakpoints; only the stacking direction differs.
  */
 const Search = memo(function Search({
-  currentTerm,
+  currentTarget,
   onSearch,
   onDateSelect,
   currentDate,
@@ -21,7 +21,7 @@ const Search = memo(function Search({
   return (
     <div className={isDesktop ? 'flex items-start gap-2' : 'flex flex-col gap-2 p-3'}>
       <SearchBar
-        currentTerm={currentTerm}
+        currentTarget={currentTarget}
         onSearch={onSearch}
         className={isDesktop ? 'w-[18em]' : 'w-full'}
       />
