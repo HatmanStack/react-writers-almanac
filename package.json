@@ -1,7 +1,7 @@
 {
   "name": "react-writers-almanac",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "private": true,
   "workspaces": [
     "frontend",
