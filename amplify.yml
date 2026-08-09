@@ -3,23 +3,26 @@ frontend:
   phases:
     preBuild:
       commands:
-        - cd frontend && npm install
+        - npm ci
     build:
       commands:
         - cd frontend && npm run build
   artifacts:
     baseDirectory: frontend/build
     files:
-      - '**/*'
+      - "**/*"
   customHeaders:
-    - pattern: '**/*.html'
+    - pattern: "**/*.html"
       headers:
         - key: Cache-Control
-          value: 'no-cache, no-store, must-revalidate'
-    - pattern: 'assets/**/*'
+          value: "no-cache, no-store, must-revalidate"
+    - pattern: "assets/**/*"
       headers:
         - key: Cache-Control
-          value: 'public, max-age=31536000, immutable'
+          value: "public, max-age=31536000, immutable"
   cache:
     paths:
+      # The workspace install hoists to the root; frontend/node_modules keeps
+      # only the few version-conflict entries npm places there.
+      - node_modules/**/*
       - frontend/node_modules/**/*

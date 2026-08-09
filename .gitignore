@@ -43,6 +43,9 @@ yarn-error.log*
 *.sample
 .secret-*
 
+# One lockfile governs the workspace; a frontend lockfile drifts from it
+frontend/package-lock.json
+
 # Agent tooling state
 .claude/
 
