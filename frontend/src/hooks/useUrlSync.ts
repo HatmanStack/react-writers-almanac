@@ -8,10 +8,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { presentDate } from '../utils/dateMapping';
+import { ROUTES, ROUTE_PATTERNS } from '../utils/routes';
 
 interface UseUrlSyncOptions {
   /** Set of valid author names for validation */
-  validAuthors: Set<string>;
+  validAuthors: ReadonlySet<string>;
+  /** Set of valid poem titles for validation */
+  validPoems: ReadonlySet<string>;
   /** Callback when search term changes */
   setSearchTerm: (term: string) => void;
   /** Callback when view mode changes */
@@ -32,9 +35,10 @@ interface UseUrlSyncResult {
 /**
  * Hook to synchronize URL routes with application state.
  *
- * Handles three URL patterns:
+ * Handles four URL patterns:
  * - `/poem/:date` - Date-based poem viewing
  * - `/author/:name` - Author page viewing
+ * - `/poems/:title` - Dates a poem title was featured
  * - `/` - Redirects to today's poem
  *
  * @param options - Configuration options
@@ -51,6 +55,7 @@ interface UseUrlSyncResult {
  */
 export function useUrlSync({
   validAuthors,
+  validPoems,
   setSearchTerm,
   setViewMode,
 }: UseUrlSyncOptions): UseUrlSyncResult {
@@ -73,7 +78,7 @@ export function useUrlSync({
     previousPathnameRef.current = path;
 
     // Handle /poem/:date route
-    const poemMatch = path.match(/^\/poem\/(\d{8})$/);
+    const poemMatch = path.match(ROUTE_PATTERNS.poemByDate);
     if (poemMatch) {
       const urlDate = poemMatch[1];
       // Only update if the date actually changed (avoid loops)
@@ -86,14 +91,26 @@ export function useUrlSync({
     }
 
     // Handle /author/:name route
-    const authorMatch = path.match(/^\/author\/(.+)$/);
+    const authorMatch = path.match(ROUTE_PATTERNS.author);
     if (authorMatch) {
       const authorName = decodeURIComponent(authorMatch[1]);
       if (validAuthors.has(authorName)) {
-         
         setSearchTerm(authorName);
-         
+
         setSearchType('author');
+        setViewMode(false);
+      }
+      return;
+    }
+
+    // Handle /poems/:title route
+    const poemTitleMatch = path.match(ROUTE_PATTERNS.poemByTitle);
+    if (poemTitleMatch) {
+      const poemTitle = decodeURIComponent(poemTitleMatch[1]);
+      if (validPoems.has(poemTitle)) {
+        setSearchTerm(poemTitle);
+
+        setSearchType('poem');
         setViewMode(false);
       }
       return;
@@ -101,9 +118,9 @@ export function useUrlSync({
 
     // Handle root - redirect to today's poem
     if (path === '/') {
-      navigate(`/poem/${presentDate()}`, { replace: true });
+      navigate(ROUTES.poemByDate(presentDate()), { replace: true });
     }
-  }, [location.pathname, navigate, setSearchTerm, setViewMode, linkDate, validAuthors]);
+  }, [location.pathname, navigate, setSearchTerm, setViewMode, linkDate, validAuthors, validPoems]);
 
   // URL-synced setLinkDate - updates URL when date changes
   const setLinkDate = useCallback(
@@ -111,7 +128,7 @@ export function useUrlSync({
       setLinkDateState(prev => {
         const newDate = typeof dateOrUpdater === 'function' ? dateOrUpdater(prev) : dateOrUpdater;
         // Update URL to reflect new date
-        navigate(`/poem/${newDate}`, { replace: true });
+        navigate(ROUTES.poemByDate(newDate), { replace: true });
         return newDate;
       });
     },

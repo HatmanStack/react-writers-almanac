@@ -7,6 +7,7 @@
 import { useMemo } from 'react';
 import type { SEOHeadProps } from '../components/SEOHead/SEOHead';
 import type { JsonLdProps } from '../components/SEOHead/JsonLd';
+import { ROUTES } from '../utils/routes';
 
 interface UseSeoDataOptions {
   /** Whether viewing by date (true) or by search (false) */
@@ -74,8 +75,7 @@ export function useSeoData({
   // Compute SEO meta tag data
   const seoData = useMemo((): SEOHeadProps => {
     if (isShowingContentByDate) {
-      const titleText =
-        Array.isArray(poemTitle) && poemTitle.length > 0 ? poemTitle[0] : undefined;
+      const titleText = Array.isArray(poemTitle) && poemTitle.length > 0 ? poemTitle[0] : undefined;
       const authorText = Array.isArray(author) && author.length > 0 ? author[0] : undefined;
       const descriptionText =
         titleText && authorText ? `"${titleText}" by ${authorText}` : undefined;
@@ -85,7 +85,7 @@ export function useSeoData({
         description: descriptionText,
         author: authorText,
         type: 'article',
-        path: `/poem/${linkDate}`,
+        path: ROUTES.poemByDate(linkDate),
         publishedDate: currentDate,
       };
     }
@@ -96,10 +96,10 @@ export function useSeoData({
 
     if (searchType === 'author') {
       description = `Poems by ${searchTerm}`;
-      path = `/author/${encodeURIComponent(searchTerm)}`;
+      path = ROUTES.author(searchTerm);
     } else if (searchType === 'poem') {
       description = `"${searchTerm}" poem dates`;
-      path = `/`;
+      path = ROUTES.poemByTitle(searchTerm);
     } else {
       description = `Search results for "${searchTerm}"`;
       path = `/`;
@@ -126,7 +126,7 @@ export function useSeoData({
           title: titleText,
           author: authorText,
           date: currentDate,
-          datePath: `/poem/${linkDate}`,
+          datePath: ROUTES.poemByDate(linkDate),
         },
       };
     }

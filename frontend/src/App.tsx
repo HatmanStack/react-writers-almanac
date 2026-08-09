@@ -10,10 +10,8 @@ import { SEOHead, JsonLd } from './components/SEOHead';
 import logo from './assets/logo_writersalmanac.png';
 import sortedAuthors from './assets/Authors_sorted';
 import sortedPoems from './assets/Poems_sorted';
-
-// Convert to Sets for O(1) lookups
-const sortedAuthorsSet = new Set(sortedAuthors);
-const sortedPoemsSet = new Set(sortedPoems);
+import { AUTHOR_NAMES, POEM_TITLES, type SearchTargetRef } from './utils/searchIndex';
+import { ROUTES } from './utils/routes';
 
 import { useWindowSize } from 'react-use';
 import DOMPurify from 'dompurify';
@@ -35,13 +33,6 @@ const PoemDates = lazy(() => import('./components/PoemDates/PoemDates'));
 const ParticlesComponent = lazy(() => import('./components/Particles/Particles'));
 
 /**
- * Type for calendar date change
- */
-interface CalendarDateChange {
-  calendarChangedDate: Date;
-}
-
-/**
  * Constants
  */
 const TRANSCRIPT_UNAVAILABLE = 'Transcript not available for this date.';
@@ -59,7 +50,6 @@ function App() {
     searchTerm,
     isShowingContentByDate,
     setSearchTerm,
-    toggleViewMode,
     setViewMode,
   } = useAppStore(
     useShallow(state => ({
@@ -71,14 +61,14 @@ function App() {
       searchTerm: state.searchTerm,
       isShowingContentByDate: state.isShowingContentByDate,
       setSearchTerm: state.setSearchTerm,
-      toggleViewMode: state.toggleViewMode,
       setViewMode: state.setViewMode,
     }))
   );
 
   // URL synchronization hook - manages linkDate and searchType from URL
   const { linkDate, setLinkDate, searchType, setSearchType } = useUrlSync({
-    validAuthors: sortedAuthorsSet,
+    validAuthors: AUTHOR_NAMES,
+    validPoems: POEM_TITLES,
     setSearchTerm,
     setViewMode,
   });
@@ -113,28 +103,24 @@ function App() {
     };
   }, []);
 
-  const searchedTermWrapper = useCallback(
-    (query: string): void => {
-      if (!query) return;
+  /**
+   * Go to a resolved search target. The search bar hands over an already
+   * resolved author or poem, so this only has to route.
+   *
+   * The view mode is set outright rather than toggled: re-running the search
+   * you are already looking at has to land in the same place, not flip away
+   * from it.
+   */
+  const handleSearch = useCallback(
+    ({ label, type }: SearchTargetRef): void => {
+      if (!label) return;
 
-      // Check if searching for an author
-      if (sortedAuthorsSet.has(query)) {
-        setSearchTerm(query);
-        setSearchType('author');
-        // Navigate to author page URL
-        navigate(`/author/${encodeURIComponent(query)}`);
-      }
-      // Check if searching for a poem
-      else if (sortedPoemsSet.has(query)) {
-        setSearchTerm(query);
-        setSearchType('poem');
-        // Navigate to poem search - keep on current page but switch view
-        if (isShowingContentByDate) {
-          toggleViewMode();
-        }
-      }
+      setSearchTerm(label);
+      setSearchType(type);
+      setViewMode(false);
+      navigate(type === 'author' ? ROUTES.author(label) : ROUTES.poemByTitle(label));
     },
-    [setSearchTerm, setSearchType, isShowingContentByDate, toggleViewMode, navigate]
+    [setSearchTerm, setSearchType, setViewMode, navigate]
   );
 
   const handlePoemTitleClick = useCallback(
@@ -151,12 +137,9 @@ function App() {
 
   const handleAuthorClick = useCallback(
     (authorName: string): void => {
-      setSearchTerm(authorName);
-      setSearchType('author');
-      // Navigate to author page URL
-      navigate(`/author/${encodeURIComponent(authorName)}`);
+      handleSearch({ label: authorName, type: 'author' });
     },
-    [setSearchTerm, setSearchType, navigate]
+    [handleSearch]
   );
 
   const handleSwitchToDateView = useCallback(
@@ -172,10 +155,9 @@ function App() {
     setModalPoemContent(null);
   }, []);
 
-  const calendarDate = useCallback(
-    (x: CalendarDateChange): void => {
-      const newDate = formatDate(x.calendarChangedDate);
-      navigate(`/poem/${newDate}`);
+  const handleDateSelect = useCallback(
+    (date: Date): void => {
+      navigate(ROUTES.poemByDate(formatDate(date)));
     },
     [navigate]
   );
@@ -187,14 +169,10 @@ function App() {
         const currentDateObj = parseArchiveDate(linkDate);
         const newDateObj = new Date(currentDateObj);
         newDateObj.setDate(currentDateObj.getDate() + (x === 'back' ? -1 : 1));
-        const newDate = formatDate(newDateObj);
-        navigate(`/poem/${newDate}`);
+        navigate(ROUTES.poemByDate(formatDate(newDateObj)));
       } else {
-        let sortedList = sortedPoems;
-        const isAuthor = sortedAuthorsSet.has(searchTerm);
-        if (isAuthor) {
-          sortedList = sortedAuthors;
-        }
+        const isAuthor = AUTHOR_NAMES.has(searchTerm);
+        const sortedList = isAuthor ? sortedAuthors : sortedPoems;
         const index = sortedList.indexOf(searchTerm);
         if (index === -1) {
           return;
@@ -202,13 +180,10 @@ function App() {
         const before = index === 0 ? sortedList[sortedList.length - 1] : sortedList[index - 1];
         const after = index === sortedList.length - 1 ? sortedList[0] : sortedList[index + 1];
         const newTerm = x === 'back' ? before : after;
-        setSearchTerm(newTerm);
-        if (isAuthor) {
-          navigate(`/author/${encodeURIComponent(newTerm)}`);
-        }
+        handleSearch({ label: newTerm, type: isAuthor ? 'author' : 'poem' });
       }
     },
-    [isShowingContentByDate, searchTerm, linkDate, setSearchTerm, navigate]
+    [isShowingContentByDate, searchTerm, linkDate, handleSearch, navigate]
   );
 
   // Note: Store data is now normalized to arrays at the setter boundary.
@@ -398,8 +373,9 @@ function App() {
                   )}
                 >
                   <Search
-                    searchedTermWrapper={searchedTermWrapper}
-                    calendarDate={calendarDate}
+                    currentTerm={searchTerm}
+                    onSearch={handleSearch}
+                    onDateSelect={handleDateSelect}
                     width={width}
                     currentDate={linkDate}
                   />
@@ -416,7 +392,7 @@ function App() {
                   onClick={() => {
                     const plainDate = currentDate?.replace(/<[^>]*>/g, '').trim() || '';
                     const yyyymmdd = plainDate ? formatAuthorDate(plainDate) : linkDate;
-                    navigate(`/poem/${yyyymmdd}`);
+                    navigate(ROUTES.poemByDate(yyyymmdd));
                   }}
                   aria-label={`Navigate to ${currentDate || 'current date'}`}
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
@@ -478,8 +454,9 @@ function App() {
                   )}
                 >
                   <Search
-                    searchedTermWrapper={searchedTermWrapper}
-                    calendarDate={calendarDate}
+                    currentTerm={searchTerm}
+                    onSearch={handleSearch}
+                    onDateSelect={handleDateSelect}
                     width={width}
                     currentDate={linkDate}
                   />
@@ -495,7 +472,7 @@ function App() {
                   onClick={() => {
                     const plainDate = currentDate?.replace(/<[^>]*>/g, '').trim() || '';
                     const yyyymmdd = plainDate ? formatAuthorDate(plainDate) : linkDate;
-                    navigate(`/poem/${yyyymmdd}`);
+                    navigate(ROUTES.poemByDate(yyyymmdd));
                   }}
                   aria-label={`Navigate to ${currentDate || 'current date'}`}
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentDate || '') }}
