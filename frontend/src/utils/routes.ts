@@ -34,8 +34,10 @@ export const ROUTES = {
  */
 export const ROUTE_PATTERNS = {
   poemByDate: /^\/poem\/(\d{8})$/,
-  author: /^\/author\/(.+)$/,
-  poemByTitle: /^\/poems\/(.+)$/,
+  // `[^/]+` rather than `.+` so these agree with ROUTE_PATHS below, which bind
+  // a single path segment: /author/A/B is not an author named "A/B".
+  author: /^\/author\/([^/]+)$/,
+  poemByTitle: /^\/poems\/([^/]+)$/,
 } as const;
 
 /**
@@ -49,7 +51,25 @@ export const ROUTE_PATHS = {
   poemByTitle: '/poems/:title',
 } as const;
 
-/** A date param is only usable if it is exactly YYYYMMDD. */
+/**
+ * A date param is usable only if it is YYYYMMDD *and* names a real day.
+ * The shape check alone would admit 20150230, which would then render an
+ * empty broadcast page instead of the not-found page.
+ */
 export function isValidDateParam(date: string | undefined): date is string {
-  return typeof date === 'string' && /^\d{8}$/.test(date);
+  if (typeof date !== 'string' || !/^\d{8}$/.test(date)) {
+    return false;
+  }
+
+  const year = Number(date.slice(0, 4));
+  const month = Number(date.slice(4, 6));
+  const day = Number(date.slice(6, 8));
+
+  if (month < 1 || month > 12 || day < 1) {
+    return false;
+  }
+
+  // Day 0 of the following month is the last day of this one, leap years included
+  const daysInMonth = new Date(year, month, 0).getDate();
+  return day <= daysInMonth;
 }

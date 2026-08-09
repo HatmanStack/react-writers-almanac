@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import App from '../App';
 import { ROUTES } from '../utils/routes';
-import { presentDate } from '../utils/dateMapping';
+import { presentDate, DATE_BOUNDARIES } from '../utils/dateMapping';
 
 /*
  * Stubs for everything that is not routing.
@@ -150,6 +150,21 @@ describe('Application routing', () => {
 
       await pressBack();
       await waitFor(() => expect(currentPath()).toBe('/poem/20150515'));
+    });
+
+    it('adds no history entry when a day step is clamped at the end of the archive', async () => {
+      const lastDay = `/poem/${DATE_BOUNDARIES.MAX_DATE_STRING}`;
+      renderAt(lastDay);
+      await waitFor(() => expect(currentPath()).toBe(lastDay));
+
+      // Stepping past the archive clamps to the same date; pushing it would
+      // leave a duplicate entry that makes back look broken.
+      fireEvent.click(await screen.findByRole('button', { name: 'next content' }));
+      await new Promise(resolve => setTimeout(resolve, 0));
+      expect(currentPath()).toBe(lastDay);
+
+      await pressBack();
+      await waitFor(() => expect(currentPath()).not.toBe(lastDay));
     });
   });
 

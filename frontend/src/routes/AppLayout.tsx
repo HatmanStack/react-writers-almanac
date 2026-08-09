@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useEffect, useCallback } from 'react';
+import { lazy, Suspense, useState, useEffect, useCallback, useMemo } from 'react';
 import { Outlet, useNavigate, useNavigationType, useLocation } from 'react-router-dom';
 import Search from '../components/Search';
 import ErrorBoundary from '../components/ErrorBoundary';
@@ -207,7 +207,12 @@ function AppLayout() {
         const currentDateObj = parseArchiveDate(activeDate);
         const newDateObj = new Date(currentDateObj);
         newDateObj.setDate(currentDateObj.getDate() + (x === 'back' ? -1 : 1));
-        navigate(ROUTES.poemByDate(formatDate(newDateObj)));
+        const newDate = formatDate(newDateObj);
+        // At either end of the archive `formatDate` clamps back to the date we
+        // are already on. Pushing that would add a history entry indistinguishable
+        // from the current one, so back would appear to do nothing.
+        if (newDate === activeDate) return;
+        navigate(ROUTES.poemByDate(newDate));
         return;
       }
 
@@ -236,16 +241,21 @@ function AppLayout() {
     searchType,
   });
 
-  const outletContext: AppOutletContext = {
-    activeDate,
-    poemByline,
-    width,
-    isTranscriptVisible: isShowing,
-    onPoemTitleClick: handlePoemTitleClick,
-    onAuthorClick: handleAuthorClick,
-    goToDate,
-    formatAuthorDate,
-  };
+  // Memoised so a layout re-render does not hand the routed page a new context
+  // object, and through it a new set of props, on every keystroke or resize.
+  const outletContext = useMemo<AppOutletContext>(
+    () => ({
+      activeDate,
+      poemByline,
+      width,
+      isTranscriptVisible: isShowing,
+      onPoemTitleClick: handlePoemTitleClick,
+      onAuthorClick: handleAuthorClick,
+      goToDate,
+      formatAuthorDate,
+    }),
+    [activeDate, poemByline, width, isShowing, handlePoemTitleClick, handleAuthorClick, goToDate]
+  );
 
   return (
     <ErrorBoundary>
@@ -294,10 +304,11 @@ function AppLayout() {
                     currentDate={activeDate}
                   />
                 </ErrorBoundary>
+                {/* Plain text: `role="text"` is not a real ARIA role, and with it
+                    the aria-label was dropped too, leaving no accessible name.
+                    The day name reads correctly on its own. */}
                 <div
                   className="flex-[0_3_auto] m-4"
-                  role="text"
-                  aria-label="Day of week"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }}
                 />
                 <button
@@ -374,11 +385,7 @@ function AppLayout() {
                     currentDate={activeDate}
                   />
                 </ErrorBoundary>
-                <div
-                  role="text"
-                  aria-label="Day of week"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }}
-                />
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }} />
                 <button
                   type="button"
                   className="bg-transparent border-none cursor-pointer text-app-text hover:opacity-70 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"

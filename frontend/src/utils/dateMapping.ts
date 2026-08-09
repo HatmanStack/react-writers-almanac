@@ -116,17 +116,37 @@ export function presentDate(): string {
 }
 
 /**
- * Parse a date string in "Mon. DD, YYYY" format to YYYYMMDD.
+ * Parse a date string to YYYYMMDD.
  *
- * @param dateString - Date in format like "Jan. 15, 2015" or "January 15, 2015"
- * @returns Date string in YYYYMMDD format
+ * Author and poem records reach us in more than one shape, so all of them are
+ * accepted here. A date this cannot parse returns '', and callers treat that
+ * as "no date" — so a format missing from this list becomes a link that
+ * silently does nothing.
+ *
+ * @param dateString - "Jan. 15, 2015", "January 15, 2015", "2015-01-15", or "20150115"
+ * @returns Date string in YYYYMMDD format, or '' if unparseable
  *
  * @example
  * formatAuthorDate('Jan. 15, 2015') // '20150115'
  * formatAuthorDate('December 1, 2010') // '20101201'
+ * formatAuthorDate('2015-01-15') // '20150115'
  */
 export function formatAuthorDate(dateString: string): string {
-  const parts = dateString.trim().split(' ');
+  const trimmed = dateString.trim();
+
+  // Already normalised
+  if (/^\d{8}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  // ISO-style, as stored on some author records
+  const isoMatch = trimmed.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (isoMatch) {
+    const [, isoYear, isoMonth, isoDay] = isoMatch;
+    return `${isoYear}${isoMonth.padStart(2, '0')}${isoDay.padStart(2, '0')}`;
+  }
+
+  const parts = trimmed.split(' ');
   const month = parts[0];
   const day = parts[1];
   const year = parts[2];
@@ -137,9 +157,20 @@ export function formatAuthorDate(dateString: string): string {
 
   // Remove trailing period from month abbreviation
   const monthKey = month.replace('.', '').substring(0, 3);
-  const formattedMonth = MONTH_ABBREVIATIONS[monthKey] || '01';
-  const formattedDay = day.replace(',', '').padStart(2, '0');
-  return `${year}${formattedMonth}${formattedDay}`;
+  const formattedMonth = MONTH_ABBREVIATIONS[monthKey];
+  const dayDigits = day.replace(',', '');
+
+  /*
+   * Reject rather than guess. This used to fall back to January for an
+   * unrecognised month and pass the day and year through unchecked, so
+   * "sometime last spring" came back as "spring01last" — a string that looks
+   * like a date to every caller and is one to none of them.
+   */
+  if (!formattedMonth || !/^\d{1,2}$/.test(dayDigits) || !/^\d{4}$/.test(year)) {
+    return '';
+  }
+
+  return `${year}${formattedMonth}${dayDigits.padStart(2, '0')}`;
 }
 
 /**
