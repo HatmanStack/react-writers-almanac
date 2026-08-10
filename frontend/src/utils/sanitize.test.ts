@@ -1,106 +1,94 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import DOMPurify from 'dompurify';
+import { describe, it, expect } from 'vitest';
 import { sanitizeHtml } from './sanitize';
 
-// Mock DOMPurify
-vi.mock('dompurify', () => ({
-  default: {
-    sanitize: vi.fn((input: string) => input),
-  },
-}));
+// DOMPurify is deliberately NOT mocked here. It is the subject of these tests:
+// it is the only XSS control standing behind the 11 dangerouslySetInnerHTML
+// sites in Poem.tsx, Note/Note.tsx, AppLayout.tsx and Author/Author.tsx.
+// Mocking it to an identity function (as this file used to) makes every
+// assertion below vacuous. See health-audit H4.
 
 describe('sanitize utilities', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  describe('sanitizeHtml — XSS vectors', () => {
+    it('strips a script tag but keeps the surrounding markup', () => {
+      const result = sanitizeHtml('<script>alert("XSS")</script><p>Safe content</p>');
+
+      expect(result).not.toContain('<script');
+      expect(result).not.toContain('alert');
+      expect(result).toContain('<p>Safe content</p>');
+    });
+
+    it('strips an onerror handler from an image', () => {
+      const result = sanitizeHtml('<img src=x onerror=alert(1)>');
+
+      expect(result).not.toContain('onerror');
+      expect(result).not.toContain('alert');
+    });
+
+    it('strips a javascript: URL from an anchor', () => {
+      const result = sanitizeHtml('<a href="javascript:alert(1)">x</a>');
+
+      expect(result).not.toContain('javascript:');
+      expect(result).toContain('x');
+    });
+
+    it('strips an onclick handler from a paragraph', () => {
+      const result = sanitizeHtml('<p onclick="steal()">text</p>');
+
+      expect(result).not.toContain('onclick');
+      expect(result).not.toContain('steal');
+      expect(result).toContain('text');
+    });
+
+    it('strips a script nested inside an svg', () => {
+      const result = sanitizeHtml('<svg><script>alert(1)</script></svg>');
+
+      expect(result).not.toContain('<script');
+      expect(result).not.toContain('alert');
+    });
+
+    it('strips an iframe', () => {
+      const result = sanitizeHtml('<iframe src="https://evil.example"></iframe><p>after</p>');
+
+      expect(result).not.toContain('<iframe');
+      expect(result).toContain('<p>after</p>');
+    });
   });
 
-  describe('sanitizeHtml', () => {
-    it('should call DOMPurify.sanitize with the input', () => {
-      const input = '<p>Hello World</p>';
-      sanitizeHtml(input);
-      expect(DOMPurify.sanitize).toHaveBeenCalledWith(input);
+  describe('sanitizeHtml — safe content passes through', () => {
+    it('leaves benign markup untouched', () => {
+      expect(sanitizeHtml('<p>Hello World</p>')).toBe('<p>Hello World</p>');
     });
 
-    it('should return sanitized HTML for safe content', () => {
-      const input = '<p>Hello World</p>';
-      const mockSanitized = '<p>Hello World</p>';
-      (DOMPurify.sanitize as ReturnType<typeof vi.fn>).mockReturnValue(mockSanitized);
-
-      const result = sanitizeHtml(input);
-      expect(result).toBe(mockSanitized);
+    it('leaves HTML entities encoded', () => {
+      expect(sanitizeHtml('&lt;p&gt;Hello &amp; Goodbye&lt;/p&gt;')).toBe(
+        '&lt;p&gt;Hello &amp; Goodbye&lt;/p&gt;'
+      );
     });
 
-    it('should remove non-ASCII printable characters when stripNonPrintable is true', () => {
-      const input = 'Hello\x00World\x1F'; // Contains control characters
-      const mockSanitized = 'Hello\x00World\x1F';
-      (DOMPurify.sanitize as ReturnType<typeof vi.fn>).mockReturnValue(mockSanitized);
+    it('handles an empty string', () => {
+      expect(sanitizeHtml('')).toBe('');
+    });
+  });
 
-      const result = sanitizeHtml(input, true);
-      expect(result).toBe('HelloWorld');
+  describe('sanitizeHtml — stripNonPrintable', () => {
+    it('removes control characters when true', () => {
+      expect(sanitizeHtml('Hello\x00World\x1F', true)).toBe('HelloWorld');
     });
 
-    it('should preserve ASCII printable characters (0x20-0x7E) when stripNonPrintable is true', () => {
-      const input = 'Hello World! @#$%';
-      const mockSanitized = 'Hello World! @#$%';
-      (DOMPurify.sanitize as ReturnType<typeof vi.fn>).mockReturnValue(mockSanitized);
-
-      const result = sanitizeHtml(input, true);
-      expect(result).toBe('Hello World! @#$%');
+    it('preserves ASCII printable characters (0x20-0x7E) when true', () => {
+      expect(sanitizeHtml('Hello World! @#$%', true)).toBe('Hello World! @#$%');
     });
 
-    it('should remove unicode characters when stripNonPrintable is true', () => {
-      const input = 'Café résumé 日本語';
-      const mockSanitized = 'Café résumé 日本語';
-      (DOMPurify.sanitize as ReturnType<typeof vi.fn>).mockReturnValue(mockSanitized);
-
-      const result = sanitizeHtml(input, true);
-      expect(result).toBe('Caf rsum ');
+    it('removes unicode characters when true', () => {
+      expect(sanitizeHtml('Café résumé 日本語', true)).toBe('Caf rsum ');
     });
 
-    it('should preserve unicode characters when stripNonPrintable is false', () => {
-      const input = 'Café résumé 日本語';
-      const mockSanitized = 'Café résumé 日本語';
-      (DOMPurify.sanitize as ReturnType<typeof vi.fn>).mockReturnValue(mockSanitized);
-
-      const result = sanitizeHtml(input, false);
-      expect(result).toBe('Café résumé 日本語');
+    it('preserves unicode characters when false', () => {
+      expect(sanitizeHtml('Café résumé 日本語', false)).toBe('Café résumé 日本語');
     });
 
-    it('should handle empty string', () => {
-      const input = '';
-      const mockSanitized = '';
-      (DOMPurify.sanitize as ReturnType<typeof vi.fn>).mockReturnValue(mockSanitized);
-
-      const result = sanitizeHtml(input);
-      expect(result).toBe('');
-    });
-
-    it('should default stripNonPrintable to false', () => {
-      const input = 'Hello 日本語';
-      const mockSanitized = 'Hello 日本語';
-      (DOMPurify.sanitize as ReturnType<typeof vi.fn>).mockReturnValue(mockSanitized);
-
-      const result = sanitizeHtml(input);
-      expect(result).toBe('Hello 日本語');
-    });
-
-    it('should handle HTML with potential XSS attacks', () => {
-      const input = '<script>alert("XSS")</script><p>Safe content</p>';
-      const mockSanitized = '<p>Safe content</p>'; // DOMPurify would remove script
-      (DOMPurify.sanitize as ReturnType<typeof vi.fn>).mockReturnValue(mockSanitized);
-
-      const result = sanitizeHtml(input);
-      expect(DOMPurify.sanitize).toHaveBeenCalledWith(input);
-      expect(result).toBe('<p>Safe content</p>');
-    });
-
-    it('should handle HTML entities', () => {
-      const input = '&lt;p&gt;Hello &amp; Goodbye&lt;/p&gt;';
-      const mockSanitized = '&lt;p&gt;Hello &amp; Goodbye&lt;/p&gt;';
-      (DOMPurify.sanitize as ReturnType<typeof vi.fn>).mockReturnValue(mockSanitized);
-
-      const result = sanitizeHtml(input);
-      expect(result).toBe('&lt;p&gt;Hello &amp; Goodbye&lt;/p&gt;');
+    it('defaults to false', () => {
+      expect(sanitizeHtml('Hello 日本語')).toBe('Hello 日本語');
     });
   });
 });
