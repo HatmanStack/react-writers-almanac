@@ -180,23 +180,32 @@ test.describe('Responsive Design', () => {
     expect(essentialContent).toBeGreaterThan(0);
   });
 
-  test('should maintain functionality across all viewport sizes', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
-    const assert = new AssertionHelpers(page);
+  // One test per viewport, not a loop over all three.
+  //
+  // The loop version put three full page loads and six retrying assertions
+  // inside a single 30s budget — measured at 21-24s of it — and it crossed the
+  // 1000px branch boundary (1920 -> 768) on the way, which unmounts one
+  // <Suspense><Audio/></Suspense> subtree and mounts the other. The next button
+  // lives in that subtree, so it could be absent at the click even after the
+  // poem had rendered. It failed 7 of 20 repeats. Split, each of these runs in
+  // about a third of the budget, and a failure names the viewport that failed.
+  //
+  // (The loop's own `waitForLoadState('networkidle')` calls are gone either way
+  // — waiting on the poem that should have rendered says the same thing, and
+  // says it about the app rather than about the network.)
+  for (const viewport of [
+    { name: 'desktop', width: 1920, height: 1080 },
+    { name: 'tablet', width: 768, height: 1024 },
+    { name: 'mobile', width: 375, height: 667 },
+  ]) {
+    test(`should stay usable at ${viewport.name} (${viewport.width}x${viewport.height})`, async ({
+      page,
+    }) => {
+      const nav = new NavigationHelpers(page);
+      const assert = new AssertionHelpers(page);
 
-    const viewports = [
-      { width: 1920, height: 1080, name: 'desktop' },
-      { width: 768, height: 1024, name: 'tablet' },
-      { width: 375, height: 667, name: 'mobile' },
-    ];
-
-    for (const viewport of viewports) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
 
-      // The last two waitForLoadState('networkidle') calls in the suite used to
-      // be here. They are timing-based, so they pass or fail by how fast the
-      // machine is; waiting on the poem that should have rendered says the same
-      // thing and says it about the app rather than about the network.
       await nav.goToDate(MOCK_DATE);
       await assert.expectPoemTitle(mockPoem.poemtitle[0]);
 
@@ -206,8 +215,8 @@ test.describe('Responsive Design', () => {
 
       await expect(page).toHaveURL(new RegExp(`${MOCK_DATE_NEXT}$`));
       await assert.expectPoemTitle(mockPoem2.poemtitle[0]);
-    }
-  });
+    });
+  }
 
   test('should handle orientation changes on tablets', async ({ page }) => {
     const nav = new NavigationHelpers(page);
