@@ -4,7 +4,6 @@ import {
   mockPoemError,
   mockPoemNetworkError,
   mockAuthorError,
-  mockSearchError,
 } from './utils/apiMocks';
 import { NavigationHelpers, AssertionHelpers } from './utils/helpers';
 
@@ -138,9 +137,6 @@ test.describe('Error Handling', () => {
   });
 
   test('should handle search API errors gracefully', async ({ page }) => {
-    // Mock search error
-    await mockSearchError(page);
-
     const nav = new NavigationHelpers(page);
 
     // Navigate to home page

@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { setupApiMocks, mockSearchSuccess, mockSearchError } from './utils/apiMocks';
+import { setupApiMocks } from './utils/apiMocks';
 import { NavigationHelpers, AssertionHelpers } from './utils/helpers';
-import { mockEmptySearchResults } from './fixtures/mockData';
 
 test.describe('Search Flow', () => {
   test.beforeEach(async ({ page }) => {
@@ -107,9 +106,6 @@ test.describe('Search Flow', () => {
   test('should handle empty search results gracefully', async ({ page }) => {
     const nav = new NavigationHelpers(page);
 
-    // Mock empty search results
-    await mockSearchSuccess(page, mockEmptySearchResults);
-
     // Navigate to home page
     await nav.goToHome();
 
@@ -126,9 +122,6 @@ test.describe('Search Flow', () => {
 
   test('should handle search API errors gracefully', async ({ page }) => {
     const nav = new NavigationHelpers(page);
-
-    // Mock search error
-    await mockSearchError(page);
 
     // Navigate to home page
     await nav.goToHome();

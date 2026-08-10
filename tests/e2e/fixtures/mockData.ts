@@ -1,5 +1,22 @@
 import type { Author, AuthorsByLetter } from '../../../frontend/src/types/author';
-import type { SearchResponse, SearchResult } from '../../../frontend/src/types/api';
+import type { PoemDates } from '../../../frontend/src/types/poemDates';
+
+/**
+ * Broadcast dates the fixtures describe.
+ *
+ * Both are inside the archive (1993-01-01 .. 2017-11-29, see
+ * `frontend/src/utils/dateMapping.ts:18-27`) and both have audio, so a spec can
+ * navigate straight to them. The old fixtures used 20240101, which is a real
+ * calendar date but outside the archive entirely.
+ */
+export const MOCK_DATE = '20150315';
+export const MOCK_DATE_NEXT = '20150316';
+
+/** Author whose page `mockAuthor` describes. Present in `Authors_sorted`. */
+export const MOCK_AUTHOR_NAME = 'Robert Frost';
+
+/** Poem title whose dates `mockPoemDates` describes. Present in `Poems_sorted`. */
+export const MOCK_POEM_TITLE = 'Rereading Frost';
 
 /**
  * The poem JSON shape as it comes off the wire.
@@ -29,9 +46,9 @@ export interface PoemFixture {
  * Mock poem data for testing
  */
 export const mockPoem: PoemFixture = {
-  dayofweek: 'Monday',
-  date: 'January 1, 2024',
-  transcript: "It's the Writer's Almanac for Monday, January 1st, 2024. Today is New Year's Day...",
+  dayofweek: 'Sunday',
+  date: 'March 15, 2015',
+  transcript: "It's the Writer's Almanac for Sunday, March 15th, 2015...",
   poemtitle: ['The Road Not Taken'],
   poembyline: 'by Robert Frost',
   author: ['Robert Frost'],
@@ -51,9 +68,9 @@ export const mockPoem: PoemFixture = {
  * Mock poem for a different date
  */
 export const mockPoem2: PoemFixture = {
-  dayofweek: 'Tuesday',
-  date: 'January 2, 2024',
-  transcript: "It's the Writer's Almanac for Tuesday, January 2nd, 2024...",
+  dayofweek: 'Monday',
+  date: 'March 16, 2015',
+  transcript: "It's the Writer's Almanac for Monday, March 16th, 2015...",
   poemtitle: ['Hope is the thing with feathers'],
   poembyline: 'by Emily Dickinson',
   author: ['Emily Dickinson'],
@@ -83,15 +100,14 @@ export const mockAuthor: Author = {
     },
     biography:
       'Robert Lee Frost was an American poet. His work was initially published in England before it was published in the United States. Known for his realistic depictions of rural life and his command of American colloquial speech, Frost frequently wrote about settings from rural life in New England in the early 20th century, using them to examine complex social and philosophical themes.',
-    photo: 'https://example.com/robert-frost.jpg',
-    poems: ['20240101', '20231215', '20231001'],
+    poems: ['20150315', '20141215', '20131001'],
     source: 'Wikipedia',
     url: 'https://en.wikipedia.org/wiki/Robert_Frost',
   },
   'poetry foundation': {
     biography:
       "Robert Frost was born in San Francisco, but his family moved to Lawrence, Massachusetts, in 1884 following his father's death. The move was actually a return, for Frost's ancestors were originally New Englanders...",
-    poems: ['20240101', '20231215'],
+    poems: ['20150315', '20141215'],
     source: 'Poetry Foundation',
     url: 'https://www.poetryfoundation.org/poets/robert-frost',
   },
@@ -110,39 +126,16 @@ export const mockAuthor2: Author = {
       Nationality: 'American',
     },
     biography: 'Emily Dickinson was an American poet known for her unique style.',
-    poems: ['20240102'],
+    poems: ['20150316'],
   },
 };
 
 /**
- * Mock search results
+ * Dates the poem `MOCK_POEM_TITLE` was broadcast, as `/poems/:title` lists them.
  */
-export const mockSearchResults: SearchResponse = {
-  query: 'frost',
-  results: [
-    {
-      type: 'author',
-      name: 'Robert Frost',
-      slug: 'robert-frost',
-      info: '1874-1963',
-    },
-    {
-      type: 'poem',
-      name: 'The Road Not Taken',
-      slug: '20240101',
-      info: 'by Robert Frost',
-    },
-  ],
-  total: 2,
-};
-
-/**
- * Mock empty search results
- */
-export const mockEmptySearchResults: SearchResponse = {
-  query: 'zzzzz',
-  results: [],
-  total: 0,
+export const mockPoemDates: PoemDates = {
+  title: MOCK_POEM_TITLE,
+  dates: ['Mar. 15, 2015', 'Dec. 15, 2014'],
 };
 
 /**
@@ -170,23 +163,29 @@ export function generateMockPoem(date: string, dateFormatted: string): PoemFixtu
 }
 
 /**
- * Generate mock search result
+ * Generate mock author data for a slug with no dedicated fixture.
+ *
+ * Keeps `/author/:name` renderable for any archive name a spec navigates to,
+ * rather than turning an unmocked-but-real author into a 404 the spec then has
+ * to reason about.
  */
-export function generateMockSearchResult(query: string, count: number = 5): SearchResponse {
-  const results: SearchResult[] = [];
-
-  for (let i = 0; i < count; i++) {
-    results.push({
-      type: i % 2 === 0 ? 'author' : 'poem',
-      name: `Result ${i + 1} for ${query}`,
-      slug: `result-${i + 1}`,
-      info: `Info ${i + 1}`,
-    });
-  }
-
+export function generateMockAuthor(slug: string): Author {
   return {
-    query,
-    results,
-    total: count,
+    wikipedia: {
+      poet_meta_data: { lifetime: '1900\u20131980', Occupation: 'Poet' },
+      biography: `Generated biography for ${slug}.`,
+      poems: [MOCK_DATE],
+      source: 'Wikipedia',
+    },
+  };
+}
+
+/**
+ * Generate poem dates for a title with no dedicated fixture.
+ */
+export function generateMockPoemDates(title: string): PoemDates {
+  return {
+    title,
+    dates: ['Mar. 15, 2015'],
   };
 }
