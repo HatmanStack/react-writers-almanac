@@ -80,18 +80,15 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=moderate
 
+      # --max-warnings 0 lives in the lint script itself, so this command, the
+      # pre-commit hook and `npm run check` cannot drift apart. Previously only
+      # CI and the hook passed it, so a console.log passed `npm run check`
+      # locally and failed here.
       - name: Lint (fail on warnings)
-        run: npm run lint -- --max-warnings 0
+        run: npm run lint
 
       - name: Type check
         run: npm run typecheck
-
-      # Checks the whole repo, not a glob. .prettierignore carries the two
-      # exclusions that keep this gate honest: .claude/, because Prettier does
-      # not read .gitignore and a local worktree would make this red locally and
-      # green here; and the ADR-2 backend paths, which no phase may modify.
-      - name: Format check
-        run: npm run format:check
 
       # Coverage thresholds live in vitest.config.ts and are calibrated to the
       # measured actual. `npm test` stays coverage-free so the local loop and the
@@ -102,14 +99,56 @@ jobs:
       - name: Build
         run: npm run build
 
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Deliberately NOT gated on `changes`. `prettier --check .` is repo-wide by
+    # construction, and pairing a repo-wide check with a subtree trigger left 11
+    # tracked files inside the gate but unable to run it -- among them
+    # backend/README.md, which ADR-2 keeps inside the gate and which the
+    # documentation phase rewrites, and every workflow file including this one.
+    # A path filter here would need widening again the next time a root config is
+    # added; matching the job's trigger to the gate's actual scope does not.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Exclusions live in .prettierignore. Note Prettier 3 also reads
+      # .gitignore, so generated trees are skipped without a second entry; the
+      # load-bearing exclusions are the tracked ones (the ADR-2 backend paths).
+      - name: Format check
+        run: npm run format:check
+
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
-    # Measured wall time is ~2.1 min at six local workers. This runner pins one
-    # worker (playwright.config.ts), which is *less* contention than that, so
-    # per-test timeout risk here is lower than measured -- only total wall time
-    # grows. 10 minutes is a ceiling, not an estimate.
-    timeout-minutes: 10
+    # timeout-minutes bounds the WHOLE JOB, not the suite -- an earlier version of
+    # this comment conflated the two. Budget, measured locally under CI=1 (one
+    # worker, retries: 0, the configuration this runner uses):
+    #
+    #   suite                                     4.6-4.7 min (measured, twice)
+    #   checkout + setup-node + npm ci            ~0.5 min
+    #   npx playwright install chromium           ~1-2 min, EVERY run -- there is
+    #                                             no ~/.cache/ms-playwright step
+    #   ------------------------------------------------------------------
+    #   job                                       ~7 min, on a runner likely
+    #                                             slower per-core than the machine
+    #                                             the suite was measured on
+    #
+    # 20 gives roughly 2x that estimate. 10 would have been ~1.4x, and a
+    # timeout-caused red on a healthy suite is exactly what gets a job disabled.
+    # Caching the browser download would cut ~1-2 min, but it is an untested
+    # mechanism on a job that has never run; add it once this job is green.
+    timeout-minutes: 20
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     steps:
@@ -170,13 +209,14 @@ jobs:
     name: All Checks Passed
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [check, e2e, validate-sam]
+    needs: [check, format, e2e, validate-sam]
     if: always()
     steps:
       - name: Verify
         run: |
           results=(
             "${{ needs.check.result }}"
+            "${{ needs.format.result }}"
             "${{ needs.e2e.result }}"
             "${{ needs.validate-sam.result }}"
           )
