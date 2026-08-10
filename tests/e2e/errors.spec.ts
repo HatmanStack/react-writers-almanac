@@ -142,16 +142,26 @@ test.describe('Error Handling', () => {
   });
 
   test('should not spin when retry keeps failing', async ({ page }) => {
-    // One load makes 3 requests, and each Retry click makes 3 more, so three
-    // clicks after the initial load is 12. More than that would mean something
-    // is retrying on its own.
-    const MAX_EXPECTED_REQUESTS = 12;
+    // 404 rather than 500, deliberately. useAuthorQuery declines to retry a 4xx
+    // (useAuthorQuery.ts:60-71), so every attempt is exactly one request with no
+    // backoff between them. Two things follow, and both are improvements:
+    //
+    //  - "does not spin" becomes an EXACT count rather than a ceiling. The old
+    //    version allowed anything up to 12 requests, which is a wide enough
+    //    window to hide a modest spin.
+    //  - it drops TanStack's exponential backoff, four cascades of it. The test
+    //    ran 13.8s in isolation, and page loads stretch about threefold under
+    //    the six workers this suite runs with locally — so it could not fit a
+    //    30s budget under load. It is now a few seconds.
+    //
+    // The 5xx retry cascade is still exercised end to end, by the retry test
+    // above, which needs it to reach its error branch.
     let requests = 0;
     await page.route('**/public/authors/by-name/robert-frost.json', async route => {
       requests += 1;
       await route.fulfill({
-        status: 500,
-        json: { message: 'boom', status: 500 },
+        status: 404,
+        json: { message: 'Author not found', status: 404 },
       });
     });
 
@@ -160,18 +170,23 @@ test.describe('Error Handling', () => {
     const retryButton = page.getByRole('button', {
       name: /retry loading author data/i,
     });
-    await expect(retryButton).toBeVisible({ timeout: 15000 });
+    await expect(retryButton).toBeVisible();
+    await expect(page.getByText(/error loading author/i)).toBeVisible();
+    expect(requests).toBe(1);
 
     for (let i = 0; i < 3; i++) {
       await retryButton.click();
       await expect(retryButton).toBeVisible();
     }
 
+    // One request per deliberate attempt and not one more.
+    await expect.poll(() => requests).toBe(4);
+
     // Still the error branch, still one Retry button, still interactive — the
     // page has not spun itself into a growing pile of retries or crashed.
     await expect(retryButton).toBeEnabled();
     await expect(page.getByRole('button', { name: /retry loading author data/i })).toHaveCount(1);
-    expect(requests).toBeLessThanOrEqual(MAX_EXPECTED_REQUESTS);
+    expect(requests).toBe(4);
   });
 
   test('should keep search working while the CDN is failing', async ({ page }) => {
