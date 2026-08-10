@@ -10,8 +10,9 @@
   "scripts": {
     "test": "vitest run --reporter=verbose --config vitest.config.ts",
     "test:coverage": "vitest run --coverage --config vitest.config.ts",
-    "lint": "cd frontend && npm run lint && npm run typecheck",
-    "check": "npm run lint && npm run test",
+    "lint": "eslint frontend/src tests/e2e scripts",
+    "typecheck": "tsc --noEmit -p frontend/tsconfig.json && tsc --noEmit -p tsconfig.e2e.json",
+    "check": "npm run lint && npm run typecheck && npm run test",
     "deploy": "bash backend/scripts/deploy.sh",
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",

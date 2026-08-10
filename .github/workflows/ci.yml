@@ -38,6 +38,15 @@ jobs:
               - 'frontend/**'
               - 'package.json'
               - 'package-lock.json'
+              # Lint and typecheck now cover these too, and the e2e job runs
+              # from them. Without these entries a change to a spec or a script
+              # would skip the very job that was widened to check it.
+              - 'tests/**'
+              - 'scripts/**'
+              - 'eslint.config.cjs'
+              - 'tsconfig.e2e.json'
+              - 'vitest.config.ts'
+              - 'playwright.config.ts'
             backend:
               - 'backend/**'
 
@@ -60,10 +69,10 @@ jobs:
         run: npm ci
 
       - name: Lint (fail on warnings)
-        run: cd frontend && npm run lint -- --max-warnings 0
+        run: npm run lint -- --max-warnings 0
 
       - name: Type check
-        run: cd frontend && npm run typecheck
+        run: npm run typecheck
 
       # Coverage thresholds live in vitest.config.ts and are calibrated to the
       # measured actual. `npm test` stays coverage-free so the local loop and the
