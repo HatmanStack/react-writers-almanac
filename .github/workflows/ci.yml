@@ -68,6 +68,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # --omit=dev deliberately. Two numbers, both correct: the full audit
+      # reports 7 findings at this commit (1 low, 6 high), every one of them in
+      # the development toolchain, which does not ship to users. Gating on those
+      # would fail CI on day one and train people to ignore the gate -- or to
+      # "fix" it by widening the level until it passes. This gates on what
+      # reaches production, at moderate and above. Runs before the test job so a
+      # vulnerable dependency surfaces in seconds rather than after a full suite.
+      # Dependabot auto-merges every non-major bump, so this is the only thing
+      # standing between a vulnerable release and main.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
       - name: Lint (fail on warnings)
         run: npm run lint -- --max-warnings 0
 
