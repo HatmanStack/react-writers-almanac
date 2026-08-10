@@ -113,7 +113,16 @@ test.describe('Date Navigation', () => {
     for (const expected of ['20150316', '20150317', '20150318']) {
       await nav.goToNextDay();
       await expect(page).toHaveURL(new RegExp(`${expected}$`));
-      await assert.expectPoemVisible();
+
+      // A URL barrier alone is not enough between clicks, and this loop failed
+      // on exactly that: shiftContentByAuthorOrDate (AppLayout.tsx:203-215)
+      // closes over `activeDate` from the RENDERED route, so the button can
+      // still hold a stale callback after the address has changed — and the
+      // next click then steps from the old date. Waiting for the new date's
+      // poem title is a real barrier, because the title only appears once
+      // usePoemData has written that date's payload, which is strictly
+      // downstream of `activeDate` updating.
+      await assert.expectPoemTitle(titleForDate(expected));
     }
 
     await assert.expectPoemContent();
@@ -128,7 +137,10 @@ test.describe('Date Navigation', () => {
     for (const expected of ['20150314', '20150313', '20150312']) {
       await nav.goToPreviousDay();
       await expect(page).toHaveURL(new RegExp(`${expected}$`));
-      await assert.expectPoemVisible();
+      // Same barrier as the forward loop, for the same reason. This one has not
+      // been seen failing, but it has the identical shape and exposure, so it
+      // is unfixed rather than safe.
+      await assert.expectPoemTitle(titleForDate(expected));
     }
 
     await assert.expectPoemContent();

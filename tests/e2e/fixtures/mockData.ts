@@ -154,7 +154,11 @@ export function generateMockPoem(date: string, dateFormatted: string): PoemFixtu
     dayofweek: 'Monday',
     date: dateFormatted,
     transcript: `It's the Writer's Almanac for ${dateFormatted}...`,
-    poemtitle: ['Test Poem'],
+    // The date is in the title on purpose: it makes every generated broadcast
+    // distinguishable, so a spec can assert that the poem on screen belongs to
+    // the date in the address. A shared constant title could not tell a page
+    // that had caught up from one still showing the previous date.
+    poemtitle: [`Test Poem for ${date}`],
     poembyline: 'by Test Author',
     author: ['Test Author'],
     poem: ['This is a test poem', 'For date: ' + date],
