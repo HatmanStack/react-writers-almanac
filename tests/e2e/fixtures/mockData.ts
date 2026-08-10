@@ -1,11 +1,34 @@
-import type { Poem } from '../../../src/types/poem';
-import type { Author, AuthorsByLetter } from '../../../src/types/author';
-import type { SearchResponse, SearchResult } from '../../../src/types/api';
+import type { Author, AuthorsByLetter } from '../../../frontend/src/types/author';
+import type { SearchResponse, SearchResult } from '../../../frontend/src/types/api';
+
+/**
+ * The poem JSON shape as it comes off the wire.
+ *
+ * Declared here rather than imported because the application exports no such
+ * type. The live definition is `PoemResponse` at
+ * `frontend/src/hooks/usePoemData.ts:17-26` — an interface private to the only
+ * code that reads this payload. This mirrors it, narrowed to the forms the
+ * fixtures below actually use (`PoemResponse` widens each field to
+ * `string | string[]` because the archive contains both).
+ *
+ * Keep the two in step. A fixture describing a shape nothing consumes is the
+ * same rot this suite is being repaired for.
+ */
+export interface PoemFixture {
+  dayofweek: string;
+  date: string;
+  transcript?: string;
+  poemtitle: string[];
+  poembyline: string;
+  author: string[];
+  poem: string[];
+  notes: string[];
+}
 
 /**
  * Mock poem data for testing
  */
-export const mockPoem: Poem = {
+export const mockPoem: PoemFixture = {
   dayofweek: 'Monday',
   date: 'January 1, 2024',
   transcript: "It's the Writer's Almanac for Monday, January 1st, 2024. Today is New Year's Day...",
@@ -27,7 +50,7 @@ export const mockPoem: Poem = {
 /**
  * Mock poem for a different date
  */
-export const mockPoem2: Poem = {
+export const mockPoem2: PoemFixture = {
   dayofweek: 'Tuesday',
   date: 'January 2, 2024',
   transcript: "It's the Writer's Almanac for Tuesday, January 2nd, 2024...",
@@ -133,7 +156,7 @@ export const mockAuthorsByLetter: AuthorsByLetter = {
 /**
  * Generate mock poem for a specific date
  */
-export function generateMockPoem(date: string, dateFormatted: string): Poem {
+export function generateMockPoem(date: string, dateFormatted: string): PoemFixture {
   return {
     dayofweek: 'Monday',
     date: dateFormatted,

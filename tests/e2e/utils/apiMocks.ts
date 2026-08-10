@@ -1,7 +1,6 @@
 import type { Page } from '@playwright/test';
-import type { Poem } from '../../../src/types/poem';
-import type { Author } from '../../../src/types/author';
-import type { SearchResponse } from '../../../src/types/api';
+import type { Author } from '../../../frontend/src/types/author';
+import type { SearchResponse } from '../../../frontend/src/types/api';
 import {
   mockPoem,
   mockPoem2,
@@ -10,6 +9,7 @@ import {
   mockSearchResults,
   mockEmptySearchResults,
   mockAuthorsByLetter,
+  type PoemFixture,
 } from '../fixtures/mockData';
 
 /**
@@ -103,7 +103,7 @@ export async function setupApiMocks(page: Page) {
 /**
  * Mock a successful poem response
  */
-export async function mockPoemSuccess(page: Page, poem: Poem, date: string = '20240101') {
+export async function mockPoemSuccess(page: Page, poem: PoemFixture, date: string = '20240101') {
   await page.route(`**/public/${date}.json`, async route => {
     await route.fulfill({ json: poem });
   });
