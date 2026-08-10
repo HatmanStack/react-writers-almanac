@@ -373,7 +373,7 @@ function AppLayout() {
                   {isContentHidden ? 'Show Content' : 'Hide Content'}
                 </button>
               </div>
-              <div className="z-10 bg-app-container rounded-[3rem] flex p-4 flex-col">
+              <div className="z-10 bg-app-container rounded-[3rem] flex p-4 flex-col w-full">
                 <ErrorBoundary
                   fallback={error => (
                     <div className="p-4 text-red-600 text-sm">

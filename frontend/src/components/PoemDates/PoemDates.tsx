@@ -41,7 +41,7 @@ function PoemDates({
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center m-8 z-10">
+      <div className="relative flex justify-center items-center m-8 z-10">
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           Loading poem dates...
         </div>
@@ -52,7 +52,7 @@ function PoemDates({
   // Error state
   if (error) {
     return (
-      <div className="flex justify-center items-center m-8 z-10">
+      <div className="relative flex justify-center items-center m-8 z-10">
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           <p className="font-bold mb-4">Error loading poem dates: {error.message}</p>
           <button
@@ -71,7 +71,7 @@ function PoemDates({
   // Not found or empty state
   if (!poemData || !poemData.dates) {
     return (
-      <div className="flex justify-center items-center m-8 z-10">
+      <div className="relative flex justify-center items-center m-8 z-10">
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           No dates found for this poem
         </div>
@@ -89,7 +89,7 @@ function PoemDates({
 
   if (validDates.length === 0) {
     return (
-      <div className="flex justify-center items-center m-8 z-10">
+      <div className="relative flex justify-center items-center m-8 z-10">
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           No dates found for this poem
         </div>
