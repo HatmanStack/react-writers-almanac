@@ -13,6 +13,8 @@
     "lint": "eslint frontend/src tests/e2e scripts",
     "typecheck": "tsc --noEmit -p frontend/tsconfig.json && tsc --noEmit -p tsconfig.e2e.json",
     "check": "npm run lint && npm run typecheck && npm run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "deploy": "bash backend/scripts/deploy.sh",
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",

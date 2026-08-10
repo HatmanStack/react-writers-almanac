@@ -74,6 +74,13 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      # Checks the whole repo, not a glob. .prettierignore carries the two
+      # exclusions that keep this gate honest: .claude/, because Prettier does
+      # not read .gitignore and a local worktree would make this red locally and
+      # green here; and the ADR-2 backend paths, which no phase may modify.
+      - name: Format check
+        run: npm run format:check
+
       # Coverage thresholds live in vitest.config.ts and are calibrated to the
       # measured actual. `npm test` stays coverage-free so the local loop and the
       # pre-commit hook stay fast; CI is where the gate runs.
