@@ -182,12 +182,19 @@ export class AssertionHelpers {
   }
 
   /**
-   * Assert that author biography text is visible
+   * Assert that the author page's biography contains an expected phrase.
+   *
+   * Author.tsx renders the biography as sanitized HTML directly under the name;
+   * there is no "Biography" heading to look for, so the caller has to say what
+   * it expects to read. It must be a phrase unique to the author page: this
+   * helper previously looked for "was an American poet", which also appears in
+   * the *date* page's notes, so it could pass against the page the reader was
+   * navigating away from.
+   *
+   * @param snippet - Text unique to this author's biography
    */
-  async expectAuthorBiography() {
-    // Author.tsx renders the biography as sanitized HTML directly under the
-    // name; there is no "Biography" heading to look for.
-    await expect(this.page.getByText(/was an American poet/i).first()).toBeVisible();
+  async expectAuthorBiography(snippet: RegExp) {
+    await expect(this.page.getByText(snippet).first()).toBeVisible();
   }
 
   /**

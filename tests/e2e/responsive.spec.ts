@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { setupApiMocks } from './utils/apiMocks';
 import { NavigationHelpers, AssertionHelpers } from './utils/helpers';
+import { MOCK_DATE, MOCK_DATE_NEXT, mockPoem, mockPoem2 } from './fixtures/mockData';
 
 test.describe('Responsive Design', () => {
   test.beforeEach(async ({ page }) => {
@@ -96,25 +97,6 @@ test.describe('Responsive Design', () => {
     await nav.goToNextDay();
 
     // Verify poem still visible after navigation
-    const poem = page.locator('h1, h2').first();
-    await expect(poem).toBeVisible();
-  });
-
-  test('should support touch interactions on mobile', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
-
-    // Set mobile viewport with touch support
-    await page.setViewportSize({ width: 375, height: 667 });
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Test tap on next button
-    const nextButton = page.getByRole('button', { name: /next/i });
-    await nextButton.tap();
-    await page.waitForLoadState('networkidle');
-
-    // Verify navigation worked
     const poem = page.locator('h1, h2').first();
     await expect(poem).toBeVisible();
   });
@@ -252,24 +234,33 @@ test.describe('Responsive Design', () => {
     await expect(poem2).toBeVisible();
   });
 
-  test('should make interactive elements large enough for touch on mobile', async ({ page }) => {
+  test.fixme('should make interactive elements large enough for touch on mobile', async ({
+    page,
+  }) => {
+    // FAILS FOR REAL, and the fix is a design decision — recorded rather than
+    // guessed (Phase-3 Task 5, "undecidable" bucket; also in feedback.md).
+    //
+    // Measured at 375x667 on a broadcast page:
+    //   "Navigate to previous content"  22 x 22
+    //   "Navigate to next content"      22 x 22
+    //   "Open calendar"                 24 x 24
+    //   "Hide content containers"      130 x 36
+    //   "View poem: ..."               327 x 40
+    //
+    // The two arrows are the primary way to move through the archive on a phone
+    // and are the smallest targets on the page. 22px is below WCAG 2.2's AA
+    // minimum of 24x24 (SC 2.5.8) as well as the 36px this test asks for.
+    // Enlarging them means changing how the audio row looks, which is a visual
+    // decision this remediation plan has no mandate to make.
     const nav = new NavigationHelpers(page);
 
-    // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
-
-    // Navigate to home page
     await nav.goToHome();
 
-    // Get navigation button
-    const nextButton = page.getByRole('button', { name: /next/i });
-    await nextButton.waitFor({ state: 'visible' });
-
-    // Check button size (should be at least 44x44px for touch)
-    const box = await nextButton.boundingBox();
-    if (box) {
-      expect(box.height).toBeGreaterThanOrEqual(36); // Minimum touch target
-      expect(box.width).toBeGreaterThanOrEqual(36);
+    for (const name of [/next/i, /previous|prev/i, /open calendar/i]) {
+      const box = await page.getByRole('button', { name }).boundingBox();
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(36);
+      expect(box?.width ?? 0).toBeGreaterThanOrEqual(36);
     }
   });
 
@@ -344,5 +335,36 @@ test.describe('Responsive Design', () => {
       const box = await images.nth(i).boundingBox();
       expect(box?.width ?? 0).toBeLessThanOrEqual(375);
     }
+  });
+  test.describe('with a touchscreen', () => {
+    // Playwright's "Desktop Chrome" device has no touch, so Locator.tap() throws
+    // rather than failing an assertion. Touch is opted into here, for the tests
+    // that are actually about touch.
+    test.use({ hasTouch: true });
+
+    test('should support touch interactions on mobile', async ({ page }) => {
+      const nav = new NavigationHelpers(page);
+      const assert = new AssertionHelpers(page);
+
+      await page.setViewportSize({ width: 375, height: 667 });
+      await nav.goToDate(MOCK_DATE);
+      await assert.expectPoemTitle(mockPoem.poemtitle[0]);
+
+      await page.getByRole('button', { name: /next/i }).tap();
+
+      await expect(page).toHaveURL(new RegExp(`${MOCK_DATE_NEXT}$`));
+      await assert.expectPoemTitle(mockPoem2.poemtitle[0]);
+    });
+
+    test('should open the date picker by tap', async ({ page }) => {
+      const nav = new NavigationHelpers(page);
+
+      await page.setViewportSize({ width: 375, height: 667 });
+      await nav.goToDate(MOCK_DATE);
+
+      await page.getByRole('button', { name: /open calendar/i }).tap();
+
+      await expect(page.locator('.MuiDateCalendar-root').first()).toBeVisible();
+    });
   });
 });

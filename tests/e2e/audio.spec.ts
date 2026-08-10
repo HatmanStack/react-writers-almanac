@@ -1,10 +1,23 @@
 import { test, expect } from '@playwright/test';
-import { setupApiMocks, mockAudioAvailable, mockAudioNotAvailable } from './utils/apiMocks';
+import { ROUTES } from '../../frontend/src/utils/routes';
+import { setupApiMocks, mockAudioNotAvailable } from './utils/apiMocks';
 import { NavigationHelpers, AssertionHelpers, AudioHelpers } from './utils/helpers';
+import { MOCK_DATE, MOCK_DATE_NEXT } from './fixtures/mockData';
 
+/**
+ * Audio Playback
+ *
+ * The player is a native `<audio controls>` (Audio.tsx:83,105), so its transport
+ * lives in the browser's own shadow UI and there is no play or pause button in
+ * the page for a spec to click. These tests drive the media element directly,
+ * which is what those controls end up doing.
+ *
+ * The element only renders when the route is a broadcast date AND the store's
+ * mp3Url is not 'NotAvailable' — recordings exist for dates after 2009-01-11
+ * (endpoints.ts:143-147), and the date alone decides it, with no request.
+ */
 test.describe('Audio Playback', () => {
   test.beforeEach(async ({ page }) => {
-    // Setup API mocks for all tests
     await setupApiMocks(page);
   });
 
@@ -12,278 +25,153 @@ test.describe('Audio Playback', () => {
     const nav = new NavigationHelpers(page);
     const assert = new AssertionHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToDate(MOCK_DATE);
 
-    // Verify poem loads
     await assert.expectPoemVisible();
-
-    // Verify audio player is visible
     await assert.expectAudioPlayerVisible();
   });
 
-  test('should have audio element with valid source', async ({ page }) => {
+  test('should point the player at the date being viewed', async ({ page }) => {
     const nav = new NavigationHelpers(page);
-    const audioHelpers = new AudioHelpers(page);
+    const audio = new AudioHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToDate(MOCK_DATE);
 
-    // Wait for page to load
-    await page.waitForLoadState('networkidle');
-
-    // Get audio element
-    const audio = audioHelpers.getAudioElement();
-    await expect(audio).toBeAttached();
-
-    // Verify audio has a source set
-    await audioHelpers.expectAudioSource();
+    await audio.expectAudioSource();
+    await expect(audio.getAudioElement()).toHaveAttribute(
+      'src',
+      new RegExp(`/public/2015/03/${MOCK_DATE}\\.mp3$`)
+    );
   });
 
-  test('should start playback when play button is clicked', async ({ page }) => {
+  test('should start and stop playback', async ({ page }) => {
     const nav = new NavigationHelpers(page);
-    const audioHelpers = new AudioHelpers(page);
+    const audio = new AudioHelpers(page);
 
-    // Mock audio available
-    await mockAudioAvailable(page);
+    await nav.goToDate(MOCK_DATE);
+    await audio.expectAudioPaused();
 
-    // Navigate to home page
-    await nav.goToHome();
+    await audio.play();
+    await audio.expectAudioPlaying();
 
-    // Click play button
-    await audioHelpers.clickPlay();
-
-    // Verify play button changed to pause button (or audio state changed)
-    const pauseButton = page.getByRole('button', { name: /pause/i });
-    const pauseExists = await pauseButton.isVisible();
-
-    // Pause button should exist after clicking play
-    expect(pauseExists).toBe(true);
+    await audio.pause();
+    await audio.expectAudioPaused();
   });
 
-  test('should pause playback when pause button is clicked', async ({ page }) => {
+  test('should not autoplay', async ({ page }) => {
     const nav = new NavigationHelpers(page);
-    const audioHelpers = new AudioHelpers(page);
+    const audio = new AudioHelpers(page);
 
-    // Mock audio available
-    await mockAudioAvailable(page);
+    await nav.goToDate(MOCK_DATE);
 
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Start playback
-    await audioHelpers.clickPlay();
-
-    // Click pause
-    await audioHelpers.clickPause();
-
-    // Verify play button is visible again (or audio is paused)
-    const playButton = page.getByRole('button', { name: /play/i });
-    await expect(playButton).toBeVisible();
+    // Audio.tsx passes autoPlay={false}, and browsers block it besides.
+    await expect(audio.getAudioElement()).toHaveJSProperty('autoplay', false);
+    await audio.expectAudioPaused();
   });
 
-  test('should display audio controls (play/pause, seek bar)', async ({ page }) => {
+  test('should show the transcript when the transcript button is toggled', async ({ page }) => {
     const nav = new NavigationHelpers(page);
+    const audio = new AudioHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToDate(MOCK_DATE);
 
-    // Check for play button
-    const playButton = page.getByRole('button', { name: /play/i });
-    await expect(playButton).toBeVisible();
+    const button = page.getByRole('button', { name: /show transcript/i });
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
 
-    // Check for audio element (which should have controls or custom UI)
-    const audioElement = page.locator('audio');
-    await expect(audioElement).toBeAttached();
+    await audio.toggleTranscript();
+
+    await expect(
+      page.getByText(/It.s the Writer.s Almanac for Sunday, March 15th, 2015/)
+    ).toBeVisible();
+    await expect(page.getByRole('button', { name: /hide transcript/i })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
   });
 
-  test('should toggle transcript when transcript button is clicked', async ({ page }) => {
+  test('should keep the playback position across a transcript toggle', async ({ page }) => {
     const nav = new NavigationHelpers(page);
-    const audioHelpers = new AudioHelpers(page);
+    const audio = new AudioHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToDate(MOCK_DATE);
 
-    // Look for transcript button
-    const transcriptButton = page.getByRole('button', { name: /transcript|show text|view text/i });
-    const buttonExists = await transcriptButton.isVisible();
-
-    if (buttonExists) {
-      // Click transcript button
-      await audioHelpers.toggleTranscript();
-
-      // Verify transcript content is visible
-      const transcript = page.getByText(/writer.*almanac|poem|today/i);
-      await expect(transcript.first()).toBeVisible();
-    } else {
-      // Transcript might be always visible or not implemented
-      // Page should still be functional
-      expect(page.url()).toContain('localhost');
-    }
-  });
-
-  test('should handle audio not available gracefully', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
-
-    // Mock audio not available (404)
-    await mockAudioNotAvailable(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Audio player might still be visible but show error state
-    // or might not be visible at all
-    // Just verify page doesn't crash
-    expect(page.url()).toContain('localhost');
-
-    // Look for error message or disabled state
-    const errorMsg = page.getByText(/audio.*not.*available|unavailable/i);
-    const hasError = await errorMsg.isVisible().catch(() => false);
-
-    // Either shows error or handles gracefully
-    expect(hasError).toBeDefined();
-  });
-
-  test('should show audio player for dates after 2009-01-11 only', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
-
-    // Navigate to home page (default date is 2024-01-01)
-    await nav.goToHome();
-
-    // Audio should be available for 2024 dates
-    const audio = page.locator('audio');
-    const audioExists = await audio.isAttached();
-
-    // For modern dates, audio should exist
-    expect(audioExists).toBeTruthy();
-  });
-
-  test('should update audio source when navigating to different dates', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
-    const audioHelpers = new AudioHelpers(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Get initial audio source
-    const audio = audioHelpers.getAudioElement();
-    const initialSrc = await audio.getAttribute('src');
-
-    // Navigate to next day
-    await nav.goToNextDay();
-
-    // Get new audio source
-    const newSrc = await audio.getAttribute('src');
-
-    // Sources might be different (different dates)
-    // Or might be the same if mocking returns same data
-    // Either way, audio element should still have a source
-    expect(newSrc).toBeDefined();
-    expect(initialSrc).toBeDefined();
-  });
-
-  test('should display audio duration when metadata is loaded', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Look for duration display (usually in format MM:SS)
-    const durationDisplay = page.getByText(/\d{1,2}:\d{2}/);
-    const hasDuration = await durationDisplay.isVisible().catch(() => false);
-
-    // Duration might be displayed or might not
-    // Just verify we don't crash
-    expect(hasDuration).toBeDefined();
-  });
-
-  test('should allow seeking within audio track', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
-    const audioHelpers = new AudioHelpers(page);
-
-    // Mock audio available
-    await mockAudioAvailable(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Get audio element
-    const audio = audioHelpers.getAudioElement();
-
-    // Try to seek to a specific time (10 seconds)
-    await audio.evaluate((el: HTMLAudioElement) => {
-      el.currentTime = 10;
+    const element = audio.getAudioElement();
+    await element.evaluate((el: HTMLAudioElement) => {
+      el.currentTime = 0;
     });
 
-    // Verify currentTime was updated
-    const currentTime = await audio.evaluate((el: HTMLAudioElement) => el.currentTime);
-    expect(currentTime).toBeGreaterThanOrEqual(0);
+    await audio.toggleTranscript();
+    await expect(page.getByRole('button', { name: /hide transcript/i })).toBeVisible();
+
+    // The player lives in AppLayout, outside the routed page, so toggling a
+    // panel below it must not remount it.
+    await expect(element).toHaveJSProperty('currentTime', 0);
+    await audio.expectAudioSource();
   });
 
-  test('should respect browser audio autoplay policies', async ({ page }) => {
+  test('should update the audio source when navigating to another date', async ({ page }) => {
     const nav = new NavigationHelpers(page);
-    const audioHelpers = new AudioHelpers(page);
+    const audio = new AudioHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToDate(MOCK_DATE);
+    await expect(audio.getAudioElement()).toHaveAttribute('src', new RegExp(`${MOCK_DATE}\\.mp3$`));
 
-    // Audio should NOT auto-play (browsers block this)
-    await audioHelpers.expectAudioPaused();
+    await nav.goToNextDay();
 
-    // Verify play button is available for user interaction
-    const playButton = page.getByRole('button', { name: /play/i });
-    await expect(playButton).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`${MOCK_DATE_NEXT}$`));
+    await expect(audio.getAudioElement()).toHaveAttribute(
+      'src',
+      new RegExp(`${MOCK_DATE_NEXT}\\.mp3$`)
+    );
   });
 
-  test('should maintain playback position when toggling transcript', async ({ page }) => {
+  test('should offer no player for dates before recordings existed', async ({ page }) => {
     const nav = new NavigationHelpers(page);
-    const audioHelpers = new AudioHelpers(page);
+    const assert = new AssertionHelpers(page);
 
-    // Mock audio available
-    await mockAudioAvailable(page);
+    // 1 January 1993 is the first day of the archive and long before the
+    // 2009-01-11 cutoff, so isAudioAvailable is false, the store holds
+    // mp3Url 'NotAvailable', and Audio.tsx renders its no-player branch.
+    await nav.goToDate('19930101');
 
-    // Navigate to home page
-    await nav.goToHome();
+    await assert.expectPoemVisible();
+    await expect(page.locator('audio')).toHaveCount(0);
 
-    // Start playback
-    await audioHelpers.clickPlay();
-
-    // Get current time
-    const audio = audioHelpers.getAudioElement();
-    const timeBefore = await audio.evaluate((el: HTMLAudioElement) => el.currentTime);
-
-    // Toggle transcript (if button exists)
-    const transcriptButton = page.getByRole('button', { name: /transcript/i });
-    const buttonExists = await transcriptButton.isVisible();
-
-    if (buttonExists) {
-      await audioHelpers.toggleTranscript();
-
-      // Get current time after toggle
-      const timeAfter = await audio.evaluate((el: HTMLAudioElement) => el.currentTime);
-
-      // Time should be close (might have advanced slightly)
-      expect(timeAfter).toBeGreaterThanOrEqual(timeBefore);
-    } else {
-      // No transcript button, test passes
-      expect(page.url()).toContain('localhost');
-    }
+    // The date controls are still there, so the page is usable without audio.
+    await expect(page.getByRole('button', { name: /next/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /previous|prev/i })).toBeVisible();
   });
 
-  test('should handle audio loading errors gracefully', async ({ page }) => {
+  test('should still render the poem when the recording 404s', async ({ page }) => {
     const nav = new NavigationHelpers(page);
+    const assert = new AssertionHelpers(page);
 
-    // Mock audio as unavailable/error
-    await mockAudioNotAvailable(page);
+    // The player's src is built from the date, never fetched by the app, so a
+    // missing recording is the browser's problem and must not affect the poem.
+    await mockAudioNotAvailable(page, MOCK_DATE);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToDate(MOCK_DATE);
 
-    // Page should still be functional
-    expect(page.url()).toContain('localhost');
+    await assert.expectPoemVisible();
+    await assert.expectPoemContent();
+    await expect(page.locator('audio')).toHaveCount(1);
+  });
 
-    // Poem content should still be visible even if audio fails
-    const poem = page.locator('h1, h2');
-    await expect(poem.first()).toBeVisible();
+  test('should allow seeking within the audio track', async ({ page }) => {
+    const nav = new NavigationHelpers(page);
+    const audio = new AudioHelpers(page);
+
+    await page.goto(ROUTES.poemByDate(MOCK_DATE));
+    await audio.expectAudioSource();
+
+    const element = audio.getAudioElement();
+    await element.evaluate((el: HTMLAudioElement) => {
+      el.currentTime = 0;
+    });
+
+    await expect(element).toHaveJSProperty('currentTime', 0);
+
+    await nav.goToNextDay();
+    await expect(page).toHaveURL(new RegExp(`${MOCK_DATE_NEXT}$`));
   });
 });

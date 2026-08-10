@@ -2,9 +2,10 @@ import { test, expect } from '@playwright/test';
 import { ROUTES } from '../../frontend/src/utils/routes';
 import {
   setupApiMocks,
+  mockAuthorError,
+  mockPoemDatesError,
   mockPoemError,
   mockPoemNetworkError,
-  mockAuthorError,
 } from './utils/apiMocks';
 import { NavigationHelpers, AssertionHelpers } from './utils/helpers';
 import {
@@ -16,109 +17,97 @@ import {
 } from './fixtures/mockData';
 
 test.describe('Error Handling', () => {
-  test('should display error message when poem fails to load (404)', async ({ page }) => {
-    // Mock poem 404 error
-    await mockPoemError(page, '20240101');
-
-    const nav = new NavigationHelpers(page);
-    const assert = new AssertionHelpers(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Should display error message
-    await assert.expectErrorMessage();
-
-    // Error message should mention poem or content not found
-    const errorMsg = page.getByText(/poem.*not.*found|content.*unavailable|error.*loading/i);
-    await expect(errorMsg).toBeVisible();
-  });
-
-  test('should display error message when network request fails', async ({ page }) => {
-    // Mock network error
-    await mockPoemNetworkError(page, '20240101');
-
-    const nav = new NavigationHelpers(page);
-    const assert = new AssertionHelpers(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Should display error message
-    await assert.expectErrorMessage();
-
-    // Error message should mention network or connection issue
-    const errorMsg = page.getByText(/network.*error|connection.*failed|unable.*to.*load/i);
-    const hasErrorMsg = await errorMsg.isVisible().catch(() => false);
-
-    // Either specific network error or generic error
-    expect(hasErrorMsg || (await page.locator('[role="alert"]').count()) > 0).toBeTruthy();
-  });
-
-  test('should display not found message for non-existent author', async ({ page }) => {
-    // Mock author 404 error
-    await mockAuthorError(page, 'non-existent-author');
-
-    const nav = new NavigationHelpers(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Search for the non-existent author
-    await nav.searchAuthor('non-existent');
-
-    // App should remain functional even with no/error results
-    // Page should not crash
-    expect(page.url()).toContain('localhost');
-
-    // Search field should still be visible
-    const searchField = page.getByRole('textbox', { name: /search/i });
-    await expect(searchField).toBeVisible();
-  });
-
-  test('should display error boundary when component crashes', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await setupApiMocks(page);
-
-    const nav = new NavigationHelpers(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Try to trigger an error by injecting invalid data
-    // This is hard to test without actually breaking the component
-    // For now, just verify error boundary exists in code
-
-    // Page should load normally
-    expect(page.url()).toContain('localhost');
   });
 
-  test('should show retry button when error occurs', async ({ page }) => {
-    // Mock poem error
-    await mockPoemError(page, '20240101');
+  test('should clear the page rather than show a stale poem on a 404', async ({ page }) => {
+    await mockPoemError(page, MOCK_DATE);
 
-    const nav = new NavigationHelpers(page);
+    await page.goto(ROUTES.poemByDate(MOCK_DATE));
 
-    // Navigate to home page
-    await nav.goToHome();
+    // usePoemData's catch writes the empty fallback state: no poem, no title,
+    // no author, transcript unavailable. There is no error branch on the
+    // broadcast page, so "nothing" is the whole of what a failed load renders.
+    // See the fixme below for what is missing.
+    await expect(page.getByRole('combobox', { name: /search/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /^View poem:/ })).toHaveCount(0);
+  });
 
-    // Look for retry button
-    const retryButton = page.getByRole('button', {
-      name: /retry|try again|reload/i,
-    });
-    const hasRetry = await retryButton.isVisible().catch(() => false);
+  test('should clear the page rather than show a stale poem on a network failure', async ({
+    page,
+  }) => {
+    await mockPoemNetworkError(page, MOCK_DATE);
 
-    // Retry button should be visible for error states
-    expect(hasRetry).toBeTruthy();
+    await page.goto(ROUTES.poemByDate(MOCK_DATE));
+
+    await expect(page.getByRole('combobox', { name: /search/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCount(0);
+  });
+
+  test.fixme('should tell the reader when a broadcast fails to load', async ({ page }) => {
+    // NOT YET DECIDABLE — a product decision, recorded rather than guessed.
+    //
+    // A failed poem load renders an empty page: no message, no alert, no
+    // retry. Verified: with a 404 mocked, [role="alert"] count is 0 and the
+    // only buttons on screen belong to the header. The author and poem-title
+    // pages do better -- Author.tsx and PoemDates.tsx each render
+    // "Error loading ..." plus a Retry button -- so the broadcast page is the
+    // odd one out, not the house style.
+    //
+    // Closing this means adding an error branch to the broadcast page, which
+    // is a new user-facing capability rather than a repair, and is outside
+    // what this remediation plan authorises (Phase-0 ADR-1). Left as a
+    // written-down gap; also recorded in the plan's feedback.md.
+    await mockPoemError(page, MOCK_DATE);
+    await page.goto(ROUTES.poemByDate(MOCK_DATE));
+
+    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.getByRole('button', { name: /retry/i })).toBeVisible();
+  });
+
+  test.fixme('should show the error boundary when a component crashes', async ({ page }) => {
+    // NOT REACHABLE FROM OUTSIDE — kept rather than deleted so the gap stays
+    // visible. AppLayout wraps the search, the audio player and the routed page
+    // in ErrorBoundary, but nothing a spec can do from the browser makes one of
+    // those children throw during render: the app tolerates every malformed
+    // payload the mock layer can hand it. Forcing a throw would mean shipping a
+    // test-only hatch into production code.
+    //
+    // The boundary itself is covered where it can be — 12 unit tests in
+    // frontend/src/components/ErrorBoundary/ErrorBoundary.test.tsx render a
+    // deliberately throwing child.
+    await page.goto(ROUTES.poemByDate(MOCK_DATE));
+    await expect(page.getByText(/unavailable/i)).toBeVisible();
+  });
+
+  test('should report a failed author fetch and offer a retry', async ({ page }) => {
+    // The author is in the archive, so AuthorView renders the page and the
+    // fetch is what fails -- which is the case worth distinguishing from a
+    // misspelled name (that one is NotFound, covered in navigation.spec.ts).
+    await mockAuthorError(page, 'robert-frost');
+
+    await page.goto(ROUTES.author(MOCK_AUTHOR_NAME));
+
+    await expect(page.getByText(/error loading author/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /retry loading author data/i })).toBeVisible();
+  });
+
+  test('should report a failed poem-dates fetch and offer a retry', async ({ page }) => {
+    await mockPoemDatesError(page, 'rereading-frost');
+
+    await page.goto(ROUTES.poemByTitle('Rereading Frost'));
+
+    await expect(page.getByText(/error loading poem dates/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /retry loading poem dates/i })).toBeVisible();
   });
 
   test('should reload the author page when its retry button is clicked', async ({ page }) => {
     // Retry is a real affordance, but it belongs to the author and poem-title
-    // pages, not the broadcast page: Author.tsx and PoemDates.tsx each render a
-    // Retry button in their error branch and call the query's refetch(). The
-    // broadcast page has no such branch, which is why the old version of this
-    // test could only ever take its `else` arm.
-    await setupApiMocks(page);
-
+    // pages: Author.tsx and PoemDates.tsx each render one in their error branch
+    // and call the query's refetch().
+    //
     // useAuthorQuery retries a 5xx while `failureCount < 2`, and TanStack counts
     // retries rather than attempts, so a page load makes three requests before
     // the error branch renders. Measured, not assumed: a permanently failing
@@ -147,61 +136,82 @@ test.describe('Error Handling', () => {
 
     await retryButton.click();
 
-    // The refetch now succeeds, so the error branch is replaced by the page.
+    // The refetch succeeds, so the error branch is replaced by the page.
     await expect(page.getByRole('heading', { name: MOCK_AUTHOR_NAME })).toBeVisible();
     await expect(page.getByText(/error loading author/i)).toHaveCount(0);
   });
 
-  test('should handle search API errors gracefully', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
+  test('should not spin when retry keeps failing', async ({ page }) => {
+    // One load makes 3 requests, and each Retry click makes 3 more, so three
+    // clicks after the initial load is 12. More than that would mean something
+    // is retrying on its own.
+    const MAX_EXPECTED_REQUESTS = 12;
+    let requests = 0;
+    await page.route('**/public/authors/by-name/robert-frost.json', async route => {
+      requests += 1;
+      await route.fulfill({
+        status: 500,
+        json: { message: 'boom', status: 500 },
+      });
+    });
 
-    // Navigate to home page
-    await nav.goToHome();
+    await page.goto(ROUTES.author(MOCK_AUTHOR_NAME));
 
-    // Try to search
-    await nav.searchAuthor('test');
+    const retryButton = page.getByRole('button', {
+      name: /retry loading author data/i,
+    });
+    await expect(retryButton).toBeVisible({ timeout: 15000 });
 
-    // Page should still be functional (not crashed)
-    expect(page.url()).toContain('localhost');
+    for (let i = 0; i < 3; i++) {
+      await retryButton.click();
+      await expect(retryButton).toBeVisible();
+    }
 
-    // Search field should still be visible
-    const searchField = page.getByRole('textbox', { name: /search/i });
-    await expect(searchField).toBeVisible();
+    // Still the error branch, still one Retry button, still interactive — the
+    // page has not spun itself into a growing pile of retries or crashed.
+    await expect(retryButton).toBeEnabled();
+    await expect(page.getByRole('button', { name: /retry loading author data/i })).toHaveCount(1);
+    expect(requests).toBeLessThanOrEqual(MAX_EXPECTED_REQUESTS);
   });
 
-  test('should display appropriate error for invalid date format', async ({ page }) => {
-    await setupApiMocks(page);
+  test('should keep search working while the CDN is failing', async ({ page }) => {
+    // Search cannot fail the way the old "search API error" test imagined: it
+    // reads a bundled index, so a broken CDN is invisible to it. What matters is
+    // that a reader stuck on a broken page can still navigate away.
+    await mockPoemError(page, MOCK_DATE);
 
     const nav = new NavigationHelpers(page);
+    const assert = new AssertionHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await page.goto(ROUTES.poemByDate(MOCK_DATE));
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCount(0);
 
-    // App should load with default date
-    // Page should not crash
-    expect(page.url()).toContain('localhost');
+    await nav.search('frost');
+    await nav.selectSuggestion(MOCK_AUTHOR_NAME);
 
-    // Either error message or default content loads
-    const hasError = await page
-      .locator('[role="alert"]')
-      .isVisible()
-      .catch(() => false);
-    const hasContent = await page.locator('h1, h2').count();
+    await expect(page).toHaveURL(new RegExp(`${ROUTES.author(MOCK_AUTHOR_NAME)}$`));
+    await assert.expectAuthorName(MOCK_AUTHOR_NAME);
+  });
 
-    expect(hasError || hasContent > 0).toBeTruthy();
+  test('should send a malformed date param to the not-found page', async ({ page }) => {
+    // `/poem/notadate` matches ROUTE_PATHS.poemByDate — one path segment binds
+    // to :date whatever it contains — so it is DateView's isValidDateParam
+    // check, not the router, that catches this.
+    await page.goto('/poem/notadate');
+
+    await expect(page.getByRole('heading', { name: /that page isn.t here/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCount(1);
   });
 
   test('should recover from errors when navigating to valid content', async ({ page }) => {
-    await setupApiMocks(page);
     // MOCK_DATE fails; the next day is fine. Registered after setupApiMocks so
     // it wins — Playwright matches routes in reverse registration order.
     await mockPoemError(page, MOCK_DATE);
 
     const nav = new NavigationHelpers(page);
 
-    // The failed date renders no poem at all: usePoemData's catch writes the
-    // empty fallback state, and the broadcast page has no error branch of its
-    // own. That absence is what makes the recovery below observable.
+    // The failed date renders no poem at all, which is what makes the recovery
+    // below observable rather than a repaint of the same thing.
     await page.goto(ROUTES.poemByDate(MOCK_DATE));
     await expect(page.getByRole('heading', { level: 2 })).toHaveCount(0);
 
@@ -213,61 +223,31 @@ test.describe('Error Handling', () => {
     await expect(page.getByRole('heading', { name: mockPoem2.poemtitle[0] })).toBeVisible();
   });
 
-  test('should show generic error message for unexpected errors', async ({ page }) => {
-    await setupApiMocks(page);
+  test('should keep the header usable after an error and a reload', async ({ page }) => {
+    await mockPoemError(page, MOCK_DATE);
 
-    // Navigate to home page
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.goto(ROUTES.poemByDate(MOCK_DATE));
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCount(0);
 
-    // Inject a console error to test error logging
-    await page.evaluate(() => {
-      // eslint-disable-next-line no-console
-      console.error('Test error');
-    });
-
-    // Page should still be functional
-    expect(page.url()).toContain('localhost');
-  });
-
-  test('should maintain UI state after error recovery', async ({ page }) => {
-    // Mock initial error
-    await mockPoemError(page, '20240101');
-
-    const nav = new NavigationHelpers(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Setup success mock
-    await setupApiMocks(page);
-
-    // Reload page
     await page.reload();
-    await page.waitForLoadState('networkidle');
 
-    // Navigation buttons should still be visible
-    const nextButton = page.getByRole('button', { name: /next/i });
-    const prevButton = page.getByRole('button', { name: /previous|prev/i });
-
-    const nextExists = await nextButton.isVisible().catch(() => false);
-    const prevExists = await prevButton.isVisible().catch(() => false);
-
-    // At least one navigation button should exist
-    expect(nextExists || prevExists).toBeTruthy();
+    // The header is AppLayout's, not the page's, so a failed page fetch must
+    // leave it intact and every control on it still reachable.
+    await expect(page.getByRole('combobox', { name: /search/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /open calendar/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /next/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /previous|prev/i })).toBeVisible();
   });
 
   test('should log errors to console for debugging', async ({ page }) => {
     const consoleErrors: string[] = [];
 
-    // Listen for console errors
     page.on('console', msg => {
       if (msg.type() === 'error') {
         consoleErrors.push(msg.text());
       }
     });
 
-    await setupApiMocks(page);
     await mockPoemError(page, MOCK_DATE);
 
     await page.goto(ROUTES.poemByDate(MOCK_DATE));
@@ -288,38 +268,18 @@ test.describe('Error Handling', () => {
     expect(consoleErrors.some(text => /404/.test(text))).toBe(true);
   });
 
-  test('should not spin when retry keeps failing', async ({ page }) => {
-    await setupApiMocks(page);
-
-    // useAuthorQuery retries a 5xx twice with backoff before surfacing the
-    // error, so one page load plus three manual retries is at most 12 requests.
-    const MAX_EXPECTED_REQUESTS = 12;
-    let requests = 0;
-    await page.route('**/public/authors/by-name/robert-frost.json', async route => {
-      requests += 1;
-      await route.fulfill({
-        status: 500,
-        json: { message: 'boom', status: 500 },
-      });
+  test('should load a healthy page with no console errors at all', async ({ page }) => {
+    const consoleErrors: string[] = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') consoleErrors.push(msg.text());
     });
 
-    await page.goto(ROUTES.author(MOCK_AUTHOR_NAME));
+    await page.goto(ROUTES.poemByDate(MOCK_DATE));
+    await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
 
-    const retryButton = page.getByRole('button', {
-      name: /retry loading author data/i,
-    });
-    await expect(retryButton).toBeVisible();
-
-    // Same three clicks, against the page that actually has a retry button.
-    for (let i = 0; i < 3; i++) {
-      await retryButton.click();
-      await expect(retryButton).toBeVisible();
-    }
-
-    // Still the error branch, still one Retry button, still interactive — the
-    // page has not spun itself into a growing pile of retries or crashed.
-    await expect(retryButton).toBeEnabled();
-    await expect(page.getByRole('button', { name: /retry loading author data/i })).toHaveCount(1);
-    expect(requests).toBeLessThanOrEqual(MAX_EXPECTED_REQUESTS);
+    expect(
+      consoleErrors,
+      `console errors on a clean load: ${JSON.stringify(consoleErrors)}`
+    ).toEqual([]);
   });
 });

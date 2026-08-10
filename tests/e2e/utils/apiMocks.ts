@@ -1,6 +1,4 @@
 import type { Page } from '@playwright/test';
-import type { Author } from '../../../frontend/src/types/author';
-import type { PoemDates } from '../../../frontend/src/types/poemDates';
 import {
   MOCK_DATE,
   MOCK_DATE_NEXT,
@@ -55,20 +53,58 @@ const POEM_TITLE_JSON = /\/public\/poems\/by-title\/([^/]+)\.json$/;
  */
 const AUTHOR_IMAGE = /\/public\/images\/[^/]+$/;
 
+/** How long the stand-in recording runs. See `silentWav`. */
+const AUDIO_SECONDS = 60;
+
+/**
+ * A minute of silence, as a real WAV.
+ *
+ * Two things about it are load-bearing.
+ *
+ * DECODABLE. The old mocks answered every recording with an EMPTY audio/mpeg
+ * buffer, which a browser cannot decode: `play()` rejects, the element never
+ * leaves `paused`, and no spec could observe playback at all.
+ *
+ * LONG. A short clip ends before an assertion can see it playing, which makes
+ * "is it playing?" a race with machine speed — a tenth of a second flaked about
+ * one run in three under parallel load. A minute cannot finish inside any
+ * assertion window, so the answer is the same on a fast machine and a slow one.
+ * 8 kHz 8-bit mono keeps that to 480 kB, built once at module load.
+ *
+ * WAV rather than MP3 because it can be built here in a dozen lines, and the
+ * media element takes its format from the Content-Type rather than from the
+ * `.mp3` in the URL.
+ */
+function silentWav(): Buffer {
+  const sampleRate = 8000;
+  const samples = sampleRate * AUDIO_SECONDS;
+  const header = Buffer.alloc(44);
+
+  header.write('RIFF', 0, 'ascii');
+  header.writeUInt32LE(36 + samples, 4);
+  header.write('WAVE', 8, 'ascii');
+  header.write('fmt ', 12, 'ascii');
+  header.writeUInt32LE(16, 16); // PCM chunk size
+  header.writeUInt16LE(1, 20); // format: PCM
+  header.writeUInt16LE(1, 22); // channels: mono
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE(sampleRate, 28); // byte rate
+  header.writeUInt16LE(1, 32); // block align
+  header.writeUInt16LE(8, 34); // bits per sample
+  header.write('data', 36, 'ascii');
+  header.writeUInt32LE(samples, 40);
+
+  // 8-bit PCM is unsigned, so silence is 0x80, not 0x00.
+  return Buffer.concat([header, Buffer.alloc(samples, 0x80)]);
+}
+
+const SILENT_AUDIO = silentWav();
+
 /** A one-pixel transparent PNG, enough for an <img> to load without erroring. */
 const PIXEL_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
   'base64'
 );
-
-/**
- * Mock API error response
- */
-export interface MockApiError {
-  message: string;
-  status: number;
-  code?: string;
-}
 
 /**
  * Fail the test on any request to a host other than the dev server that no mock
@@ -127,11 +163,7 @@ export async function setupApiMocks(page: Page) {
 
   // Poem audio
   await page.route(POEM_AUDIO, async route => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'audio/mpeg',
-      body: Buffer.from([]), // Empty buffer for testing
-    });
+    await route.fulfill({ status: 200, contentType: 'audio/wav', body: SILENT_AUDIO });
   });
 
   // Author JSON
@@ -214,15 +246,6 @@ export async function mockPoemNetworkError(page: Page, date: string = MOCK_DATE)
 }
 
 /**
- * Mock a successful author response
- */
-export async function mockAuthorSuccess(page: Page, author: Author, slug: string) {
-  await page.route(`**/public/authors/by-name/${slug}.json`, async route => {
-    await route.fulfill({ json: author });
-  });
-}
-
-/**
  * Mock an author error response (404)
  */
 export async function mockAuthorError(page: Page, slug: string) {
@@ -238,15 +261,6 @@ export async function mockAuthorError(page: Page, slug: string) {
 }
 
 /**
- * Mock a successful poem-dates response
- */
-export async function mockPoemDatesSuccess(page: Page, dates: PoemDates, slug: string) {
-  await page.route(`**/public/poems/by-title/${slug}.json`, async route => {
-    await route.fulfill({ json: dates });
-  });
-}
-
-/**
  * Mock a poem-dates error response (404)
  */
 export async function mockPoemDatesError(page: Page, slug: string) {
@@ -257,19 +271,6 @@ export async function mockPoemDatesError(page: Page, slug: string) {
         message: 'Poem not found',
         status: 404,
       },
-    });
-  });
-}
-
-/**
- * Mock audio availability
- */
-export async function mockAudioAvailable(page: Page, date: string = MOCK_DATE) {
-  await page.route(poemAudioPath(date), async route => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'audio/mpeg',
-      body: Buffer.from([]),
     });
   });
 }

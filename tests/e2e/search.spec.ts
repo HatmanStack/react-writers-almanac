@@ -80,8 +80,12 @@ test.describe('Search Flow', () => {
     await nav.search('frost');
     await nav.selectSuggestion(MOCK_AUTHOR_NAME);
 
-    await assert.expectAuthorBiography();
-    await expect(page.getByText(/Robert Frost was born in San Francisco/i)).toBeVisible();
+    // Pin that the author page has actually replaced the date page before
+    // reading text off it.
+    await assert.expectAuthorName(MOCK_AUTHOR_NAME);
+
+    // Author.tsx prefers the Poetry Foundation biography over Wikipedia's.
+    await assert.expectAuthorBiography(/Robert Frost was born in San Francisco/i);
   });
 
   test('should list the broadcasts an author appeared on', async ({ page }) => {
