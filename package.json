@@ -7,6 +7,9 @@
     "frontend",
     "backend/lambdas/*"
   ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "test": "vitest run --reporter=verbose --config vitest.config.ts",
     "test:coverage": "vitest run --coverage --config vitest.config.ts",
