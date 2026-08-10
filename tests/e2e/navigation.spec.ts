@@ -12,6 +12,18 @@ import {
   mockPoem2,
 } from './fixtures/mockData';
 
+/**
+ * The poem title `setupApiMocks` serves for a broadcast date.
+ *
+ * Mirrors the mock's own branching so the two cannot drift: two dates have
+ * fixtures and every other date gets a generated poem.
+ */
+function titleForDate(date: string): string {
+  if (date === MOCK_DATE) return mockPoem.poemtitle[0];
+  if (date === MOCK_DATE_NEXT) return mockPoem2.poemtitle[0];
+  return generateMockPoem(date, date).poemtitle[0];
+}
+
 test.describe('Date Navigation', () => {
   test.beforeEach(async ({ page }) => {
     // Setup API mocks for all tests
@@ -135,17 +147,24 @@ test.describe('Date Navigation', () => {
     await nav.goToPreviousDay();
     await nav.goToNextDay();
 
-    // The FINAL DATE IS NOT DETERMINISTIC here, and asserting one would be
-    // asserting a race. `shiftContentByAuthorOrDate` steps from `activeDate`,
-    // which comes from the rendered route; a click that lands before React has
-    // re-rendered steps from the previous date instead. Three clicks either
-    // side of 15 March therefore settle somewhere in 14-16 March depending on
-    // how many re-renders got in between.
+    // The FINAL DATE IS NOT DETERMINISTIC here, and no hardcoded window can be
+    // right. `shiftContentByAuthorOrDate` steps from `activeDate`, which comes
+    // from the rendered route, so a click landing before React re-renders steps
+    // from the previous date instead. The last click is always `next`, so the
+    // settled value is whatever the third click read, plus one: 16 if every
+    // render landed, 15 if the third click saw a stale 14, 17 if it saw a stale
+    // 16. An earlier version of this test guessed {14,15,16} from the outcomes
+    // it happened to observe and failed about one run in eight on 17 — which is
+    // the app behaving correctly and the assertion being wrong.
     //
-    // What must hold regardless is the claim in this test's name: a valid
-    // broadcast address, exactly one poem on screen, and no blank page.
-    await expect(page).toHaveURL(/\/poem\/2015031[456]$/);
-    await assert.expectPoemVisible();
+    // So assert the deterministic part instead. It is a valid broadcast address,
+    // and — the property actually worth pinning — the poem on screen is the one
+    // belonging to whatever date the URL settled on. A burst of aborted fetches
+    // must not leave the content and the address disagreeing.
+    await expect(page).toHaveURL(/\/poem\/\d{8}$/);
+
+    const settledDate = new URL(page.url()).pathname.split('/').pop() ?? '';
+    await assert.expectPoemTitle(titleForDate(settledDate));
     await assert.expectPoemContent();
     await expect(page.getByRole('heading', { level: 2 })).toHaveCount(1);
   });
