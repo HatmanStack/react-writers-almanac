@@ -18,7 +18,8 @@ interface ApiErrorResponse {
 }
 
 // Environment variables
-export const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || 'https://d3vq6af2mo7fcy.cloudfront.net';
+export const CDN_BASE_URL =
+  import.meta.env.VITE_CDN_BASE_URL || 'https://d3vq6af2mo7fcy.cloudfront.net';
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'https://placeholder-api-gateway.amazonaws.com/prod';
 
@@ -37,7 +38,15 @@ async function request<T>(
       headers: {
         ...options.headers,
       },
-      signal: options.signal || controller.signal,
+      // Compose, do not choose. This previously fell back from the caller's
+      // signal to the timeout controller's, so supplying a signal handed fetch
+      // the caller's alone and left the timeout armed but wired to nothing.
+      // usePoemData always supplies one, so the primary content fetch had no
+      // timeout at all: a hung connection left stale content on screen with no
+      // error state and no path to one.
+      signal: options.signal
+        ? AbortSignal.any([options.signal, controller.signal])
+        : controller.signal,
     });
 
     clearTimeout(id);

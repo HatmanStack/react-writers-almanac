@@ -169,4 +169,110 @@ describe('API Client', () => {
       expect(CDN_BASE_URL).toBe(expectedUrl);
     });
   });
+
+  describe('Request timeout', () => {
+    const CDN_TIMEOUT_MS = 10000;
+
+    /**
+     * A fetch stand-in that behaves like the real one with respect to signals:
+     * it stays pending forever and only settles — with an AbortError — when the
+     * signal it was handed aborts. A mock that ignores `init.signal` cannot
+     * observe whether the client wired the timeout up to anything.
+     */
+    function pendingUntilAborted(init?: RequestInit): Promise<never> {
+      return new Promise((_resolve, reject) => {
+        const signal = init?.signal;
+        const fail = () => reject(new DOMException('The operation was aborted.', 'AbortError'));
+
+        if (!signal) return;
+        if (signal.aborted) {
+          fail();
+          return;
+        }
+        signal.addEventListener('abort', fail);
+      });
+    }
+
+    it('times out when the caller supplies no signal', async () => {
+      mockFetch.mockImplementation((_url: string, init?: RequestInit) => pendingUntilAborted(init));
+
+      const assertion = expect(cdnClient.get('/poems/today.json')).rejects.toMatchObject({
+        code: 'TIMEOUT_ERROR',
+        status: 0,
+      });
+
+      await vi.advanceTimersByTimeAsync(CDN_TIMEOUT_MS);
+      await assertion;
+    });
+
+    it('still times out when the caller supplies its own signal', async () => {
+      // The regression: `signal: options.signal || controller.signal` handed
+      // fetch the caller's signal and left the armed timeout wired to nothing.
+      // usePoemData always supplies a signal, so the primary content fetch had
+      // no timeout at all.
+      mockFetch.mockImplementation((_url: string, init?: RequestInit) => pendingUntilAborted(init));
+
+      const caller = new AbortController();
+      const assertion = expect(
+        cdnClient.get('/poems/today.json', { signal: caller.signal })
+      ).rejects.toMatchObject({
+        code: 'TIMEOUT_ERROR',
+        status: 0,
+      });
+
+      await vi.advanceTimersByTimeAsync(CDN_TIMEOUT_MS);
+      await assertion;
+      expect(caller.signal.aborted).toBe(false);
+    });
+
+    it('rejects at the caller abort rather than waiting for the timeout', async () => {
+      mockFetch.mockImplementation((_url: string, init?: RequestInit) => pendingUntilAborted(init));
+
+      const caller = new AbortController();
+      const started = Date.now();
+      let elapsed = -1;
+
+      const promise = cdnClient.get('/poems/today.json', { signal: caller.signal }).catch(error => {
+        elapsed = Date.now() - started;
+        throw error;
+      });
+      const assertion = expect(promise).rejects.toMatchObject({ code: 'TIMEOUT_ERROR' });
+
+      await vi.advanceTimersByTimeAsync(1000);
+      caller.abort();
+      await assertion;
+
+      expect(elapsed).toBe(1000);
+    });
+
+    it('hands fetch a composed signal, not the caller signal itself', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ title: 'Test Poem' }),
+      });
+
+      const caller = new AbortController();
+      await cdnClient.get('/poems/today.json', { signal: caller.signal });
+
+      const passedSignal = mockFetch.mock.calls[0][1].signal as AbortSignal;
+      expect(passedSignal).toBeInstanceOf(AbortSignal);
+      expect(passedSignal).not.toBe(caller.signal);
+    });
+
+    it('resolves normally when a caller signal is supplied and fetch succeeds', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ title: 'Test Poem' }),
+      });
+
+      const caller = new AbortController();
+      const result = await cdnClient.get<{ title: string }>('/poems/today.json', {
+        signal: caller.signal,
+      });
+
+      expect(result.data).toEqual({ title: 'Test Poem' });
+    });
+  });
 });
