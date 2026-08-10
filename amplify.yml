@@ -10,16 +10,16 @@ frontend:
   artifacts:
     baseDirectory: frontend/build
     files:
-      - "**/*"
+      - '**/*'
   customHeaders:
-    - pattern: "**/*.html"
+    - pattern: '**/*.html'
       headers:
         - key: Cache-Control
-          value: "no-cache, no-store, must-revalidate"
-    - pattern: "assets/**/*"
+          value: 'no-cache, no-store, must-revalidate'
+    - pattern: 'assets/**/*'
       headers:
         - key: Cache-Control
-          value: "public, max-age=31536000, immutable"
+          value: 'public, max-age=31536000, immutable'
   cache:
     paths:
       # The workspace install hoists to the root; frontend/node_modules keeps

@@ -50,7 +50,6 @@ const SearchBar = memo(function SearchBar({ currentTarget, onSearch, className }
   // Keyed on the label rather than the object so an equivalent target rendered
   // fresh does not wipe out what is being typed.
   useEffect(() => {
-     
     setInputValue(currentLabel);
   }, [currentLabel]);
 

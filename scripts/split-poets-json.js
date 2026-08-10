@@ -36,15 +36,15 @@
  * └── manifest.json
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 
 // Configuration
-const POETS_JSON_PATH = path.join(__dirname, "..", "poets.json");
-const OUTPUT_DIR = path.join(__dirname, "..", "output");
-const AUTHORS_BY_NAME_DIR = path.join(OUTPUT_DIR, "authors", "by-name");
-const AUTHORS_BY_LETTER_DIR = path.join(OUTPUT_DIR, "authors", "by-letter");
-const MANIFEST_PATH = path.join(OUTPUT_DIR, "manifest.json");
+const POETS_JSON_PATH = path.join(__dirname, '..', 'poets.json');
+const OUTPUT_DIR = path.join(__dirname, '..', 'output');
+const AUTHORS_BY_NAME_DIR = path.join(OUTPUT_DIR, 'authors', 'by-name');
+const AUTHORS_BY_LETTER_DIR = path.join(OUTPUT_DIR, 'authors', 'by-letter');
+const MANIFEST_PATH = path.join(OUTPUT_DIR, 'manifest.json');
 
 /**
  * Convert author name to slug format
@@ -55,10 +55,10 @@ function nameToSlug(name) {
   return name
     .toLowerCase()
     .trim()
-    .replace(/[\s_.]+/g, "-") // Replace spaces, underscores, dots with hyphens
-    .replace(/[^\p{L}\p{N}-]/gu, "") // Keep Unicode letters, numbers, hyphens
-    .replace(/-+/g, "-") // Replace multiple hyphens with single
-    .replace(/^-+|-+$/g, ""); // Trim leading/trailing hyphens
+    .replace(/[\s_.]+/g, '-') // Replace spaces, underscores, dots with hyphens
+    .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters, numbers, hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/^-+|-+$/g, ''); // Trim leading/trailing hyphens
 }
 
 /**
@@ -69,7 +69,7 @@ function nameToSlug(name) {
 function getFirstLetter(name) {
   const firstChar = name.trim()[0].toUpperCase();
   // Return letter if A-Z, otherwise use '#' for numbers/special chars
-  return /[A-Z]/.test(firstChar) ? firstChar : "#";
+  return /[A-Z]/.test(firstChar) ? firstChar : '#';
 }
 
 /**
@@ -91,34 +91,34 @@ function writeJSON(filePath, data) {
   const json = JSON.stringify(data, null, 2);
   // Validate JSON by parsing it
   JSON.parse(json);
-  fs.writeFileSync(filePath, json, "utf8");
+  fs.writeFileSync(filePath, json, 'utf8');
 }
 
 /**
  * Main function
  */
 function main() {
-  console.log("🚀 Starting poets.json split process...\n");
+  console.log('🚀 Starting poets.json split process...\n');
 
   // Step 1: Read poets.json
-  console.log("📖 Reading poets.json...");
+  console.log('📖 Reading poets.json...');
   if (!fs.existsSync(POETS_JSON_PATH)) {
     console.error(`❌ Error: poets.json not found at ${POETS_JSON_PATH}`);
     process.exit(1);
   }
 
-  const poetsData = JSON.parse(fs.readFileSync(POETS_JSON_PATH, "utf8"));
+  const poetsData = JSON.parse(fs.readFileSync(POETS_JSON_PATH, 'utf8'));
   const authorNames = Object.keys(poetsData);
   console.log(`✅ Found ${authorNames.length} authors\n`);
 
   // Step 2: Create output directories
-  console.log("📁 Creating output directories...");
+  console.log('📁 Creating output directories...');
   ensureDir(AUTHORS_BY_NAME_DIR);
   ensureDir(AUTHORS_BY_LETTER_DIR);
-  console.log("✅ Directories created\n");
+  console.log('✅ Directories created\n');
 
   // Step 3: Create individual author files
-  console.log("✍️  Creating individual author files...");
+  console.log('✍️  Creating individual author files...');
   const authorsByLetter = {};
   const manifest = {
     totalAuthors: authorNames.length,
@@ -157,9 +157,7 @@ function main() {
 
       // Progress indicator (every 10 authors)
       if ((index + 1) % 10 === 0) {
-        console.log(
-          `  Processed ${index + 1}/${authorNames.length} authors...`,
-        );
+        console.log(`  Processed ${index + 1}/${authorNames.length} authors...`);
       }
     } catch (error) {
       console.error(`❌ Error processing ${authorName}:`, error.message);
@@ -171,14 +169,14 @@ function main() {
   if (errorCount > 0) {
     console.log(`⚠️  ${errorCount} errors occurred\n`);
   } else {
-    console.log("");
+    console.log('');
   }
 
   // Step 4: Create letter-grouped files
-  console.log("🔤 Creating letter-grouped files...");
+  console.log('🔤 Creating letter-grouped files...');
   const letters = Object.keys(authorsByLetter).sort();
 
-  letters.forEach((letter) => {
+  letters.forEach(letter => {
     const letterData = {
       letter: letter,
       authors: authorsByLetter[letter].sort(),
@@ -187,38 +185,32 @@ function main() {
     writeJSON(letterFilePath, letterData);
   });
 
-  console.log(
-    `✅ Created ${letters.length} letter files: ${letters.join(", ")}\n`,
-  );
+  console.log(`✅ Created ${letters.length} letter files: ${letters.join(', ')}\n`);
 
   // Step 5: Generate manifest
-  console.log("📋 Generating manifest...");
-  manifest.letterFiles = letters.map(
-    (letter) => `authors/by-letter/${letter}.json`,
-  );
+  console.log('📋 Generating manifest...');
+  manifest.letterFiles = letters.map(letter => `authors/by-letter/${letter}.json`);
   writeJSON(MANIFEST_PATH, manifest);
-  console.log("✅ Manifest created\n");
+  console.log('✅ Manifest created\n');
 
   // Step 6: Summary
-  console.log("📊 Summary:");
+  console.log('📊 Summary:');
   console.log(`   Total authors: ${authorNames.length}`);
   console.log(`   Individual files: ${successCount}`);
   console.log(`   Letter groups: ${letters.length}`);
   console.log(`   Output directory: ${OUTPUT_DIR}`);
   console.log(`   Manifest: ${MANIFEST_PATH}`);
-  console.log("");
-  console.log("✨ Split process complete! Ready for S3 upload.\n");
+  console.log('');
+  console.log('✨ Split process complete! Ready for S3 upload.\n');
 
   // Step 7: Next steps
-  console.log("📤 Next steps:");
-  console.log("   1. Review output files in ./output/");
-  console.log("   2. Upload to S3:");
-  console.log(
-    "      aws s3 sync ./output/authors/ s3://YOUR-BUCKET/authors/ \\",
-  );
+  console.log('📤 Next steps:');
+  console.log('   1. Review output files in ./output/');
+  console.log('   2. Upload to S3:');
+  console.log('      aws s3 sync ./output/authors/ s3://YOUR-BUCKET/authors/ \\');
   console.log('        --cache-control "public, max-age=31536000" \\');
   console.log('        --content-type "application/json"');
-  console.log("");
+  console.log('');
 }
 
 // Run main function
@@ -226,7 +218,7 @@ if (require.main === module) {
   try {
     main();
   } catch (error) {
-    console.error("❌ Fatal error:", error);
+    console.error('❌ Fatal error:', error);
     process.exit(1);
   }
 }

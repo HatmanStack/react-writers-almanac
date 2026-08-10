@@ -34,6 +34,7 @@ s3://bucket-name/
 ### Daily Poem Files (`public/{YYYYMMDD}.json`)
 
 Structure:
+
 ```json
 {
   "dayofweek": "Monday",
@@ -52,6 +53,7 @@ Structure:
 Slug format: lowercase with hyphens (e.g., `billy-collins`, `a-a-milne`)
 
 Structure:
+
 ```json
 {
   "poets.org": { ... },
@@ -74,6 +76,7 @@ Structure:
 ### Letter-Grouped Files (`authors/by-letter/{A-Z}.json`)
 
 Structure:
+
 ```json
 {
   "letter": "A",
@@ -158,6 +161,7 @@ Author names are converted to slugs:
 5. Trim leading/trailing hyphens
 
 Examples:
+
 - `"Billy Collins"` → `"billy-collins"`
 - `"A. A. Milne"` → `"a-a-milne"`
 - `"e.e. cummings"` → `"ee-cummings"`
@@ -166,6 +170,7 @@ Examples:
 ### Date Format
 
 Daily poems use YYYYMMDD format:
+
 - `20240101` = January 1, 2024
 - `20091231` = December 31, 2009
 
@@ -207,6 +212,7 @@ All JSON files are validated during generation:
 ### Issue: Author not found
 
 Check:
+
 1. Author name spelling
 2. Slug conversion (use `scripts/split-poets-json.js` to see mapping)
 3. S3 file exists: `aws s3 ls s3://bucket/authors/by-name/`
@@ -214,6 +220,7 @@ Check:
 ### Issue: 404 on CloudFront
 
 Check:
+
 1. File exists in S3
 2. CloudFront cache (may need to wait or invalidate)
 3. URL path is correct
@@ -221,12 +228,14 @@ Check:
 ### Issue: CORS errors
 
 Ensure S3 bucket and CloudFront have CORS configured:
+
 - `Access-Control-Allow-Origin: *`
 - `Access-Control-Allow-Methods: GET`
 
 ## Generated Files Count
 
 Expected output from script:
+
 - **Individual author files**: ~150+ files
 - **Letter groups**: 26 files (A-Z) + possibly # for special characters
 - **Manifest**: 1 file

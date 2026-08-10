@@ -1,0 +1,28 @@
+# Build and dependency output
+node_modules/
+build/
+dist/
+frontend/build/
+frontend/dist/
+coverage/
+test-results/
+playwright-report/
+
+# Generated or bulk data — reformatting is churn
+package-lock.json
+backend/lambdas/package-lock.json
+poets.json
+
+# Audit working sets are records; reformatting obscures what the auditors wrote
+docs/plans/
+
+# Prettier does not read .gitignore. Without this, the gate is red on any
+# machine carrying a local worktree and green in CI on a fresh checkout.
+.claude/
+
+# ADR-2 reserves the backend's disposition for the user; no phase of this plan
+# modifies these — and "modifies" includes reformatting. backend/README.md and
+# backend/scripts/deploy.sh are NOT on that list and stay inside the gate.
+backend/lambdas/
+backend/template.yaml
+backend/samconfig.toml

@@ -4,22 +4,22 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - "docs/**"
-      - "*.md"
-      - ".claude/**"
+      - 'docs/**'
+      - '*.md'
+      - '.claude/**'
   pull_request:
     branches: [main]
     paths-ignore:
-      - "docs/**"
-      - "*.md"
-      - ".claude/**"
+      - 'docs/**'
+      - '*.md'
+      - '.claude/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "22"
+  NODE_VERSION: '22'
 
 jobs:
   changes:

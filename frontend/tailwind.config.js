@@ -1,25 +1,30 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        'app-bg': '#1c1924',          // Main background color
-        'app-text': '#FFFFF6',         // Main text color
-        'app-container': '#8293a2',    // Container/card background
+        'app-bg': '#1c1924', // Main background color
+        'app-text': '#FFFFF6', // Main text color
+        'app-container': '#8293a2', // Container/card background
         'border-glow-start': 'rgba(168, 239, 255, 1)',
         'border-glow-end': 'rgba(168, 239, 255, 0.1)',
       },
       fontFamily: {
-        'serif': ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
-        'sans': ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
+        sans: [
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          '"Helvetica Neue"',
+          'Arial',
+          'sans-serif',
+        ],
       },
       keyframes: {
         'border-rotate': {
-          'to': {
+          to: {
             '--angle': '1turn',
           },
         },
@@ -43,4 +48,4 @@ export default {
     },
   },
   plugins: [],
-}
+};

@@ -13,6 +13,7 @@ A modern React application delivering daily poems and historical narratives, fea
 ## Tech Stack
 
 ### Frontend
+
 - **React 18** with TypeScript
 - **Vite** - Build tool
 - **Zustand** - State management
@@ -23,6 +24,7 @@ A modern React application delivering daily poems and historical narratives, fea
 - **Playwright** - E2E testing
 
 ### Backend
+
 - **AWS Lambda** - Serverless API (Node.js 22)
 - **AWS SAM** - Infrastructure as Code
 - **API Gateway** - REST API endpoints
@@ -115,6 +117,7 @@ tests/
 ## Notes for Developers
 
 This codebase demonstrates:
+
 - Modern React patterns (hooks, lazy loading, memoization)
 - Type-safe development with strict TypeScript (zero `any` types)
 - Testing with coverage enforcement
@@ -123,6 +126,7 @@ This codebase demonstrates:
 - Security best practices (DOMPurify sanitization)
 
 The application uses AWS infrastructure:
+
 - **S3**: Stores daily poems, author data, and audio files (not managed by this repo)
 - **Lambda + API Gateway**: Managed via AWS SAM (see `backend/` directory)
 - **CloudFront**: CDN for content delivery (not managed by this repo)

@@ -29,6 +29,7 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 ## Lambda Functions
 
 ### 1. get-author
+
 - **Path**: `lambdas/get-author/`
 - **Purpose**: Fetch individual author data by name/slug from S3
 - **Endpoint**: `GET /api/author/{name}`
@@ -37,6 +38,7 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 - **Timeout**: 30 seconds
 
 ### 2. get-authors-by-letter
+
 - **Path**: `lambdas/get-authors-by-letter/`
 - **Purpose**: Fetch all authors starting with a specific letter
 - **Endpoint**: `GET /api/authors/letter/{letter}`
@@ -45,6 +47,7 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 - **Timeout**: 30 seconds
 
 ### 3. search-autocomplete
+
 - **Path**: `lambdas/search-autocomplete/`
 - **Purpose**: Search autocomplete for authors with in-memory caching
 - **Endpoint**: `GET /api/search/autocomplete?q={query}&limit={limit}`
@@ -61,6 +64,7 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 Install these tools before deploying:
 
 1. **AWS SAM CLI** (v1.100.0+)
+
    ```bash
    # macOS
    brew install aws-sam-cli
@@ -70,6 +74,7 @@ Install these tools before deploying:
    ```
 
 2. **AWS CLI** (v2.13.0+)
+
    ```bash
    # macOS
    brew install awscli
@@ -79,6 +84,7 @@ Install these tools before deploying:
    ```
 
 3. **Docker** (for local testing)
+
    ```bash
    # Required for SAM local testing
    # Download from https://www.docker.com/get-started
@@ -112,6 +118,7 @@ aws sts get-caller-identity
 ### Required IAM Permissions
 
 Your AWS user/role needs permissions for:
+
 - Lambda function creation/update
 - API Gateway management
 - CloudFormation stack operations
@@ -126,6 +133,7 @@ Your AWS user/role needs permissions for:
 ### First-Time Setup
 
 1. **Configure deployment parameters** in `samconfig.toml`:
+
    ```toml
    parameter_overrides = [
        "Environment=prod",
@@ -134,18 +142,22 @@ Your AWS user/role needs permissions for:
    ```
 
 2. **Validate template**:
+
    ```bash
    cd backend
    sam validate --lint
    ```
 
 3. **Build Lambda functions**:
+
    ```bash
    sam build
    ```
+
    This installs dependencies and packages each function into `.aws-sam/` directory.
 
 4. **Deploy with guided prompts** (first time only):
+
    ```bash
    sam deploy --guided
    ```
@@ -297,6 +309,7 @@ parameter_overrides = [
 **Symptom**: `sam build` fails with "Build Failed" error
 
 **Solutions**:
+
 - Validate template: `sam validate --lint`
 - Check each Lambda directory has `package.json`
 - Ensure Node.js 22.x is installed: `node --version`
@@ -323,6 +336,7 @@ parameter_overrides = [
 **Symptom**: Lambda logs show "Access Denied" errors
 
 **Solutions**:
+
 - Verify `S3BucketName` parameter in `samconfig.toml` is correct
 - Ensure S3 bucket exists and has data files
 - Check Lambda execution role has S3 read permissions (automatically added by SAM)
@@ -332,6 +346,7 @@ parameter_overrides = [
 **Symptom**: API Gateway returns 504 Gateway Timeout
 
 **Solutions**:
+
 - Check CloudWatch Logs for the function: `/aws/lambda/writers-almanac-*-prod`
 - Increase timeout in `template.yaml` if needed (currently 30 seconds)
 - Verify S3 bucket is in same region as Lambda
@@ -342,6 +357,7 @@ parameter_overrides = [
 **Symptom**: `sam local start-api` fails
 
 **Solutions**:
+
 - Ensure Docker is running: `docker ps`
 - Build first: `sam build`
 - Check port 3000 isn't in use: `lsof -i :3000`
@@ -376,6 +392,7 @@ aws logs tail /aws/lambda/writers-almanac-search-autocomplete-prod --follow
 ### CloudWatch Metrics
 
 Monitor in CloudWatch console:
+
 - **Invocations**: Total requests
 - **Duration**: Execution time (cold vs. warm starts)
 - **Errors**: Failed invocations
@@ -429,6 +446,7 @@ sam build && sam deploy
 ## Dependencies
 
 All functions use:
+
 - **Runtime**: Node.js 22.x (active LTS)
 - **AWS SDK**: `@aws-sdk/client-s3` ^3.600.0
 
