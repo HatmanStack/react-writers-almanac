@@ -270,7 +270,7 @@ function AppLayout() {
             <Suspense fallback={<div className="h-full w-full" />}>
               <ParticlesComponent />
             </Suspense>
-            <header className="flex flex-row items-center justify-around m-4">
+            <header className="relative z-20 flex flex-row items-center justify-around m-4">
               <div className="relative">
                 <img
                   className="z-10 bg-app-container rounded-[3rem] flex p-4 w-[35rem]"
@@ -291,7 +291,7 @@ function AppLayout() {
                 </button>
               </div>
 
-              <div className="relative z-20 bg-app-container rounded-[3rem] flex p-4">
+              <div className="z-10 bg-app-container rounded-[3rem] flex p-4">
                 <ErrorBoundary
                   fallback={error => (
                     <div className="p-4 text-red-600 text-sm">
@@ -352,7 +352,7 @@ function AppLayout() {
             <Suspense fallback={<div className="h-full w-full" />}>
               <ParticlesComponent />
             </Suspense>
-            <header className="flex flex-col items-center justify-around m-4">
+            <header className="relative z-20 flex flex-col items-center justify-around m-4">
               {/* Logo with Hide Content Button at bottom edge */}
               <div className="relative">
                 <img
@@ -373,7 +373,7 @@ function AppLayout() {
                   {isContentHidden ? 'Show Content' : 'Hide Content'}
                 </button>
               </div>
-              <div className="relative z-20 bg-app-container rounded-[3rem] flex p-4 flex-col w-full">
+              <div className="z-10 bg-app-container rounded-[3rem] flex p-4 flex-col w-full">
                 <ErrorBoundary
                   fallback={error => (
                     <div className="p-4 text-red-600 text-sm">
