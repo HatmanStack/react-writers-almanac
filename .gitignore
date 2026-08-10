@@ -43,6 +43,12 @@ yarn-error.log*
 *.sample
 .secret-*
 
+# Generated hook shims. lefthook.yml is the hook source of truth; `lefthook
+# install` (via postinstall) provisions .git/hooks/, which git never tracks.
+# A .husky/ directory here would be a generated shim embedding an absolute
+# developer path -- exactly what was removed in the 2026-08-09 remediation.
+.husky/
+
 # One lockfile governs the workspace; a frontend lockfile drifts from it
 frontend/package-lock.json
 
