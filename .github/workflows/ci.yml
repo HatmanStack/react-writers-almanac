@@ -65,8 +65,11 @@ jobs:
       - name: Type check
         run: cd frontend && npm run typecheck
 
-      - name: Tests
-        run: npm test -- --reporter=verbose
+      # Coverage thresholds live in vitest.config.ts and are calibrated to the
+      # measured actual. `npm test` stays coverage-free so the local loop and the
+      # pre-commit hook stay fast; CI is where the gate runs.
+      - name: Tests with coverage
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build
