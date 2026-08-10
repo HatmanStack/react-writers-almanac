@@ -209,7 +209,7 @@ test.beforeEach(async ({ page }) => {
 
 ## Test Coverage
 
-**71 tests across 5 spec files**, of which 3 are `test.fixme` (see above).
+**75 tests across 5 spec files**, of which 3 are `test.fixme` (see above).
 
 ### Search Flow (11 tests)
 
@@ -265,13 +265,17 @@ test.beforeEach(async ({ page }) => {
 - The header survives an error and a reload
 - No unexpected console errors on failure, and none at all on a clean load
 
-### Responsive Design (16 tests, 1 fixme)
+### Responsive Design (20 tests, 1 fixme)
 
 - Desktop (1920×1080), tablet (768×1024), mobile (375×667) and 320px layouts
+- One "stays usable" test per viewport rather than a loop over all three — the loop
+  crossed the 1000px branch boundary, remounting the lazy audio subtree the next
+  button lives in, and spent 21-24s of a 30s budget doing it
 - Mobile navigation, font sizes, stacking, and no horizontal overflow
 - The mobile header is fully on screen — there is no menu to open
 - The search field is usable at phone width
 - No image exceeds the viewport
+- Hide/Show Content round trip at desktop and mobile
 - Touch: tapping next navigates, and tapping the calendar button opens the picker
 
 ## Debugging Failed Tests
