@@ -104,10 +104,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Deliberately NOT gated on `changes`. `prettier --check .` is repo-wide by
-    # construction, and pairing a repo-wide check with a subtree trigger left 11
-    # tracked files inside the gate but unable to run it -- among them
+    # construction, and pairing a repo-wide check with a subtree trigger left 12
+    # of the 141 tracked files inside the gate unable to run it -- among them
     # backend/README.md, which ADR-2 keeps inside the gate and which the
-    # documentation phase rewrites, and every workflow file including this one.
+    # documentation phase rewrites, plus every workflow file including this one.
+    # (Counted with `prettier --file-info` over `git ls-files`. Two more,
+    # README.md and CHANGELOG.md, are blocked by the workflow-level paths-ignore
+    # above instead, which is a separate hole and not this job's to close.)
     # A path filter here would need widening again the next time a root config is
     # added; matching the job's trigger to the gate's actual scope does not.
     steps:

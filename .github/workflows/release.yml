@@ -26,6 +26,10 @@ jobs:
           # and this workflow would push a tag literally named vUnreleased and cut
           # a GitHub release against it -- permissions below are contents: write.
           # A non-semver top heading now falls through to the skip=true branch.
+          # This deliberately also declines prereleases: '## [1.4.0-rc.1]' yields
+          # empty and skips, because ']' must follow PATCH. Skipping is the safe
+          # direction for an automation holding contents: write, so cutting an rc
+          # stays a manual act. Widen the pattern only on purpose.
           VERSION=$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | sed 's/^## \[\(.*\)\].*/\1/')
           if [ -z "$VERSION" ]; then
             echo "No version found in CHANGELOG.md"
