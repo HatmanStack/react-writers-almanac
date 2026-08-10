@@ -314,6 +314,16 @@ test.describe('Route table', () => {
   });
 
   test('/ redirects to a dated URL and leaves no history entry behind', async ({ page }) => {
+    // Three navigations is the minimum this behaviour can be observed in: a page
+    // to come back TO, the redirect itself, and the step back. There is nothing
+    // to split and nothing to make cheaper, so the budget is declared instead of
+    // hoped for. Measured 6.6s in isolation but 21-23s of the default 30s across
+    // eight full runs, because page loads stretch about threefold under the six
+    // workers this suite uses locally — the same profile as the two tests that
+    // did fail this way. test.slow() triples the budget; it does not retry
+    // anything, and every assertion below still has to hold.
+    test.slow();
+
     // App.tsx:28 navigates with `replace`, so `/` never enters the history stack
     // and back from the redirect target returns to whatever came before `/`,
     // rather than bouncing through the redirect again.
