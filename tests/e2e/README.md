@@ -86,8 +86,14 @@ never ran and the specs silently talked to production CloudFront.
 - Poem titles: `/public/poems/by-title/{slug}.json`.
 - Author portraits: `/public/images/*`, built inline by `Author.tsx` rather than
   by any `endpoints.ts` builder.
-- Audio: a tenth of a second of silence as a real WAV. An empty buffer cannot be
-  decoded, so `play()` rejects and no spec can observe playback.
+- Audio: **one minute** of silence as a real WAV, generated in Node at module
+  load (`AUDIO_SECONDS` in `apiMocks.ts`), and served with **range support**.
+  Every part of that is load-bearing: an empty buffer cannot be decoded, so
+  `play()` rejects and no spec can observe playback; a short clip ends before an
+  assertion can see it playing, which flaked about one run in three; and without
+  `Accept-Ranges` plus a 206, Chromium reports `seekable.end(0) === 0` even with
+  the whole clip buffered, so `currentTime = 12` is silently ignored and any
+  seek test really asserts the default of 0.
 - **Search is not mocked, because search issues no request.** It reads a bundled
   index (`frontend/src/utils/searchIndex.ts`) and answers synchronously.
 
@@ -156,14 +162,12 @@ await button.click();
 
 **Problem**: Content loads slower than expected
 
-**Fix**: Increase timeouts or use explicit waits
+**Fix**: wait for the thing the test is about, not for a duration. Raising a
+timeout buys time; it does not make the wait describe anything.
 
 ```typescript
-// Increase action timeout
-await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-// Or wait for specific element
-await page.waitForSelector('h1', { state: 'visible', timeout: 5000 });
+// Wait for what should have rendered
+await expect(page.getByRole('heading', { name: 'The Road Not Taken' })).toBeVisible();
 ```
 
 ### 3. Waiting on the network instead of the page
@@ -314,8 +318,8 @@ Test configuration is in `playwright.config.ts`:
 
 E2E tests are not yet wired into `.github/workflows/ci.yml`; that job is added
 separately, now that the suite is capable of failing. A single full run takes
-about 2m50s with two workers, and `playwright.config.ts` pins CI to one worker,
-so budget accordingly. Shape of the job:
+**about 2m10s with two workers**, and `playwright.config.ts` pins CI to one
+worker, so budget roughly double and leave headroom. Shape of the job:
 
 ```yaml
 e2e:
