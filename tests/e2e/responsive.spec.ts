@@ -181,6 +181,9 @@ test.describe('Responsive Design', () => {
   });
 
   test('should maintain functionality across all viewport sizes', async ({ page }) => {
+    const nav = new NavigationHelpers(page);
+    const assert = new AssertionHelpers(page);
+
     const viewports = [
       { width: 1920, height: 1080, name: 'desktop' },
       { width: 768, height: 1024, name: 'tablet' },
@@ -188,28 +191,21 @@ test.describe('Responsive Design', () => {
     ];
 
     for (const viewport of viewports) {
-      // Set viewport
-      await page.setViewportSize(viewport);
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
 
-      // Navigate to home page
-      await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      // The last two waitForLoadState('networkidle') calls in the suite used to
+      // be here. They are timing-based, so they pass or fail by how fast the
+      // machine is; waiting on the poem that should have rendered says the same
+      // thing and says it about the app rather than about the network.
+      await nav.goToDate(MOCK_DATE);
+      await assert.expectPoemTitle(mockPoem.poemtitle[0]);
 
-      // Verify poem is visible
-      const poem = page.locator('h1, h2').first();
-      await expect(poem).toBeVisible();
-
-      // Verify navigation works
       const nextButton = page.getByRole('button', { name: /next/i });
       await expect(nextButton).toBeVisible();
-
-      // Test navigation
       await nextButton.click();
-      await page.waitForLoadState('networkidle');
 
-      // Verify still functional after navigation
-      const poemAfter = page.locator('h1, h2').first();
-      await expect(poemAfter).toBeVisible();
+      await expect(page).toHaveURL(new RegExp(`${MOCK_DATE_NEXT}$`));
+      await assert.expectPoemTitle(mockPoem2.poemtitle[0]);
     }
   });
 
@@ -336,6 +332,46 @@ test.describe('Responsive Design', () => {
       expect(box?.width ?? 0).toBeLessThanOrEqual(375);
     }
   });
+  // Hide Content is the one header control the suite never exercised, and that
+  // hole is what let a regression land here from this phase's own date-picker
+  // fix: raising the search container to z-20 tied the button's z-20, and
+  // document order handed the overlap to the container, which paints over the
+  // button with its own background. It is checked at both breakpoints because
+  // the two AppLayout branches lay the same two elements out differently.
+  for (const viewport of [
+    { name: 'desktop', width: 1920, height: 1080 },
+    { name: 'mobile', width: 375, height: 667 },
+  ]) {
+    test(`should hide and restore the content containers on ${viewport.name}`, async ({ page }) => {
+      const nav = new NavigationHelpers(page);
+      const assert = new AssertionHelpers(page);
+
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await nav.goToDate(MOCK_DATE);
+      await assert.expectPoemTitle(mockPoem.poemtitle[0]);
+
+      const hide = page.getByRole('button', { name: /hide content containers/i });
+      await expect(hide).toBeVisible();
+      await expect(hide).toHaveAttribute('aria-expanded', 'true');
+
+      await hide.click();
+
+      // AppLayout gates the whole <Outlet /> section on !isContentHidden.
+      await expect(page.getByRole('region', { name: 'Main content' })).toHaveCount(0);
+      await expect(page.getByRole('heading', { name: mockPoem.poemtitle[0] })).toHaveCount(0);
+
+      // The header itself stays, so there is a way back.
+      await expect(page.getByRole('combobox', { name: /search/i })).toBeVisible();
+
+      const show = page.getByRole('button', { name: /show content containers/i });
+      await expect(show).toHaveAttribute('aria-expanded', 'false');
+
+      await show.click();
+
+      await assert.expectPoemTitle(mockPoem.poemtitle[0]);
+    });
+  }
+
   test.describe('with a touchscreen', () => {
     // Playwright's "Desktop Chrome" device has no touch, so Locator.tap() throws
     // rather than failing an assertion. Touch is opted into here, for the tests
