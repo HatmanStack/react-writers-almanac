@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { BrowserRouter, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -74,6 +74,27 @@ function LocationProbe() {
 }
 
 const AUTHOR_PATH = ROUTES.author('Billy Collins');
+
+/*
+ * Resolve the route views' lazy chunks before any assertion depends on them.
+ *
+ * AuthorView.tsx:8 and PoemTitleView.tsx:8 render their bodies behind
+ * lazy(() => import(...)). Under full-suite parallel load that dynamic import
+ * can outlast Testing Library's 1000 ms findBy default, and the assertion then
+ * fails against a mounted "Loading author..." Suspense fallback rather than
+ * against anything the router did.
+ *
+ * Warming the module graph removes the race rather than widening the window
+ * for it. The real components are still rendered through the real route table,
+ * which is the coverage these tests exist for — stubbing the boundary would
+ * throw that away.
+ */
+beforeAll(async () => {
+  await Promise.all([
+    import('../components/Author/Author'),
+    import('../components/PoemDates/PoemDates'),
+  ]);
+});
 
 describe('Application routing', () => {
   let queryClient: QueryClient;
