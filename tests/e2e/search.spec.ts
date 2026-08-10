@@ -44,7 +44,12 @@ test.describe('Search Flow', () => {
     const labels = await page.locator('[role="option"]').allInnerTexts();
     const kinds = labels.map(text => (text.includes('AUTHOR') ? 'author' : 'poem'));
 
-    expect(kinds.length).toBeGreaterThan(1);
+    // Both kinds must actually be present. Without this, a change to the chip's
+    // text would classify every row as 'poem', and the ordering assertion below
+    // would read lastIndexOf('author') === -1 < indexOf('poem') === 0 — true for
+    // any behaviour at all. Verified by mutation: replacing 'AUTHOR' above with
+    // a string that never matches leaves the ordering assertion passing.
+    expect(kinds).toContain('author');
     expect(kinds).toContain('poem');
     expect(kinds.lastIndexOf('author')).toBeLessThan(kinds.indexOf('poem'));
   });

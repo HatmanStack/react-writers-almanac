@@ -264,6 +264,49 @@ export class AudioHelpers {
     await this.getAudioElement().evaluate((el: HTMLAudioElement) => el.pause());
   }
 
+  /** Where the playhead currently is, in seconds */
+  async currentTime(): Promise<number> {
+    return this.getAudioElement().evaluate((el: HTMLAudioElement) => el.currentTime);
+  }
+
+  /**
+   * Seek to a position and wait for the browser to complete the seek.
+   *
+   * Assigning `currentTime` is a request, not an assignment: the browser
+   * ignores it unless the resource is seekable, and it settles asynchronously.
+   * That silent no-op is worth failing loudly on — two tests here previously
+   * "seeked" to 0 and then asserted 0, which is the element's default, so
+   * deleting the seek left them passing. `seekable` is empty unless the server
+   * answers range requests; `setupApiMocks` does.
+   *
+   * @param seconds - Target position
+   */
+  async seekTo(seconds: number) {
+    await this.getAudioElement().evaluate(async (el: HTMLAudioElement, target: number) => {
+      if (el.readyState < 1) {
+        await new Promise<void>(resolve =>
+          el.addEventListener('loadedmetadata', () => resolve(), { once: true })
+        );
+      }
+
+      const seekableEnd = el.seekable.length > 0 ? el.seekable.end(0) : 0;
+      if (seekableEnd < target) {
+        throw new Error(
+          `audio is not seekable to ${target}s (seekable end ${seekableEnd}, ` +
+            `duration ${el.duration}, buffered end ` +
+            `${el.buffered.length > 0 ? el.buffered.end(0) : 'none'}). ` +
+            'A seek that cannot happen is silently ignored, so this must fail here.'
+        );
+      }
+
+      el.currentTime = target;
+      if (Math.abs(el.currentTime - target) < 0.01) return;
+      await new Promise<void>(resolve =>
+        el.addEventListener('seeked', () => resolve(), { once: true })
+      );
+    }, seconds);
+  }
+
   /**
    * Toggle the transcript panel
    */

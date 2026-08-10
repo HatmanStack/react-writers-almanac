@@ -161,9 +161,42 @@ export async function setupApiMocks(page: Page) {
     }
   });
 
-  // Poem audio
+  // Poem audio.
+  //
+  // Range requests are honoured, which is not decoration. Without
+  // `Accept-Ranges` and a 206, Chromium reports `seekable.end(0) === 0` even
+  // though `buffered.end(0)` is the whole 60 s — so `currentTime = 12` is
+  // silently ignored and any test that claims to exercise seeking is really
+  // asserting the default of 0. CloudFront serves ranges; the mock now does too.
   await page.route(POEM_AUDIO, async route => {
-    await route.fulfill({ status: 200, contentType: 'audio/wav', body: SILENT_AUDIO });
+    const total = SILENT_AUDIO.length;
+    const range = route.request().headers()['range'];
+    const match = range ? /bytes=(\d*)-(\d*)/.exec(range) : null;
+
+    if (!match) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'audio/wav',
+        headers: { 'accept-ranges': 'bytes', 'content-length': String(total) },
+        body: SILENT_AUDIO,
+      });
+      return;
+    }
+
+    const start = match[1] ? Number(match[1]) : 0;
+    const end = match[2] ? Number(match[2]) : total - 1;
+    const chunk = SILENT_AUDIO.subarray(start, end + 1);
+
+    await route.fulfill({
+      status: 206,
+      contentType: 'audio/wav',
+      headers: {
+        'accept-ranges': 'bytes',
+        'content-range': `bytes ${start}-${end}/${total}`,
+        'content-length': String(chunk.length),
+      },
+      body: chunk,
+    });
   });
 
   // Author JSON

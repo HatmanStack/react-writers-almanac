@@ -95,17 +95,17 @@ test.describe('Audio Playback', () => {
 
     await nav.goToDate(MOCK_DATE);
 
-    const element = audio.getAudioElement();
-    await element.evaluate((el: HTMLAudioElement) => {
-      el.currentTime = 0;
-    });
+    // Seek somewhere that is not the default. Asserting 0 after seeking to 0
+    // proves nothing — that is where the playhead already was.
+    await audio.seekTo(12);
+    expect(await audio.currentTime()).toBeGreaterThan(11);
 
     await audio.toggleTranscript();
     await expect(page.getByRole('button', { name: /hide transcript/i })).toBeVisible();
 
     // The player lives in AppLayout, outside the routed page, so toggling a
-    // panel below it must not remount it.
-    await expect(element).toHaveJSProperty('currentTime', 0);
+    // panel below it must not remount it — a remount would reset the playhead.
+    expect(await audio.currentTime()).toBeGreaterThan(11);
     await audio.expectAudioSource();
   });
 
@@ -158,20 +158,18 @@ test.describe('Audio Playback', () => {
   });
 
   test('should allow seeking within the audio track', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
     const audio = new AudioHelpers(page);
 
     await page.goto(ROUTES.poemByDate(MOCK_DATE));
     await audio.expectAudioSource();
 
-    const element = audio.getAudioElement();
-    await element.evaluate((el: HTMLAudioElement) => {
-      el.currentTime = 0;
-    });
+    // The playhead starts at 0, so a seek is only observable if it lands
+    // somewhere else. seekTo throws rather than no-op if the element is not
+    // seekable, which is what the browser does with a non-range-serving source.
+    await audio.seekTo(12);
+    expect(await audio.currentTime()).toBeGreaterThan(11);
 
-    await expect(element).toHaveJSProperty('currentTime', 0);
-
-    await nav.goToNextDay();
-    await expect(page).toHaveURL(new RegExp(`${MOCK_DATE_NEXT}$`));
+    await audio.seekTo(3);
+    expect(await audio.currentTime()).toBeLessThan(4);
   });
 });
