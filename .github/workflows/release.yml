@@ -20,8 +20,13 @@ jobs:
       - name: Determine version
         id: version
         run: |
-          # Extract latest version from CHANGELOG.md
-          VERSION=$(grep -m1 '^## \[' CHANGELOG.md | sed 's/^## \[\(.*\)\].*/\1/')
+          # Extract latest version from CHANGELOG.md.
+          # The heading must be semver. Matching any '^## [' heading meant a
+          # conventional '## [Unreleased]' section would yield VERSION=Unreleased
+          # and this workflow would push a tag literally named vUnreleased and cut
+          # a GitHub release against it -- permissions below are contents: write.
+          # A non-semver top heading now falls through to the skip=true branch.
+          VERSION=$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | sed 's/^## \[\(.*\)\].*/\1/')
           if [ -z "$VERSION" ]; then
             echo "No version found in CHANGELOG.md"
             echo "skip=true" >> "$GITHUB_OUTPUT"
