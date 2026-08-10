@@ -1,3 +1,15 @@
+# Prettier 3 reads .gitignore *as well as* this file — its --ignore-path defaults
+# to both. (Prettier 2 did not; the older advice that "Prettier does not read
+# .gitignore" no longer applies.) Verified on 3.8.1: a path listed only in
+# .gitignore is skipped by `prettier --check .`.
+#
+# So entries here that are also gitignored are deliberate belt-and-braces. They
+# survive an explicit --ignore-path, which some editor integrations set, and they
+# state the intent where someone reading the formatting rules will find it. The
+# entries that are NOT gitignored — the ADR-2 backend paths and docs/plans/ —
+# are the ones doing load-bearing work, and each is proven so by removing it and
+# watching the files reappear.
+
 # Build and dependency output
 node_modules/
 build/
@@ -13,16 +25,24 @@ package-lock.json
 backend/lambdas/package-lock.json
 poets.json
 
-# Audit working sets are records; reformatting obscures what the auditors wrote
+# scripts/split-poets-json.js writes ~1,600 JSON files here, via
+# JSON.stringify(…, null, 2) with no trailing newline — which Prettier always
+# adds. Also gitignored, which is what actually excludes it today; kept here so
+# the reason is recorded next to the other formatting exclusions.
+output/
+
+# Audit working sets are records; reformatting obscures what the auditors wrote.
+# Tracked by nothing and gitignored by nothing — this entry is load-bearing.
 docs/plans/
 
-# Prettier does not read .gitignore. Without this, the gate is red on any
-# machine carrying a local worktree and green in CI on a fresh checkout.
+# Local agent worktrees. Also gitignored.
 .claude/
 
 # ADR-2 reserves the backend's disposition for the user; no phase of this plan
-# modifies these — and "modifies" includes reformatting. backend/README.md and
-# backend/scripts/deploy.sh are NOT on that list and stay inside the gate.
+# modifies these — and "modifies" includes reformatting. These are tracked files,
+# so this entry is the only thing keeping them out: remove it and all five Lambda
+# sources reappear in `--check`. backend/README.md and backend/scripts/deploy.sh
+# are NOT on that list and stay inside the gate.
 backend/lambdas/
 backend/template.yaml
 backend/samconfig.toml
