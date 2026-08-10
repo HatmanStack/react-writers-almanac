@@ -1,7 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { ROUTES } from '../../frontend/src/utils/routes';
 import { setupApiMocks, mockPoemSuccess } from './utils/apiMocks';
 import { NavigationHelpers, AssertionHelpers } from './utils/helpers';
-import { generateMockPoem } from './fixtures/mockData';
+import {
+  MOCK_DATE,
+  MOCK_DATE_NEXT,
+  generateMockPoem,
+  mockPoem,
+  mockPoem2,
+} from './fixtures/mockData';
 
 test.describe('Date Navigation', () => {
   test.beforeEach(async ({ page }) => {
@@ -162,25 +169,23 @@ test.describe('Date Navigation', () => {
     expect(poemExists).toBeGreaterThan(0);
   });
 
-  test('should show loading state during date navigation', async ({ page }) => {
+  test('should swap poems on date navigation without a loading state', async ({ page }) => {
     const nav = new NavigationHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await page.goto(ROUTES.poemByDate(MOCK_DATE));
+    await expect(page.getByRole('heading', { name: mockPoem.poemtitle[0] })).toBeVisible();
 
-    // Click next day
     const nextButton = page.getByRole('button', { name: /next/i });
     await nextButton.click();
 
-    // Check for loading indicator (might be brief)
-    // This is optional as loading might be too fast
-    const loadingExists = await page
-      .getByText(/loading/i)
-      .isVisible()
-      .catch(() => false);
-
-    // Either loading showed or content loaded so fast we missed it
-    expect(loadingExists !== undefined).toBeTruthy();
+    // The broadcast page has no loading state to observe, and that is a fact
+    // about the design rather than a race: the layout owns the fetch and
+    // usePoemData exposes no `isLoading`, so nothing renders "Loading...".
+    // `loadingExists !== undefined` could not fail — `.catch(() => false)`
+    // makes it a boolean either way — so it never said this or anything else.
+    await expect(page).toHaveURL(new RegExp(`${MOCK_DATE_NEXT}$`));
+    await expect(page.getByRole('heading', { name: mockPoem2.poemtitle[0] })).toBeVisible();
+    await expect(page.getByText(/^loading/i)).toHaveCount(0);
   });
 
   test('should maintain UI state when navigating dates', async ({ page }) => {

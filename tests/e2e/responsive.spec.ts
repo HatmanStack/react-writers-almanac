@@ -119,7 +119,7 @@ test.describe('Responsive Design', () => {
     await expect(poem).toBeVisible();
   });
 
-  test('should show mobile menu if hamburger icon exists', async ({ page }) => {
+  test('should put the whole header on screen with no menu to open', async ({ page }) => {
     const nav = new NavigationHelpers(page);
 
     // Set mobile viewport
@@ -128,21 +128,15 @@ test.describe('Responsive Design', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Look for hamburger menu (common in mobile layouts)
-    const hamburger = page.getByRole('button', { name: /menu|navigation/i });
-    const hasHamburger = await hamburger.isVisible().catch(() => false);
+    // AppLayout's narrow branch (`width > 1000 ? ... : ...`) stacks the same
+    // header the desktop branch lays out in a row: logo, search, day, date.
+    // Nothing is collapsed behind a menu button, and none exists to click.
+    await expect(page.getByRole('button', { name: /menu|navigation/i })).toHaveCount(0);
+    await expect(page.locator('[role="menu"]')).toHaveCount(0);
 
-    if (hasHamburger) {
-      // Click hamburger to open menu
-      await hamburger.click();
-
-      // Verify menu is visible
-      const menu = page.locator('[role="menu"], nav');
-      await expect(menu).toBeVisible();
-    } else {
-      // No hamburger menu, navigation might be always visible
-      expect(true).toBeTruthy();
-    }
+    // What it shows instead, all reachable without opening anything.
+    await expect(page.getByRole('combobox', { name: /search/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /open calendar/i })).toBeVisible();
   });
 
   test('should adjust font sizes for mobile readability', async ({ page }) => {
@@ -288,27 +282,23 @@ test.describe('Responsive Design', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Search field should be visible and usable
-    const searchField = page.getByRole('textbox', { name: /search/i });
-    const searchVisible = await searchField.isVisible().catch(() => false);
+    // SearchBar is rendered unconditionally by Search.tsx in both breakpoints —
+    // only the stacking direction differs — so it is always here to assert on.
+    //
+    // The old locator asked for role `textbox`, which matched nothing: MUI's
+    // Autocomplete gives its input role `combobox`. That is what made the
+    // `else` branch below the only reachable one, and it asserted nothing.
+    const searchField = page.getByRole('combobox', { name: /search/i });
+    await expect(searchField).toBeVisible();
 
-    if (searchVisible) {
-      // Should be wide enough for input
-      const box = await searchField.boundingBox();
-      if (box) {
-        expect(box.width).toBeGreaterThan(200);
-      }
+    // Wide enough to type an author name into. Search.tsx gives the wrapper
+    // `w-full` below 1000px rather than the desktop `w-[18em]`.
+    const box = await searchField.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box?.width ?? 0).toBeGreaterThan(200);
 
-      // Test typing in search
-      await searchField.fill('test');
-
-      // Verify input works
-      const value = await searchField.inputValue();
-      expect(value).toBe('test');
-    } else {
-      // Search might be in a collapsed menu
-      expect(true).toBeTruthy();
-    }
+    await searchField.fill('test');
+    await expect(searchField).toHaveValue('test');
   });
 
   test('should prevent content overflow on small screens', async ({ page }) => {
@@ -338,22 +328,21 @@ test.describe('Responsive Design', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Check that images (if any) are loaded
+    // There is always at least one image: AppLayout renders the logo
+    // unconditionally in both branches. The old `if (imageCount > 0)` guard did
+    // not need to hold, and the assertion under it passed either way.
     const images = page.locator('img');
+    await expect(images.first()).toBeVisible();
+
     const imageCount = await images.count();
+    expect(imageCount).toBeGreaterThan(0);
 
-    if (imageCount > 0) {
-      // Images should have appropriate sizing
-      const firstImage = images.first();
-      const box = await firstImage.boundingBox();
-
-      if (box) {
-        // Image should not exceed viewport width
-        expect(box.width).toBeLessThanOrEqual(375);
-      }
+    // No image may be wider than the viewport, or the page scrolls sideways.
+    // The logo asks for `w-[35rem]` (560px) and is held to 343px here by the
+    // reset's `max-width: 100%`, which is the behaviour worth pinning.
+    for (let i = 0; i < imageCount; i++) {
+      const box = await images.nth(i).boundingBox();
+      expect(box?.width ?? 0).toBeLessThanOrEqual(375);
     }
-
-    // Test passes regardless of image presence
-    expect(true).toBeTruthy();
   });
 });

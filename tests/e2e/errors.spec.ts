@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ROUTES } from '../../frontend/src/utils/routes';
 import {
   setupApiMocks,
   mockPoemError,
@@ -6,6 +7,13 @@ import {
   mockAuthorError,
 } from './utils/apiMocks';
 import { NavigationHelpers, AssertionHelpers } from './utils/helpers';
+import {
+  MOCK_AUTHOR_NAME,
+  MOCK_DATE,
+  MOCK_DATE_NEXT,
+  mockAuthor,
+  mockPoem2,
+} from './fixtures/mockData';
 
 test.describe('Error Handling', () => {
   test('should display error message when poem fails to load (404)', async ({ page }) => {
@@ -94,46 +102,54 @@ test.describe('Error Handling', () => {
     await nav.goToHome();
 
     // Look for retry button
-    const retryButton = page.getByRole('button', { name: /retry|try again|reload/i });
+    const retryButton = page.getByRole('button', {
+      name: /retry|try again|reload/i,
+    });
     const hasRetry = await retryButton.isVisible().catch(() => false);
 
     // Retry button should be visible for error states
     expect(hasRetry).toBeTruthy();
   });
 
-  test('should retry loading content when retry button is clicked', async ({ page }) => {
-    // Initially mock poem error
-    await mockPoemError(page, '20240101');
-
-    const nav = new NavigationHelpers(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Now setup success mock (simulate recovery)
+  test('should reload the author page when its retry button is clicked', async ({ page }) => {
+    // Retry is a real affordance, but it belongs to the author and poem-title
+    // pages, not the broadcast page: Author.tsx and PoemDates.tsx each render a
+    // Retry button in their error branch and call the query's refetch(). The
+    // broadcast page has no such branch, which is why the old version of this
+    // test could only ever take its `else` arm.
     await setupApiMocks(page);
 
-    // Click retry button
-    const retryButton = page.getByRole('button', { name: /retry|try again|reload/i });
-    const hasRetry = await retryButton.isVisible().catch(() => false);
+    // useAuthorQuery retries a 5xx while `failureCount < 2`, and TanStack counts
+    // retries rather than attempts, so a page load makes three requests before
+    // the error branch renders. Measured, not assumed: a permanently failing
+    // author route logs exactly three "Failed to load resource ... 500" console
+    // errors per load. The fourth request, driven by the Retry click, succeeds.
+    let attempts = 0;
+    await page.route('**/public/authors/by-name/robert-frost.json', async route => {
+      attempts += 1;
+      if (attempts <= 3) {
+        await route.fulfill({
+          status: 500,
+          json: { message: 'boom', status: 500 },
+        });
+        return;
+      }
+      await route.fulfill({ json: mockAuthor });
+    });
 
-    if (hasRetry) {
-      await retryButton.click();
-      await page.waitForLoadState('networkidle');
+    await page.goto(ROUTES.author(MOCK_AUTHOR_NAME));
 
-      // Should now show content or at least attempt to reload
-      const stillHasError = await page
-        .locator('[role="alert"]')
-        .isVisible()
-        .catch(() => false);
+    const retryButton = page.getByRole('button', {
+      name: /retry loading author data/i,
+    });
+    await expect(retryButton).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(/error loading author/i)).toBeVisible();
 
-      // Error might still exist depending on implementation
-      // Main thing is retry button was clickable
-      expect(stillHasError !== undefined).toBeTruthy();
-    } else {
-      // No retry button in this implementation
-      expect(true).toBeTruthy();
-    }
+    await retryButton.click();
+
+    // The refetch now succeeds, so the error branch is replaced by the page.
+    await expect(page.getByRole('heading', { name: MOCK_AUTHOR_NAME })).toBeVisible();
+    await expect(page.getByText(/error loading author/i)).toHaveCount(0);
   });
 
   test('should handle search API errors gracefully', async ({ page }) => {
@@ -176,29 +192,25 @@ test.describe('Error Handling', () => {
   });
 
   test('should recover from errors when navigating to valid content', async ({ page }) => {
-    // Mock poem error for initial date
-    await mockPoemError(page, '20240101');
+    await setupApiMocks(page);
+    // MOCK_DATE fails; the next day is fine. Registered after setupApiMocks so
+    // it wins — Playwright matches routes in reverse registration order.
+    await mockPoemError(page, MOCK_DATE);
 
     const nav = new NavigationHelpers(page);
 
-    // Navigate to home page (will show error)
-    await nav.goToHome();
+    // The failed date renders no poem at all: usePoemData's catch writes the
+    // empty fallback state, and the broadcast page has no error branch of its
+    // own. That absence is what makes the recovery below observable.
+    await page.goto(ROUTES.poemByDate(MOCK_DATE));
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCount(0);
 
-    // Setup success mock for next date
-    await setupApiMocks(page);
-
-    // Navigate to next day (should load successfully)
     await nav.goToNextDay();
 
-    // Should now show poem (error recovered)
-    const poemVisible = await page
-      .locator('h1, h2')
-      .isVisible()
-      .catch(() => false);
-
-    // Either poem loads or still showing error
-    // Main point is app didn't crash
-    expect(poemVisible !== undefined).toBeTruthy();
+    // The next date's poem renders. `poemVisible !== undefined` could not fail:
+    // `.catch(() => false)` guarantees a boolean, never undefined.
+    await expect(page).toHaveURL(new RegExp(`${MOCK_DATE_NEXT}$`));
+    await expect(page.getByRole('heading', { name: mockPoem2.poemtitle[0] })).toBeVisible();
   });
 
   test('should show generic error message for unexpected errors', async ({ page }) => {
@@ -255,48 +267,59 @@ test.describe('Error Handling', () => {
       }
     });
 
-    // Mock poem error
-    await mockPoemError(page, '20240101');
+    await setupApiMocks(page);
+    await mockPoemError(page, MOCK_DATE);
 
-    const nav = new NavigationHelpers(page);
+    await page.goto(ROUTES.poemByDate(MOCK_DATE));
+    await expect(page.getByRole('combobox', { name: /search/i })).toBeVisible();
 
-    // Navigate to home page
-    await nav.goToHome();
+    // A length is never negative, so the old assertion held for any behaviour at
+    // all. What the test's name implies is that nothing *unexpected* reaches the
+    // console. The one expected entry is the browser's own report of the mocked
+    // 404; the app itself logs nothing on this path (usePoemData:113 emits a
+    // console.warn for a missing transcript, which is `warn`, not `error`).
+    const EXPECTED = [/Failed to load resource: .*404/];
+    const unexpected = consoleErrors.filter(text => !EXPECTED.some(rx => rx.test(text)));
 
-    // Should have logged some errors (or handled silently)
-    // We just verify test runs without crashing
-    expect(consoleErrors.length >= 0).toBeTruthy();
+    expect(unexpected, `unexpected console errors: ${JSON.stringify(unexpected)}`).toEqual([]);
+
+    // And the expected one really is produced, so the allowlist is not covering
+    // an empty set.
+    expect(consoleErrors.some(text => /404/.test(text))).toBe(true);
   });
 
-  test('should prevent infinite retry loops', async ({ page }) => {
-    // Mock persistent error
-    await mockPoemError(page, '20240101');
+  test('should not spin when retry keeps failing', async ({ page }) => {
+    await setupApiMocks(page);
 
-    const nav = new NavigationHelpers(page);
+    // useAuthorQuery retries a 5xx twice with backoff before surfacing the
+    // error, so one page load plus three manual retries is at most 12 requests.
+    const MAX_EXPECTED_REQUESTS = 12;
+    let requests = 0;
+    await page.route('**/public/authors/by-name/robert-frost.json', async route => {
+      requests += 1;
+      await route.fulfill({
+        status: 500,
+        json: { message: 'boom', status: 500 },
+      });
+    });
 
-    // Navigate to home page
-    await nav.goToHome();
+    await page.goto(ROUTES.author(MOCK_AUTHOR_NAME));
 
-    // Click retry multiple times
-    const retryButton = page.getByRole('button', { name: /retry|try again|reload/i });
-    const hasRetry = await retryButton.isVisible().catch(() => false);
+    const retryButton = page.getByRole('button', {
+      name: /retry loading author data/i,
+    });
+    await expect(retryButton).toBeVisible();
 
-    if (hasRetry) {
-      // Click retry 3 times
-      for (let i = 0; i < 3; i++) {
-        await retryButton.click();
-        await page.waitForLoadState('networkidle').catch(() => {});
-      }
-
-      // Page should still be responsive (not stuck in loop)
-      expect(page.url()).toContain('localhost');
-
-      // Retry button should still be clickable or error state shown
-      const stillFunctional = await page.getByRole('button').count();
-      expect(stillFunctional).toBeGreaterThan(0);
-    } else {
-      // No retry mechanism, test passes
-      expect(true).toBeTruthy();
+    // Same three clicks, against the page that actually has a retry button.
+    for (let i = 0; i < 3; i++) {
+      await retryButton.click();
+      await expect(retryButton).toBeVisible();
     }
+
+    // Still the error branch, still one Retry button, still interactive — the
+    // page has not spun itself into a growing pile of retries or crashed.
+    await expect(retryButton).toBeEnabled();
+    await expect(page.getByRole('button', { name: /retry loading author data/i })).toHaveCount(1);
+    expect(requests).toBeLessThanOrEqual(MAX_EXPECTED_REQUESTS);
   });
 });
