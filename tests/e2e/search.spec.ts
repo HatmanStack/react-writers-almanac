@@ -1,213 +1,181 @@
 import { test, expect } from '@playwright/test';
+import { ROUTES } from '../../frontend/src/utils/routes';
 import { setupApiMocks } from './utils/apiMocks';
 import { NavigationHelpers, AssertionHelpers } from './utils/helpers';
+import { MOCK_AUTHOR_NAME, MOCK_DATE, MOCK_POEM_TITLE } from './fixtures/mockData';
 
+/**
+ * Search Flow
+ *
+ * Search is client-side. `frontend/src/utils/searchIndex.ts` builds an index
+ * over the two bundled sorted lists and answers synchronously, so there is no
+ * request to wait on and nothing to mock — every wait below is on rendered UI.
+ * The previous version of this file mocked `/api/search/autocomplete`, which the
+ * app has not called since the search rewrite.
+ */
 test.describe('Search Flow', () => {
   test.beforeEach(async ({ page }) => {
-    // Setup API mocks for all tests
     await setupApiMocks(page);
   });
 
-  test('should search for an author and display autocomplete results', async ({ page }) => {
+  test('should surface matching authors as you type', async ({ page }) => {
     const nav = new NavigationHelpers(page);
     const assert = new AssertionHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToDate(MOCK_DATE);
+    await nav.search('frost');
 
-    // Search for "frost"
-    await nav.searchAuthor('frost');
-
-    // Verify search results are displayed
     await assert.expectSearchResults();
-
-    // Verify search results contain expected author
-    const searchResults = page.locator('[role="listbox"], [data-testid="search-results"]');
-    await expect(searchResults).toContainText('Robert Frost');
+    await expect(nav.suggestion(MOCK_AUTHOR_NAME)).toBeVisible();
   });
 
-  test('should select an author from autocomplete and navigate to author page', async ({
-    page,
-  }) => {
+  test('should rank authors above poems at the same match quality', async ({ page }) => {
     const nav = new NavigationHelpers(page);
-    const assert = new AssertionHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToDate(MOCK_DATE);
+    await nav.search('frost');
 
-    // Search for "frost"
-    await nav.searchAuthor('frost');
+    // searchIndex.ts:149-152 breaks a bucket tie by type, so every author that
+    // matches "frost" at word-start quality comes before every poem that does.
+    // The archive's actual matches, in the order the dropdown renders them:
+    //   Carol Frost / Richard Frost / Robert Frost   (authors, word start)
+    //   Rereading Frost / Thanks, Robert Frost       (poems, word start)
+    //   Hoarfrost and Fog                            (poem, buried mid-word)
+    const labels = await page.locator('[role="option"]').allInnerTexts();
+    const kinds = labels.map(text => (text.includes('AUTHOR') ? 'author' : 'poem'));
 
-    // Wait for autocomplete results
-    await assert.expectSearchResults();
-
-    // Select "Robert Frost" from results
-    await nav.selectAuthorFromSearch('Robert Frost');
-
-    // Verify author name is visible on the page
-    await assert.expectAuthorName('Robert Frost');
+    expect(kinds.length).toBeGreaterThan(1);
+    expect(kinds).toContain('poem');
+    expect(kinds.lastIndexOf('author')).toBeLessThan(kinds.indexOf('poem'));
   });
 
-  test('should display author biography on author page', async ({ page }) => {
+  test('should navigate to the author page when an author is selected', async ({ page }) => {
     const nav = new NavigationHelpers(page);
     const assert = new AssertionHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToDate(MOCK_DATE);
+    await nav.search('frost');
+    await nav.selectSuggestion(MOCK_AUTHOR_NAME);
 
-    // Search and select author
-    await nav.searchAuthor('frost');
-    await assert.expectSearchResults();
-    await nav.selectAuthorFromSearch('Robert Frost');
+    await expect(page).toHaveURL(new RegExp(`${ROUTES.author(MOCK_AUTHOR_NAME)}$`));
+    await assert.expectAuthorName(MOCK_AUTHOR_NAME);
+  });
 
-    // Verify biography is displayed
+  test('should navigate to the poem-title page when a poem is selected', async ({ page }) => {
+    const nav = new NavigationHelpers(page);
+
+    await nav.goToDate(MOCK_DATE);
+    await nav.search(MOCK_POEM_TITLE);
+    await nav.selectSuggestion(MOCK_POEM_TITLE, 'poem');
+
+    await expect(page).toHaveURL(new RegExp(`${ROUTES.poemByTitle(MOCK_POEM_TITLE)}$`));
+    await expect(page.getByRole('heading', { name: MOCK_POEM_TITLE })).toBeVisible();
+  });
+
+  test('should display author biography on the author page', async ({ page }) => {
+    const nav = new NavigationHelpers(page);
+    const assert = new AssertionHelpers(page);
+
+    await nav.goToDate(MOCK_DATE);
+    await nav.search('frost');
+    await nav.selectSuggestion(MOCK_AUTHOR_NAME);
+
     await assert.expectAuthorBiography();
-
-    // Verify biography contains expected text
-    const biography = page.getByText(/Robert.*Frost.*American poet/i);
-    await expect(biography).toBeVisible();
+    await expect(page.getByText(/Robert Frost was born in San Francisco/i)).toBeVisible();
   });
 
-  test('should display author metadata on author page', async ({ page }) => {
+  test('should list the broadcasts an author appeared on', async ({ page }) => {
     const nav = new NavigationHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToAuthor(MOCK_AUTHOR_NAME);
 
-    // Search and select author
-    await nav.searchAuthor('frost');
-    await nav.selectAuthorFromSearch('Robert Frost');
-
-    // Verify metadata is displayed
-    await expect(page.getByText(/1874.*1963/)).toBeVisible(); // Lifetime
-    await expect(page.getByText(/Occupation.*Poet/i)).toBeVisible();
-    await expect(page.getByText(/American/i)).toBeVisible(); // Nationality
+    await expect(
+      page.getByRole('heading', { name: /Poems on The Writer.s Almanac/i })
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', {
+        name: new RegExp(`View poem from ${MOCK_DATE}`),
+      })
+    ).toBeVisible();
   });
 
-  test('should display list of poems by author', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Search and select author
-    await nav.searchAuthor('frost');
-    await nav.selectAuthorFromSearch('Robert Frost');
-
-    // Verify poems list is displayed
-    const poemsList = page.locator('[data-testid="author-poems"], ul, ol').first();
-    await expect(poemsList).toBeVisible();
-
-    // Verify poem dates are clickable links
-    const poemLinks = page.locator('a[href*="20240101"], button').first();
-    await expect(poemLinks).toBeVisible();
-  });
-
-  test('should handle empty search results gracefully', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Search for something that returns no results
-    await nav.searchAuthor('zzzzz');
-
-    // Verify no results message or empty state
-    const hasNoResults = await page.getByText(/no results|not found/i).isVisible();
-    const hasEmptyState = await page.locator('[role="listbox"]').count();
-
-    // Either show "no results" message or just not show the listbox
-    expect(hasNoResults || hasEmptyState === 0).toBeTruthy();
-  });
-
-  test('should handle search API errors gracefully', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Attempt to search
-    await nav.searchAuthor('frost');
-
-    // Verify error handling (could be error message, fallback state, or just no results)
-    // The app should not crash
-    // We mainly want to ensure the app doesn't crash
-    expect(page.url()).toContain('localhost'); // Still on the site
-  });
-
-  test('should clear search input and results when user clears the field', async ({ page }) => {
+  test('should say so when nothing matches', async ({ page }) => {
     const nav = new NavigationHelpers(page);
     const assert = new AssertionHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToDate(MOCK_DATE);
+    await nav.searchExpectingNoMatches('zzzzzqqqq');
 
-    // Search for "frost"
-    await nav.searchAuthor('frost');
-
-    // Verify search results appear
-    await assert.expectSearchResults();
-
-    // Clear the search input
-    const searchInput = page.getByRole('textbox', { name: /search/i });
-    await searchInput.clear();
-
-    // Wait for results to disappear
-    await page
-      .locator('[role="listbox"]')
-      .waitFor({ state: 'hidden', timeout: 2000 })
-      .catch(() => {
-        // Listbox might already be hidden or never shown
-      });
-
-    // Verify results are no longer visible
-    const resultsVisible = await page.locator('[role="listbox"]').isVisible();
-    expect(resultsVisible).toBeFalsy();
+    // SearchBar.tsx:210-214: a non-empty query with no matches says so rather
+    // than failing silently.
+    await assert.expectNoSearchResults();
+    await expect(page.locator('[role="option"]')).toHaveCount(0);
   });
 
-  test('should handle keyboard navigation in search autocomplete', async ({ page }) => {
+  test('should clear the suggestions when the field is cleared', async ({ page }) => {
     const nav = new NavigationHelpers(page);
     const assert = new AssertionHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Search for "frost"
-    await nav.searchAuthor('frost');
-
-    // Wait for autocomplete results
+    await nav.goToDate(MOCK_DATE);
+    await nav.search('frost');
     await assert.expectSearchResults();
 
-    // Get search input
-    const searchInput = page.getByRole('textbox', { name: /search/i });
+    await nav.searchField().fill('');
 
-    // Press arrow down to select first result
-    await searchInput.press('ArrowDown');
-
-    // Press Enter to select
-    await searchInput.press('Enter');
-
-    // Wait for navigation
-    await page.waitForLoadState('networkidle');
-
-    // Should navigate to author page
-    await assert.expectAuthorName('Robert Frost');
+    // searchTargets returns [] for a blank query, so there is nothing to list.
+    await expect(page.locator('[role="option"]')).toHaveCount(0);
   });
 
-  test('should support search by partial author name', async ({ page }) => {
+  test('should select the highlighted suggestion with the keyboard', async ({ page }) => {
+    const nav = new NavigationHelpers(page);
+    const assert = new AssertionHelpers(page);
+
+    await nav.goToDate(MOCK_DATE);
+    await nav.search(MOCK_AUTHOR_NAME);
+
+    // `autoHighlight` puts the first suggestion under the cursor already, and
+    // searchTargets ranks an exact match first, so Enter alone picks it.
+    await nav.searchField().press('Enter');
+
+    await expect(page).toHaveURL(new RegExp(`${ROUTES.author(MOCK_AUTHOR_NAME)}$`));
+    await assert.expectAuthorName(MOCK_AUTHOR_NAME);
+  });
+
+  test('should match on a partial author name, but not a fuzzy one', async ({ page }) => {
     const nav = new NavigationHelpers(page);
 
-    // Navigate to home page
-    await nav.goToHome();
+    await nav.goToDate(MOCK_DATE);
 
-    // Search with partial name
-    await nav.searchAuthor('fro');
+    // "rob fro" is not a substring of "robert frost", so matching being
+    // substring-based rather than fuzzy is what decides this.
+    await nav.searchExpectingNoMatches('rob fro');
+    await expect(nav.suggestion(MOCK_AUTHOR_NAME)).toHaveCount(0);
 
-    // Results should still appear (mocked API returns results for "frost")
-    // In real scenario, API would handle partial matching
-    // Depending on implementation, either results show or minimum chars required
-    // We're just ensuring app handles it without crashing - check that app is still running
-    const pageUrl = page.url();
-    expect(pageUrl).toContain('localhost');
+    await nav.searchField().fill('robert fro');
+    await expect(nav.suggestion(MOCK_AUTHOR_NAME)).toBeVisible();
+  });
+
+  test('should repeat the same search when the untouched field is submitted', async ({ page }) => {
+    const nav = new NavigationHelpers(page);
+    const assert = new AssertionHelpers(page);
+
+    await nav.goToAuthor(MOCK_AUTHOR_NAME);
+
+    // The field follows the route, so it already reads "Robert Frost" without
+    // anyone typing it (AppLayout's currentTarget -> SearchBar's currentLabel).
+    await expect(nav.searchField()).toHaveValue(MOCK_AUTHOR_NAME);
+
+    // Submitting an untouched field has to fire again. MUI's Autocomplete
+    // normally swallows onChange when the selection has not changed, which is
+    // what forced users to clear and retype; SearchBar.tsx:119 pins `value` to
+    // null to stop that. Leaving the page first makes the repeat observable.
+    await nav.goToDate(MOCK_DATE);
+    await expect(page).toHaveURL(new RegExp(`${MOCK_DATE}$`));
+
+    await nav.searchField().fill(MOCK_AUTHOR_NAME);
+    await nav.searchField().press('Enter');
+
+    await expect(page).toHaveURL(new RegExp(`${ROUTES.author(MOCK_AUTHOR_NAME)}$`));
+    await assert.expectAuthorName(MOCK_AUTHOR_NAME);
   });
 });
