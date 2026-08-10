@@ -73,10 +73,21 @@ async function request<T>(
     clearTimeout(id);
 
     if (error instanceof DOMException && error.name === 'AbortError') {
+      // Which signal fired decides what this is, and the composed signal cannot
+      // say: it aborts for either reason. `controller` belongs to the timeout
+      // and nothing else aborts it, so `controller.signal.aborted` is true for
+      // a timeout and false for a caller abort.
+      //
+      // The distinction is load-bearing. A caller abort means the reader moved
+      // on, so the consumer should keep what is on screen; a timeout means the
+      // load failed, so it must show that. Reporting both as TIMEOUT_ERROR made
+      // usePoemData swallow a real timeout and leave a stale poem in place with
+      // no error state — the harm health-audit H6 names.
+      const timedOut = controller.signal.aborted;
       throw {
-        message: 'Request timeout or cancelled',
+        message: timedOut ? `Request timed out after ${timeout}ms` : 'Request cancelled',
         status: 0,
-        code: 'TIMEOUT_ERROR',
+        code: timedOut ? 'TIMEOUT_ERROR' : 'ABORT_ERROR',
         timestamp: new Date().toISOString(),
       } as ApiError;
     }

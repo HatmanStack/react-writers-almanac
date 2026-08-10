@@ -113,18 +113,23 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
           console.warn(`[usePoemData] No transcript available for date: ${linkDate}`);
         }
       } catch (error) {
-        // Don't update state if the request was aborted.
+        // Don't update state if *we* aborted the request. The effect's cleanup
+        // aborts on every re-run, so fast date navigation cancels the previous
+        // fetch; taking the fallback path there blanked a poem that had already
+        // rendered.
         //
-        // Test the error's SHAPE, not its prototype: client.ts:76,88 throw
+        // Only ABORT_ERROR qualifies. TIMEOUT_ERROR is the client's own 10s
+        // timeout firing, which means the load failed and must be shown as such
+        // — while these shared one code, a hung connection left the previous
+        // date's poem on screen with no error state (health-audit H6).
+        //
+        // Test the error's SHAPE, not its prototype: client.ts:87,99 throw
         // plain object literals cast to ApiError, never Error instances, so a
-        // prototype check against Error could never be true here. The consequence
-        // was that aborted requests fell through to the fallback below — and
-        // since the effect's cleanup aborts on every re-run, fast date
-        // navigation blanked a poem that had already rendered.
+        // prototype check against Error could never be true here.
         const isAborted =
           typeof error === 'object' &&
           error !== null &&
-          (error as { code?: string }).code === 'TIMEOUT_ERROR';
+          (error as { code?: string }).code === 'ABORT_ERROR';
 
         if (isAborted) {
           return;

@@ -236,13 +236,40 @@ describe('API Client', () => {
         elapsed = Date.now() - started;
         throw error;
       });
-      const assertion = expect(promise).rejects.toMatchObject({ code: 'TIMEOUT_ERROR' });
+      const assertion = expect(promise).rejects.toMatchObject({ code: 'ABORT_ERROR' });
 
       await vi.advanceTimersByTimeAsync(1000);
       caller.abort();
       await assertion;
 
       expect(elapsed).toBe(1000);
+    });
+
+    it('reports a caller abort and a timeout under different codes', async () => {
+      // Both paths reject with a DOMException named AbortError, so the code is
+      // the only thing a consumer can use to tell "the reader navigated away"
+      // from "the connection hung". usePoemData swallows the first — it must
+      // not blank a poem that is already on screen — and surfaces the second.
+      // Collapsing both into TIMEOUT_ERROR meant a hung connection timed out,
+      // hit that guard, and left stale content on screen with no error state.
+      mockFetch.mockImplementation((_url: string, init?: RequestInit) => pendingUntilAborted(init));
+
+      const caller = new AbortController();
+      const cancelled = cdnClient.get('/poems/today.json', { signal: caller.signal });
+      const cancelledAssertion = expect(cancelled).rejects.toMatchObject({
+        code: 'ABORT_ERROR',
+        status: 0,
+      });
+      caller.abort();
+      await cancelledAssertion;
+
+      const hung = cdnClient.get('/poems/tomorrow.json');
+      const hungAssertion = expect(hung).rejects.toMatchObject({
+        code: 'TIMEOUT_ERROR',
+        status: 0,
+      });
+      await vi.advanceTimersByTimeAsync(CDN_TIMEOUT_MS);
+      await hungAssertion;
     });
 
     it('hands fetch a composed signal, not the caller signal itself', async () => {

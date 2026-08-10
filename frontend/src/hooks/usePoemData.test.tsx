@@ -18,9 +18,17 @@ vi.mock('../api/client', () => ({
 
 const mockGet = vi.mocked(cdnClient.get);
 
-/** The exact literal client.ts:76 throws when a request aborts or times out. */
+/** The exact literal client.ts throws when the *caller* aborted the request. */
+const ABORT_REJECTION = {
+  message: 'Request cancelled',
+  status: 0,
+  code: 'ABORT_ERROR',
+  timestamp: '2026-08-09T00:00:00.000Z',
+};
+
+/** The exact literal client.ts throws when the request's own timeout fired. */
 const TIMEOUT_REJECTION = {
-  message: 'Request timeout or cancelled',
+  message: 'Request timed out after 10000ms',
   status: 0,
   code: 'TIMEOUT_ERROR',
   timestamp: '2026-08-09T00:00:00.000Z',
@@ -85,9 +93,9 @@ describe('usePoemData — aborted-request guard', () => {
     store.cleanup();
   });
 
-  it('leaves rendered content alone when the request is aborted', async () => {
+  it('leaves rendered content alone when the caller aborted the request', async () => {
     seedRenderedPoem();
-    mockGet.mockRejectedValue(TIMEOUT_REJECTION);
+    mockGet.mockRejectedValue(ABORT_REJECTION);
 
     renderPoemHook();
     await settle();
@@ -99,6 +107,27 @@ describe('usePoemData — aborted-request guard', () => {
     expect(state.note).toEqual(RENDERED_NOTE);
     expect(state.transcript).toBe(RENDERED_TRANSCRIPT);
     expect(state.mp3Url).not.toBe('NotAvailable');
+  });
+
+  it('clears the stale poem when the request times out', async () => {
+    // The harm H6 names: a hung connection times out at 10s, and if the hook
+    // treats that the same way it treats "the reader navigated away", the poem
+    // that is already on screen stays there for a date it does not belong to,
+    // with no error state and no path to one. A timeout is a failure to load,
+    // not a cancellation, so it takes the same fallback path as a 404.
+    seedRenderedPoem();
+    mockGet.mockRejectedValue(TIMEOUT_REJECTION);
+
+    renderPoemHook();
+    await settle();
+
+    const state = useAppStore.getState();
+    expect(state.poem).toEqual([]);
+    expect(state.poemTitle).toEqual([]);
+    expect(state.author).toEqual([]);
+    expect(state.note).toEqual([]);
+    expect(state.transcript).toBe('Transcript not available for this date.');
+    expect(state.mp3Url).toBe('NotAvailable');
   });
 
   it('writes the empty fallback state on a genuine network failure', async () => {
