@@ -19,6 +19,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "docs:lint": "markdownlint-cli2 \"**/*.md\"",
+    "docs:api": "typedoc --options typedoc.json",
     "deploy": "bash backend/scripts/deploy.sh",
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
@@ -40,6 +41,7 @@
     "prettier": "^3.6.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "typedoc": "^0.28.20",
     "vitest": "^4.0.7"
   },
   "overrides": {

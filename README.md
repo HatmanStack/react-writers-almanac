@@ -135,6 +135,8 @@ Every command below is run from the repository root.
 | `npm run format:check`  | Prettier `--check` over the repo — the CI formatting gate                      |
 | `npm run check`         | `lint` → `typecheck` → `test`, in that order                                   |
 | `npm run test:e2e`      | Playwright, which starts its own dev server (see `tests/e2e/README.md`)        |
+| `npm run docs:lint`     | markdownlint over the documentation — config in `.markdownlint-cli2.jsonc`     |
+| `npm run docs:api`      | typedoc — regenerates the API reference described below                        |
 
 **Coverage is enforced, not merely collected.** `npm run test:coverage` gates at
 78% statements / 66% branches / 80% functions / 78% lines, configured in
@@ -158,6 +160,26 @@ Playwright needs its browser once before `npm run test:e2e` will run:
 ```bash
 npx playwright install --with-deps chromium
 ```
+
+### The generated API reference
+
+```bash
+npm run docs:api      # writes docs/api/, then open docs/api/index.html
+```
+
+typedoc renders the JSDoc from three modules — `frontend/src/api/endpoints.ts`,
+`frontend/src/utils/routes.ts` and `frontend/src/utils/dateMapping.ts` — into a
+browsable reference. Those three were chosen because each is a single source of
+truth whose comments state invariants rather than restating the signature; the
+entry set and the reasoning are in `typedoc.json`. Every CDN and API path
+builder appears there with its `@example`, so the exact S3 key shapes are read
+off the code rather than off prose.
+
+**The output is deliberately not committed.** Generated HTML would need
+regenerating on every source change and would be stale within a week, which is
+the drift this reference exists to remove. `docs/api/` is gitignored; CI runs
+`npm run docs:api` so a malformed doc comment fails the build. Regenerate
+locally whenever you want to read it — it takes a few seconds.
 
 ---
 

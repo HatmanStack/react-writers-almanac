@@ -196,6 +196,15 @@ jobs:
           fail: true
           failIfEmpty: true
 
+      # The output is gitignored; this step exists so a malformed doc comment
+      # fails the build rather than silently producing a worse reference.
+      # typedoc.json sets treatWarningsAsErrors, so an unresolvable {@link} or a
+      # type referring to an unexported symbol is an error, not a warning nobody
+      # reads. Runs here rather than in `check` because `check` is gated on the
+      # `frontend` filter, which does not match typedoc.json.
+      - name: Generate API reference
+        run: npm run docs:api
+
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest

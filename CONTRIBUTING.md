@@ -67,7 +67,7 @@ and `status-check` requires all five to pass or skip.
 | -------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | `check`        | the `frontend` filter matches      | `npm ci` → `npm audit --omit=dev --audit-level=moderate` → `npm run lint` → `npm run typecheck` → `npm run test:coverage` → `npm run build` |
 | `format`       | **always** — no filter, no `needs` | `npm ci` → `npm run format:check`                                                                                                           |
-| `docs`         | **always** — no filter, no `needs` | `npm ci` → `npm run docs:lint` → lychee `--offline`                                                                                         |
+| `docs`         | **always** — no filter, no `needs` | `npm ci` → `npm run docs:lint` → lychee `--offline` → `npm run docs:api`                                                                    |
 | `e2e`          | the `frontend` filter matches      | `npm ci` → `npx playwright install --with-deps chromium` → `npm run test:e2e`                                                               |
 | `validate-sam` | the `backend` filter matches       | `cd backend/lambdas && npm ci` → `pip install aws-sam-cli` → `cd backend && sam validate --region us-west-2`                                |
 
@@ -83,7 +83,7 @@ So the whole frontend gate, in one line:
 ```bash
 npm audit --omit=dev --audit-level=moderate && npm run lint && npm run typecheck \
   && npm run test:coverage && npm run build && npm run format:check && npm run test:e2e \
-  && npm run docs:lint
+  && npm run docs:lint && npm run docs:api
 ```
 
 Three of these deserve a note:

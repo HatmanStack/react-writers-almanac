@@ -13,6 +13,14 @@ this document was checked against it, and then checked again by fetching the key
 through CloudFront — the observed HTTP statuses are recorded in
 [CloudFront Access](#cloudfront-access) below.
 
+**Read the paths from the generated reference, not from here.** `npm run docs:api`
+renders that module's JSDoc — every builder with its `@example` showing the key it
+produces — into `docs/api/` (gitignored; regenerate it, do not look for it in a
+fresh clone). This document exists to explain the layout and record what is
+actually in the bucket; when the two disagree about a path shape, the generated
+reference is right, because it is produced from the code. Changing a path means
+changing `endpoints.ts` and then correcting the prose here.
+
 Everything under the bucket sits beneath a single `public/` prefix. An earlier
 version of this document showed `authors/` at the bucket root and daily poems as
 flat `public/{YYYYMMDD}.json`; neither key exists.

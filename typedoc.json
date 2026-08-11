@@ -1,0 +1,58 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+
+  // A NARROW entry set, on purpose. Pointing typedoc at frontend/src would
+  // generate a few hundred pages of React component props that nobody reads,
+  // and an unread reference is worse than none -- it looks authoritative while
+  // drifting. These three are the modules that are single sources of truth and
+  // whose JSDoc states invariants rather than restating the signature:
+  //
+  //   api/endpoints.ts    the S3/CloudFront key shapes and the API Gateway
+  //                       paths, with an @example on every builder. Prose
+  //                       descriptions of these path shapes are what produced
+  //                       doc-audit D1 and G3.
+  //   utils/routes.ts     ROUTE_PATHS and the URL builders -- the single source
+  //                       of URL truth (Phase-0 ADR-4).
+  //   utils/dateMapping.ts  the archive's date rules, including the leap-day
+  //                       and boundary behaviour that has its own test sweep.
+  //
+  // Add another entry point only if the output stays readable.
+  "entryPoints": [
+    "frontend/src/api/endpoints.ts",
+    "frontend/src/utils/routes.ts",
+    "frontend/src/utils/dateMapping.ts"
+  ],
+  "tsconfig": "frontend/tsconfig.json",
+
+  // Generated into docs/api/ and GITIGNORED. Committing the HTML would create a
+  // tree that must be regenerated on every source change and is stale within a
+  // week -- reintroducing the exact drift this tool exists to prevent. CI runs
+  // the generation instead, so a malformed doc comment fails the build. Whether
+  // to publish a hosted reference is a separate decision, and the user's.
+  "out": "docs/api",
+  "name": "The Writer's Almanac — path, route and date reference",
+
+  // The repo README is about setting the project up; it is not an introduction
+  // to these three modules and would only mislead as the reference's front page.
+  "readme": "none",
+
+  "excludePrivate": true,
+  "excludeInternal": true,
+
+  // The point of running this in CI. Without it a broken {@link} or an
+  // unresolvable reference prints a warning and exits 0, which is indistinguish-
+  // able from working. Verified warning-free at the commit that added this, so
+  // the flag is turned on rather than dropped.
+  "treatWarningsAsErrors": true,
+  "validation": {
+    // Fires when a documented symbol's type refers to something not exported --
+    // the reader is sent to a page that does not exist.
+    "notExported": true,
+    // The malformed-{@link} check.
+    "invalidLink": true,
+    // Off: these three modules are thoroughly documented, but requiring a doc
+    // comment on every symbol would make adding an internal helper fail the
+    // build, and that is how a gate gets switched off.
+    "notDocumented": false
+  }
+}
