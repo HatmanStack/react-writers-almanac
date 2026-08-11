@@ -200,6 +200,13 @@ unless you intend to publish — see the
 [Releases section of `README.md`](README.md#releases) for what the workflow does
 and what it deliberately refuses to do.
 
+**Cutting a release is not deploying.** `release.yml` tags a version and
+publishes GitHub release notes; it ships no files. The frontend is deployed by
+hand, via S3 upload and AWS Amplify, and nothing in this repository automates
+that — no workflow runs `aws s3 sync` or `aws cloudfront create-invalidation`.
+[`amplify.yml`](amplify.yml) is the Amplify build descriptor. See
+[Deploying the frontend](README.md#deploying-the-frontend).
+
 ## Two things this repository will not decide for you
 
 Both are recorded rather than fixed, and a PR that resolves either should say

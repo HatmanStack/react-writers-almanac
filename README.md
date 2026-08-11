@@ -264,6 +264,23 @@ The application uses AWS infrastructure:
 - **Lambda + API Gateway**: Managed via AWS SAM (see `backend/` directory)
 - **CloudFront**: CDN for content delivery (not managed by this repo)
 
+### Deploying the frontend
+
+**By hand.** The site is published manually, by S3 upload and through AWS
+Amplify. That is deliberate; this repository automates none of it.
+
+[`amplify.yml`](amplify.yml) is the Amplify build descriptor and the only
+frontend build definition here: `npm ci` at the root, `npm run build` in
+`frontend/`, artifacts taken from `frontend/build`, with `no-store` cache
+headers on HTML and immutable one-year headers on `assets/**`. Nothing in
+`.github/workflows/` reads it.
+
+No workflow performs `aws s3 sync` or `aws cloudfront create-invalidation` —
+neither string appears anywhere under `.github/workflows/`. What
+`release.yml` does is tag a version and publish GitHub release notes; it ships
+no files. So a merge to `main` builds and tests the site, and does not put it in
+front of anyone. Publishing is a separate, manual act.
+
 ---
 
 ## Releases
