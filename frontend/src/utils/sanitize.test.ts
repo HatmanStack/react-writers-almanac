@@ -166,10 +166,15 @@ describe('mojibake: non-breaking space', () => {
   it('leaves a newline after the stray byte alone', () => {
     // The pattern used \s, which also matches tab and newline, so a stray byte
     // before a line break collapsed into a space and changed the text layout.
-    expect(sanitizeHtml('a\u00C2\nb')).toContain('\n');
+    //
+    // Asserted as the whole string, not with toContain: a containment check
+    // passes just as well if the stray \u00C2 survives beside the newline, or
+    // if a space is inserted somewhere else. The lone byte is dropped by the
+    // final replacement in the chain, so the exact output is 'a\nb'.
+    expect(sanitizeHtml('a\u00C2\nb')).toBe('a\nb');
   });
 
   it('leaves a tab after the stray byte alone', () => {
-    expect(sanitizeHtml('a\u00C2\tb')).toContain('\t');
+    expect(sanitizeHtml('a\u00C2\tb')).toBe('a\tb');
   });
 });
