@@ -1,0 +1,81 @@
+// markdownlint config for the user-facing documentation.
+//
+// Scope: the 8 tracked Markdown documents outside docs/plans/ — README.md,
+// CHANGELOG.md, CONTRIBUTING.md, docs/README.md, backend/README.md,
+// scripts/s3-structure.md, tests/e2e/README.md and .github/PULL_REQUEST_TEMPLATE.md.
+//
+// Every rule below is either at its default or disabled with a reason. Nothing
+// here was turned off merely because it fired; the counts are recorded so the
+// next person can re-derive the decision instead of trusting it.
+{
+  // markdownlint-cli2 does NOT skip node_modules when handed an explicit glob:
+  // a bare `**/*.md` finds 2,295 files in this tree, 2,287 of them dependency
+  // READMEs. `gitignore: true` makes it read .gitignore, which is already where
+  // node_modules/, coverage/, playwright-report/ and .claude/ live — so this
+  // file never has to track the generated trees separately.
+  "gitignore": true,
+
+  "ignores": [
+    // .gitignore lists node_modules/, but npm leaves a nested
+    // frontend/node_modules/ behind and gitignore matching is per-directory.
+    // Belt and braces; without it the run picks up ~13 dependency READMEs.
+    "**/node_modules/**",
+
+    // Audit working sets are records. Linting them would push a reformat onto
+    // what the auditors actually wrote — the same reasoning, and the same path,
+    // as the docs/plans/ entry in .prettierignore. Note also that `docs:lint`
+    // is check-only: no script in this repo runs markdownlint with --fix, so
+    // there is no autofix path that could reach these even by accident.
+    "docs/plans/**",
+  ],
+
+  "config": {
+    "default": true,
+
+    // MD013 (line length) — OFF.
+    //
+    // Not because it fires (84×), but because it has no fixable state here:
+    //
+    //   * Tables. Prettier sets table column widths and restores them on the
+    //     next `npm run format`. Half the findings (42 of 84) are table rows,
+    //     so narrowing one by hand is undone by the other tool — the unfixable
+    //     loop the guardrails phase warned about.
+    //   * Prose. .prettierrc.json leaves `proseWrap` at its default,
+    //     "preserve", so Prettier neither enforces nor repairs prose width.
+    //     MD013 on prose would be a hand-maintained rule with no autofix,
+    //     breached by any pasted URL or error message.
+    //
+    // Tuning rather than disabling was measured, not assumed: at
+    // `line_length: 100` (Prettier's printWidth) with `tables: false` and
+    // `code_blocks: false` it still fires 17×, 13 of them inside released
+    // CHANGELOG entries — i.e. it would demand rewrapping a historical record
+    // to go green. A gate that starts red gets switched off; this one is off
+    // deliberately instead.
+    "MD013": false,
+
+    // MD024 (duplicate headings) — kept, scoped to siblings.
+    // Keep a Changelog repeats `### Added` / `### Changed` / `### Fixed` under
+    // every `## [version]`, which is the format, not a defect (14 findings, all
+    // CHANGELOG.md). `siblings_only` still catches the real case: two headings
+    // with the same text under the same parent.
+    "MD024": { "siblings_only": true },
+
+    // MD033 (inline HTML) — kept, with one element allowed.
+    // README.md opens with a centred `<div>` wrapping the banner image and the
+    // live-demo link; Markdown has no centring. `div` is the ONLY HTML element
+    // in any tracked document (verified by grep), so allowing just that one
+    // keeps the rule live against anything else — a raw <table>, a <script>, an
+    // <iframe> — being pasted in later.
+    "MD033": { "allowed_elements": ["div"] },
+
+    // MD041 (first line must be a top-level heading) — OFF.
+    // Two of the eight documents deliberately do not open with an H1, and
+    // neither is a defect:
+    //   * .github/PULL_REQUEST_TEMPLATE.md is rendered into a textarea, not as
+    //     a document; it has no title to give.
+    //   * README.md opens with the centred <div> banner described above.
+    // The rule has no per-file escape short of a directive comment in the PR
+    // template, which would then be pre-filled into every pull request body.
+    "MD041": false,
+  },
+}

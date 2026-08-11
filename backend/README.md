@@ -214,7 +214,7 @@ Nothing then updates `frontend/.env`; do that by hand, or re-run
 
 After successful deployment, SAM outputs:
 
-```
+```text
 CloudFormation outputs from deployed stack
 ---------------------------------------------------------
 Outputs

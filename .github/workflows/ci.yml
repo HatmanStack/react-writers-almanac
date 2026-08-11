@@ -1,17 +1,27 @@
 name: CI
 
+# paths-ignore used to carry '*.md' and 'docs/**', which meant a documentation-only
+# change ran NO job at all -- including the repo-wide `format` gate, which covers
+# README.md, CHANGELOG.md and docs/README.md. That is a gate nothing could fire.
+# Both are gone. What is left is deliberately narrow:
+#
+#   docs/plans/**  audit working sets. Records, not code: excluded from Prettier
+#                  (.prettierignore) and from markdownlint (.markdownlint-cli2.jsonc)
+#                  precisely so they are never reformatted, so no job here has an
+#                  opinion about them. Note that '*.md' never matched
+#                  backend/README.md anyway -- '*' does not cross '/' in Actions
+#                  filters -- so that file was always reachable.
+#   .claude/**     local agent state, gitignored.
 on:
   push:
     branches: [main]
     paths-ignore:
-      - 'docs/**'
-      - '*.md'
+      - 'docs/plans/**'
       - '.claude/**'
   pull_request:
     branches: [main]
     paths-ignore:
-      - 'docs/**'
-      - '*.md'
+      - 'docs/plans/**'
       - '.claude/**'
 
 concurrency:
@@ -109,8 +119,9 @@ jobs:
     # backend/README.md, which ADR-2 keeps inside the gate and which the
     # documentation phase rewrites, plus every workflow file including this one.
     # (Counted with `prettier --file-info` over `git ls-files`. Two more,
-    # README.md and CHANGELOG.md, are blocked by the workflow-level paths-ignore
-    # above instead, which is a separate hole and not this job's to close.)
+    # README.md and CHANGELOG.md, were blocked by the workflow-level paths-ignore
+    # instead -- a separate hole, closed above by dropping '*.md' and 'docs/**'
+    # from it. Every tracked file inside this gate can now trigger it.)
     # A path filter here would need widening again the next time a root config is
     # added; matching the job's trigger to the gate's actual scope does not.
     steps:
@@ -130,6 +141,38 @@ jobs:
       # load-bearing exclusions are the tracked ones (the ADR-2 backend paths).
       - name: Format check
         run: npm run format:check
+
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Deliberately NOT gated on `changes`, for the same reason `format` is not:
+    # `markdownlint-cli2 "**/*.md"` is repo-wide by construction, and the
+    # `frontend` filter matches no Markdown outside frontend/. Pairing a
+    # repo-wide check with a subtree trigger is what left README.md and
+    # CHANGELOG.md inside a gate no job could run.
+    #
+    # A separate job rather than a step in `format`: this one owns documentation
+    # (structure, links, generated reference), `format` owns whitespace, and a
+    # red check should name which. Renaming `format` to cover both would change
+    # a check name that branch protection may already require.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Config and rule rationale in .markdownlint-cli2.jsonc. docs/plans/ is
+      # excluded there; no script runs markdownlint with --fix, so audit records
+      # cannot be reformatted even by accident.
+      - name: Lint Markdown
+        run: npm run docs:lint
 
   e2e:
     name: E2E (Playwright)
@@ -212,7 +255,7 @@ jobs:
     name: All Checks Passed
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [check, format, e2e, validate-sam]
+    needs: [check, format, docs, e2e, validate-sam]
     if: always()
     steps:
       - name: Verify
@@ -220,6 +263,7 @@ jobs:
           results=(
             "${{ needs.check.result }}"
             "${{ needs.format.result }}"
+            "${{ needs.docs.result }}"
             "${{ needs.e2e.result }}"
             "${{ needs.validate-sam.result }}"
           )

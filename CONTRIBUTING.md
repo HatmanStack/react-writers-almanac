@@ -60,21 +60,30 @@ will collide on port 3000. `npm run test:e2e:ui` gives the interactive runner an
 ## Running the whole CI gate locally
 
 CI is `.github/workflows/ci.yml`. A `changes` job computes two path filters and
-three jobs run off them; `format` deliberately runs unconditionally, and
-`status-check` requires all four to pass or skip.
+three jobs run off them; `format` and `docs` deliberately run unconditionally,
+and `status-check` requires all five to pass or skip.
 
 | Job            | Runs when                          | Commands, in order                                                                                                                          |
 | -------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | `check`        | the `frontend` filter matches      | `npm ci` → `npm audit --omit=dev --audit-level=moderate` → `npm run lint` → `npm run typecheck` → `npm run test:coverage` → `npm run build` |
 | `format`       | **always** — no filter, no `needs` | `npm ci` → `npm run format:check`                                                                                                           |
+| `docs`         | **always** — no filter, no `needs` | `npm ci` → `npm run docs:lint`                                                                                                              |
 | `e2e`          | the `frontend` filter matches      | `npm ci` → `npx playwright install --with-deps chromium` → `npm run test:e2e`                                                               |
 | `validate-sam` | the `backend` filter matches       | `cd backend/lambdas && npm ci` → `pip install aws-sam-cli` → `cd backend && sam validate --region us-west-2`                                |
+
+`format` and `docs` have no filter for the same reason: both run repo-wide
+commands, and pairing one of those with a subtree trigger leaves files inside a
+gate that no job can fire. That is also why the workflow's `paths-ignore` no
+longer lists `*.md` or `docs/**` — it would have meant a documentation-only
+change ran nothing at all. What remains ignored is `docs/plans/**` (audit
+records, excluded from both gates by config) and `.claude/**`.
 
 So the whole frontend gate, in one line:
 
 ```bash
 npm audit --omit=dev --audit-level=moderate && npm run lint && npm run typecheck \
-  && npm run test:coverage && npm run build && npm run format:check && npm run test:e2e
+  && npm run test:coverage && npm run build && npm run format:check && npm run test:e2e \
+  && npm run docs:lint
 ```
 
 Two of these deserve a note:

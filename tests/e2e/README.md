@@ -25,6 +25,7 @@ author page.
 - Node.js 22+ (tested with v22.20.0)
 - Chromium browser (automatically installed by Playwright)
 - System dependencies (Linux only):
+
   ```bash
   npx playwright install-deps
   ```
@@ -406,5 +407,5 @@ lsof -ti:3000 | xargs kill -9
 
 ## Support
 
-For Playwright documentation: https://playwright.dev/docs/intro
+For Playwright documentation: [playwright.dev/docs/intro](https://playwright.dev/docs/intro)
 For issues with these tests: See project maintainers
