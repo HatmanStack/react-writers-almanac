@@ -206,7 +206,8 @@ For local invocation and the full deployment reference, see
 ```text
 frontend/src/
 ├── api/              # CDN + API Gateway clients, endpoint builders, query client
-├── assets/           # Images and the bundled author/poem search index
+├── assets/           # Images, and the sorted name/title lists the search
+│                   # index is generated FROM (they no longer ship to the browser)
 ├── components/       # React components
 │   ├── Audio/        # Player and transcript
 │   ├── Author/       # Author biography page body

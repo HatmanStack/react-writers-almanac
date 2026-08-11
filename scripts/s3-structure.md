@@ -377,7 +377,9 @@ Expected output from `scripts/split-poets-json.js`:
   symbol
 - **Manifest**: 1 file
 
-For scale: the search index the app ships with
-(`frontend/src/assets/Authors_sorted.ts`) carries 1,572 author names, so a full
-run is on that order rather than the ~180 files an older version of this document
-predicted.
+For scale: `frontend/src/assets/Authors_sorted.ts` carries 1,572 author names, so
+a full run is on that order rather than the ~180 files an older version of this
+document predicted. That file is a build-time input now, not something the
+browser downloads — `scripts/generate-search-index.mjs` reads it and
+`Poems_sorted.ts` to emit `frontend/public/search-index.json`, which is what the
+app fetches at runtime.
