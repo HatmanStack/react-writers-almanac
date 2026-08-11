@@ -60,6 +60,19 @@ if (invalid.length) {
 
 const unique = [...new Set(dates)].sort();
 
+/*
+ * An empty input would write `[]` over a good manifest, and the author page
+ * would then report that no broadcast in the archive has a recording -- a
+ * silent, total regression from a truncated pipe or a failed aws call. The
+ * range line below would also log `undefined .. undefined`. Fail before
+ * writing anything.
+ */
+if (unique.length === 0) {
+  throw new Error(
+    `${input} contained no YYYYMMDD entries; refusing to overwrite ${DEST} with an empty manifest`
+  );
+}
+
 const destination = path.join(repoRoot, DEST);
 fs.writeFileSync(destination, `${JSON.stringify(unique)}\n`);
 

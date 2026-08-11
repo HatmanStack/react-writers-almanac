@@ -35,11 +35,23 @@ export async function fetchAudioDates(signal?: AbortSignal): Promise<ReadonlySet
   }
 
   const data: unknown = await response.json();
-  if (!Array.isArray(data) || data.some(entry => typeof entry !== 'string')) {
+  if (!Array.isArray(data) || data.some(entry => !isBroadcastDate(entry))) {
     throw new Error('Audio date manifest is malformed');
   }
 
   return new Set(data as string[]);
+}
+
+/**
+ * Every entry must be the YYYYMMDD the generator emits.
+ *
+ * Checking the shape rather than just the type matters because the consumers
+ * look these up by exact string: a manifest of ISO dates, or of numbers coerced
+ * to strings, would match nothing and silently un-highlight the whole archive
+ * rather than failing.
+ */
+function isBroadcastDate(value: unknown): value is string {
+  return typeof value === 'string' && /^\d{8}$/.test(value);
 }
 
 /**
