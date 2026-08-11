@@ -174,6 +174,28 @@ jobs:
       - name: Lint Markdown
         run: npm run docs:lint
 
+      # Relative links and heading fragments only -- --offline skips every
+      # external URL. Those fail deterministically and are what documentation
+      # drift breaks, so they belong on the merge gate; external URLs depend on
+      # third-party uptime and run weekly in link-check.yml instead.
+      #
+      # --include-fragments is load-bearing: without it a link to
+      # backend/README.md#no-such-anchor passes silently. Verified locally by
+      # breaking one -- 1 error without the flag, 2 with it.
+      - name: Check relative links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: >-
+            --no-progress
+            --offline
+            --include-fragments
+            --exclude-path node_modules
+            --exclude-path frontend/node_modules
+            --exclude-path docs/plans
+            '**/*.md'
+          fail: true
+          failIfEmpty: true
+
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest

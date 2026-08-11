@@ -67,7 +67,7 @@ and `status-check` requires all five to pass or skip.
 | -------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | `check`        | the `frontend` filter matches      | `npm ci` → `npm audit --omit=dev --audit-level=moderate` → `npm run lint` → `npm run typecheck` → `npm run test:coverage` → `npm run build` |
 | `format`       | **always** — no filter, no `needs` | `npm ci` → `npm run format:check`                                                                                                           |
-| `docs`         | **always** — no filter, no `needs` | `npm ci` → `npm run docs:lint`                                                                                                              |
+| `docs`         | **always** — no filter, no `needs` | `npm ci` → `npm run docs:lint` → lychee `--offline`                                                                                         |
 | `e2e`          | the `frontend` filter matches      | `npm ci` → `npx playwright install --with-deps chromium` → `npm run test:e2e`                                                               |
 | `validate-sam` | the `backend` filter matches       | `cd backend/lambdas && npm ci` → `pip install aws-sam-cli` → `cd backend && sam validate --region us-west-2`                                |
 
@@ -86,7 +86,7 @@ npm audit --omit=dev --audit-level=moderate && npm run lint && npm run typecheck
   && npm run docs:lint
 ```
 
-Two of these deserve a note:
+Three of these deserve a note:
 
 - **`npm run test:coverage` is a gate, not a report.** It fails below
   78% statements / 66% branches / 80% functions / 78% lines, set in
@@ -98,6 +98,15 @@ Two of these deserve a note:
 - **`npm run format:check` is repo-wide** and runs in a job nothing can filter
   out, so a change to a workflow file or `backend/README.md` is checked even
   though it does not touch `frontend/`. Run `npm run format` to fix.
+- **Link checking is split across two workflows, on purpose.** The `docs` job
+  runs lychee with `--offline`, so it checks relative file links and heading
+  fragments — the ones that fail deterministically and that documentation drift
+  actually breaks. External URLs are checked weekly by
+  `.github/workflows/link-check.yml`, which is not a merge gate: it depends on
+  third-party uptime, and a PR that goes red because someone else's docs site is
+  rate-limiting is how a link checker gets disabled. Run it on demand from the
+  Actions tab (`workflow_dispatch`). URLs that cannot be fetched without
+  credentials are listed with their reasons in `.lycheeignore`.
 
 **One CI job has never actually executed on GitHub Actions.** The `e2e` job is
 written and its suite is green locally, including under `CI=1` (one worker,

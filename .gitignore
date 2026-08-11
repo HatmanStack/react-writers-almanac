@@ -18,6 +18,10 @@ test-results/
 playwright-report/
 playwright/.cache/
 
+# lychee-action writes its summary here. Ignored so it can never be picked up by
+# the markdownlint run in the same job (which reads .gitignore) or by Prettier.
+lychee/
+
 # Environment files (contain secrets)
 .env
 .env.local
