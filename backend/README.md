@@ -4,13 +4,23 @@ This directory contains AWS Lambda functions for The Writer's Almanac API, manag
 
 ## Quick Start
 
+From the repository root:
+
 ```bash
-cd backend
-sam build
-sam deploy
+npm run deploy
 ```
 
-That's it! SAM handles packaging, deploying Lambda functions, and configuring API Gateway automatically.
+That runs [`backend/scripts/deploy.sh`](scripts/deploy.sh), which prompts for the
+deployment settings, generates `samconfig.toml`, builds and deploys the stack,
+and writes the resulting API URL into `frontend/.env`. It is the only deployment
+path this repository supports; see
+[SAM Deployment](#sam-deployment-the-npm-run-deploy-path) for what it does step
+by step.
+
+`sam build && sam deploy` from inside `backend/` also works, because
+`samconfig.toml` is committed with working values — but it will not update
+`frontend/.env`, and the next `npm run deploy` overwrites `samconfig.toml` with
+whatever the prompts produce. Prefer `npm run deploy`.
 
 ---
 
@@ -18,7 +28,7 @@ That's it! SAM handles packaging, deploying Lambda functions, and configuring AP
 
 - [Lambda Functions](#lambda-functions)
 - [Prerequisites](#prerequisites)
-- [SAM Deployment (Recommended)](#sam-deployment-recommended)
+- [SAM Deployment](#sam-deployment-the-npm-run-deploy-path)
 - [Local Testing](#local-testing)
 - [Configuration](#configuration)
 - [Troubleshooting](#troubleshooting)
@@ -91,9 +101,23 @@ Install these tools before deploying:
    ```
 
 4. **Node.js 22.x**
+
    ```bash
    node --version  # Should be v22.x or later
    ```
+
+5. **Lambda dependencies** — a separate install from the repository root's:
+
+   ```bash
+   cd backend/lambdas && npm ci
+   ```
+
+   `backend/lambdas` is not an npm workspace member: the root `workspaces` glob
+   is `backend/lambdas/*`, which matches the four handler directories rather than
+   the directory holding their shared `package.json` and lockfile. `sam build`
+   installs these itself, so this step is needed only for running the handlers or
+   their tests outside SAM — which is exactly why
+   `.github/workflows/ci.yml` runs it before `sam validate`.
 
 ### AWS Configuration
 
@@ -105,7 +129,7 @@ aws configure
 # You'll be prompted for:
 # - AWS Access Key ID
 # - AWS Secret Access Key
-# - Default region (e.g., us-east-1)
+# - Default region (the deployed stack uses us-west-2 - see Region below)
 # - Output format (json)
 ```
 
@@ -128,60 +152,63 @@ Your AWS user/role needs permissions for:
 
 ---
 
-## SAM Deployment (Recommended)
+## SAM Deployment: the `npm run deploy` path
 
-### First-Time Setup
+> **`samconfig.toml` is generated output, not input.**
+> `backend/scripts/deploy.sh:71-86` overwrites it on every run, and its own first
+> line says so. Anything you hand-edit into that file is erased by the next
+> deploy. Change the inputs instead — the script's prompts, or the `.env.deploy`
+> file it saves them to.
 
-1. **Configure deployment parameters** in `samconfig.toml`:
+### What `deploy.sh` does
 
-   ```toml
-   parameter_overrides = [
-       "Environment=prod",
-       "S3BucketName=your-actual-bucket-name"   # ← UPDATE THIS
-   ]
-   ```
+1. **Loads previous answers** from `backend/.env.deploy` if it exists, and prompts
+   for four values, each defaulting to what it loaded: AWS region, stack name,
+   environment (`dev`/`staging`/`prod`), and the name of the **existing** S3 data
+   bucket holding the author and poem JSON. The bucket name is required; the
+   script exits if it is empty.
+2. **Saves those answers** back to `backend/.env.deploy`.
+3. **Generates `backend/samconfig.toml`** from them, including `region`,
+   `stack_name`, and `parameter_overrides`.
+4. **Creates the SAM deployment bucket** `sam-deploy-writers-almanac-{region}` if
+   it does not already exist. This is the artifact bucket SAM uploads packages
+   to — it is not the data bucket.
+5. **Runs `sam build`**, then `sam deploy` with the stack name, region, and
+   parameter overrides passed explicitly on the command line.
+6. **Reads the `ApiUrl` stack output** and writes it into `frontend/.env` as
+   `VITE_API_BASE_URL`. See [Frontend configuration](#frontend-configuration).
 
-2. **Validate template**:
+### Two files, one gitignored and one tracked
 
-   ```bash
-   cd backend
-   sam validate --lint
-   ```
+`backend/.env.deploy` holds your answers and is gitignored (`.gitignore:26`).
+`backend/samconfig.toml` is derived from it and **is tracked**. So every deploy
+from a machine whose answers differ from the committed ones produces a diff in a
+tracked file — most visibly `region`, `s3_bucket`, and the bucket name inside
+`parameter_overrides`. This is a known condition of the current setup, recorded
+here so an unexpected `git status` after a deploy is not a mystery. Whether
+`samconfig.toml` should be tracked at all is a backend decision that has not been
+made.
 
-3. **Build Lambda functions**:
+### Validating and building without deploying
 
-   ```bash
-   sam build
-   ```
+```bash
+cd backend
+sam validate --lint    # CI runs `sam validate --region us-west-2`
+sam build              # packages each function into backend/.aws-sam/
+```
 
-   This installs dependencies and packages each function into `.aws-sam/` directory.
+### Deploying without the script
 
-4. **Deploy with guided prompts** (first time only):
-
-   ```bash
-   sam deploy --guided
-   ```
-
-   You'll be asked to confirm:
-   - Stack name: `writers-almanac-backend-prod`
-   - AWS region: `us-west-2`
-   - Parameter values (S3 bucket, environment)
-   - Confirm IAM role creation: `Y`
-   - Confirm changeset: `Y`
-
-5. **Save deployment configuration**:
-   SAM saves your answers to `samconfig.toml` for future deployments.
-
-### Subsequent Deployments
-
-After the first deployment, updating is simple:
+If you deploy with bare `sam` commands, `samconfig.toml` supplies the
+configuration:
 
 ```bash
 cd backend
 sam build && sam deploy
 ```
 
-No prompts - uses saved configuration from `samconfig.toml`.
+Nothing then updates `frontend/.env`; do that by hand, or re-run
+`npm run deploy`.
 
 ### Deployment Output
 
@@ -202,12 +229,25 @@ Value               arn:aws:lambda:us-west-2:123456789:function:writers-almanac-
 ...
 ```
 
-**Important**: Copy the `ApiUrl` value and update your `.env` file:
+### Frontend configuration
+
+`npm run deploy` writes the `ApiUrl` output into **`frontend/.env`** for you
+(`backend/scripts/deploy.sh:7` targets `../frontend/.env`). There is no `.env` at
+the repository root and nothing reads one — the frontend is a Vite app and Vite
+loads `.env` from `frontend/`.
+
+If you deployed with bare `sam` commands, copy the `ApiUrl` value in by hand:
 
 ```bash
-# In project root .env file
+# frontend/.env
 VITE_API_BASE_URL=https://abc123xyz.execute-api.us-west-2.amazonaws.com/Prod
 ```
+
+The full set of variables the frontend reads is documented in
+[`frontend/.env.example`](../frontend/.env.example) — `VITE_API_BASE_URL` and
+`VITE_CDN_BASE_URL`. The CDN one is not a stack output (CloudFront is not managed
+by this template), so `deploy.sh` cannot fill it in; set it yourself or let
+`frontend/src/api/client.ts:21-22` fall back to the hardcoded distribution.
 
 ---
 
@@ -266,39 +306,59 @@ All Lambda functions receive these environment variables automatically from SAM 
 - `NODE_ENV`: `production` (set globally)
 - `AWS_REGION`: Set automatically by AWS Lambda runtime (not a template parameter)
 
-Configure `S3_BUCKET` via the `S3BucketName` parameter in `samconfig.toml`.
+`S3_BUCKET` comes from the `S3BucketName` template parameter. Set it by answering
+the `npm run deploy` prompt, **not** by editing `samconfig.toml` — the script
+regenerates that file from your answers.
 
 ### SAM Template Parameters
 
-Edit `samconfig.toml` to change deployment configuration:
+`backend/template.yaml` takes two parameters, and `deploy.sh` supplies both:
 
-```toml
-parameter_overrides = [
-    "Environment=prod",              # Environment name (dev/staging/prod)
-    "S3BucketName=your-bucket-name"  # Existing S3 bucket
-]
-```
+| Parameter      | Set from                  | Committed value |
+| -------------- | ------------------------- | --------------- |
+| `Environment`  | the environment prompt    | `prod`          |
+| `S3BucketName` | the S3 data bucket prompt | `garrison-twa`  |
+
+Both land in `samconfig.toml`'s `parameter_overrides` and are also passed
+explicitly on the `sam deploy` command line (`deploy.sh:128`).
 
 ### Multi-Environment Deployment
 
-The template supports multiple environments. To deploy to staging:
+**There is no working multi-environment mechanism today, and this section
+previously described one that erases itself.** It told you to add a `[staging]`
+section to `samconfig.toml` and then run `sam deploy --config-env staging`. But
+`deploy.sh` regenerates `samconfig.toml` with a single `[default.deploy.parameters]`
+table, so the `[staging]` section is wiped by the next `npm run deploy` and the
+`--config-env staging` command fails afterwards.
 
-```bash
-sam build
-sam deploy --config-env staging
-```
+What does work: `deploy.sh` prompts for both the environment name and the stack
+name, and every resource in `template.yaml` is named with `${Environment}`. So a
+second environment is a second run of `npm run deploy` answering
+`writers-almanac-backend-staging` and `staging`. That gives a genuinely separate
+stack, at the cost of `samconfig.toml` now describing staging rather than prod
+until the next prod deploy rewrites it.
 
-First, add a `[staging]` section to `samconfig.toml`:
+Making `--config-env` work would mean teaching `deploy.sh` to emit named config
+tables instead of overwriting one. That has not been done.
 
-```toml
-[staging]
-[staging.deploy.parameters]
-stack_name = "writers-almanac-backend-staging"
-parameter_overrides = [
-    "Environment=staging",
-    "S3BucketName=your-staging-bucket-name"
-]
-```
+### Region
+
+**The Lambdas and the S3 data bucket are in different regions.** The stack
+deploys to `us-west-2` (`samconfig.toml:10`), and the `garrison-twa` data bucket
+is in `us-west-1`. Every Lambda S3 read is therefore cross-region.
+
+Note also that `deploy.sh:23` defaults the region prompt to `us-west-1`, which
+disagrees with the committed `us-west-2` — accepting the default on a fresh
+machine deploys to a different region than the committed configuration describes.
+
+Today this has no practical effect: nothing in the running frontend calls the API
+tier, so these functions serve no traffic. It would matter as soon as they did —
+cross-region S3 reads add latency and inter-region transfer cost to every cold
+lookup.
+
+**This is recorded, not recommended.** Relocating a stack is a production deploy,
+and which way to resolve it — move the stack, move the bucket, or retire the
+tier — is an open decision.
 
 ---
 
@@ -337,9 +397,16 @@ parameter_overrides = [
 
 **Solutions**:
 
-- Verify `S3BucketName` parameter in `samconfig.toml` is correct
+- Verify the `S3BucketName` value the deploy actually used — check the
+  `parameter_overrides` line in the generated `samconfig.toml`, and re-run
+  `npm run deploy` to change it
 - Ensure S3 bucket exists and has data files
 - Check Lambda execution role has S3 read permissions (automatically added by SAM)
+- **Check the key, not just the bucket.** These handlers read `authors/by-name/`
+  and `authors/by-letter/`, while the objects in the bucket sit under a `public/`
+  prefix (`public/authors/by-name/…`) — see the Known discrepancies section of
+  [`scripts/s3-structure.md`](../scripts/s3-structure.md). A missing key can
+  surface as an S3 error rather than an obvious 404.
 
 ### Function Times Out
 
@@ -349,7 +416,9 @@ parameter_overrides = [
 
 - Check CloudWatch Logs for the function: `/aws/lambda/writers-almanac-*-prod`
 - Increase timeout in `template.yaml` if needed (currently 30 seconds)
-- Verify S3 bucket is in same region as Lambda
+- Note that the S3 reads are **cross-region** — the stack is in `us-west-2` and
+  the `garrison-twa` bucket is in `us-west-1` (see [Region](#region)), so they
+  carry more latency than a same-region read would
 - Check network connectivity to S3
 
 ### Local API Doesn't Start
@@ -367,7 +436,7 @@ parameter_overrides = [
 
 **Symptom**: Lambda logs show "S3_BUCKET is undefined"
 
-**Solution**: Environment variables are set in `template.yaml` Globals section and per-function. Verify `samconfig.toml` has correct `S3BucketName` parameter.
+**Solution**: Environment variables are set in `template.yaml` Globals section and per-function. Check that the deploy passed a non-empty `S3BucketName` — the generated `samconfig.toml`'s `parameter_overrides` line records what was used. Re-run `npm run deploy` to change it rather than editing that file.
 
 ---
 
@@ -465,18 +534,35 @@ Dependencies are automatically installed by `sam build`.
 
 ## Security
 
-- **Environment Variables**: Managed via SAM parameters, never committed
-- **IAM Roles**: SAM creates least-privilege execution roles automatically
-- **CORS**: Currently allows all origins (`*`) - restrict in production if needed
-- **Rate Limiting**: API Gateway default rate limits apply (10,000 req/sec)
-- **Secrets**: Use AWS Secrets Manager for sensitive values (not needed currently)
+Stated as current fact. Nothing here is a recommendation.
+
+- **Environment Variables**: passed as SAM template parameters, not baked into
+  the sources. They are not secret, and they are not uncommitted either — the
+  generated `samconfig.toml` is tracked and carries `S3BucketName=garrison-twa`
+  in plain text. Only `backend/.env.deploy` is gitignored.
+- **IAM Roles**: each function gets `S3ReadPolicy` scoped to the data bucket,
+  which is tight, **plus `CloudWatchLogsFullAccess`**, which is an AWS-managed
+  policy covering CloudWatch Logs account-wide rather than just the function's own
+  log group (`template.yaml:79`, `:107`, `:140`). Read "least privilege" as
+  applying to the S3 half only.
+- **CORS**: allows all origins (`*`), configured in the template's `Globals.Api`
+  section.
+- **Authentication**: none. The API has no authorizer, no API key, and no usage
+  plan (`grep -n "UsagePlan\|ApiKey\|Auth:" template.yaml` returns nothing), so
+  every endpoint is publicly callable. Only API Gateway's default account-level
+  throttling applies.
+- **Secrets**: none are used, so none are managed.
 
 ---
 
 ## Version History
 
-- **v2.0** (2024-11-19): SAM deployment infrastructure added
-- **v1.0** (2024-10-24): Initial Lambda functions created with manual deployment
+This directory does not carry its own version. It ships with the repository, and
+the repository's version is the one in `package.json` and in `CHANGELOG.md` —
+`1.4.0` at the time of writing, tagged `v1.4.0`. An earlier private "v2.0 / v1.0"
+scheme here described the same code under different numbers and has been removed.
+See the root [`CHANGELOG.md`](../CHANGELOG.md) for backend changes, which are
+recorded there alongside everything else.
 
 ---
 
