@@ -30,6 +30,14 @@ public tag, which is a deliberate act.
 - CI gates: Prettier `--check` in a job of its own (`44489b6`, `ece7ce1`), the
   Playwright suite (`3248eb1`), and `npm audit --omit=dev` on production
   dependencies (`53c8ffb`)
+- `npm run docs:lint` — markdownlint over the user-facing documentation, running
+  in a `docs` CI job that no path filter can skip (`68b57b0`)
+- Link checking: relative links and heading fragments are checked on every pull
+  request, and external URLs weekly by `.github/workflows/link-check.yml`, which
+  is deliberately not a merge gate (`805166d`)
+- `npm run docs:api` — a generated reference for the path, route and date
+  modules, built from their JSDoc. The output is gitignored and regenerated; CI
+  runs the generation so a malformed doc comment fails the build (`0e2f9e4`)
 
 ### Changed
 
@@ -45,6 +53,9 @@ public tag, which is a deliberate act.
   heading can no longer produce a tag named after it (`765bab9`)
 - Playwright runs with `retries: 0` and `trace: 'retain-on-failure'` on CI, so a
   flake is a failure rather than a slow pass (`3248eb1`)
+- CI's `paths-ignore` no longer excludes `*.md` and `docs/**`. A
+  documentation-only change used to run no job at all, including the repo-wide
+  formatting gate that covers those very files (`68b57b0`)
 
 ### Fixed
 
@@ -66,6 +77,8 @@ public tag, which is a deliberate act.
 - Layout panels take clicks and fill the viewport on a phone (`c55c946`)
 - Unknown author and poem routes return the reader to today rather than to a
   blank page (`c84b8ac`)
+- `backend/scripts/deploy.sh` no longer glues a variable onto the last line of a
+  `frontend/.env` that ends without a newline (`7a9b5b3`)
 
 ### Removed
 
@@ -96,10 +109,15 @@ public tag, which is a deliberate act.
 - `backend/scripts/deploy.sh` writes `VITE_CDN_BASE_URL` — the only CDN variable
   the app reads, which it had been omitting — and no longer writes two variables
   nothing reads
-- `docs/README.md` added, and both audit working-sets under `docs/plans/` marked
-  as historical records rather than current documentation
+- `docs/README.md` added, and the audit working-set under `docs/plans/` marked as
+  a historical record rather than current documentation. It names only the sets
+  that are tracked: a remediation in progress keeps its working set untracked, so
+  a checkout can hold a plan directory the table does not list
 - `CONTRIBUTING.md` and `.github/PULL_REQUEST_TEMPLATE.md` added — there was no
   contributor entry path at all, and `README.md` was the only way in
+- `README.md` documents how to generate the API reference, and
+  `scripts/s3-structure.md` now defers to it: when the prose and the generated
+  reference disagree about a path shape, the generated one is right
 
 ## [1.4.0] - 2026-03-16
 
