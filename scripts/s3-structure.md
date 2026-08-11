@@ -270,7 +270,7 @@ disposition of the backend is an open decision.**
 ### Slugification Rules
 
 Author names and poem titles are converted to slugs by `slugify` in
-`frontend/src/utils/string.ts`, which `scripts/split-poets-json.js:54` mirrors:
+`frontend/src/utils/string.ts`, which `scripts/split-poets-json.js:61` mirrors:
 
 1. Convert to lowercase and trim
 2. Replace whitespace, underscores **and dots** with hyphens

@@ -6,10 +6,15 @@
 snapshot of an audit and the plan written from it, kept as a record of what was
 found and what was decided.
 
-| Set                                      | Written against                 | Status                                        |
-| ---------------------------------------- | ------------------------------- | --------------------------------------------- |
-| `2026-03-16-audit-react-writers-almanac` | the repository in March 2026    | **Historical** — superseded by the August set |
-| `2026-08-09-audit-react-writers-almanac` | `main` @ `a2a8419`, August 2026 | The most recent set                           |
+| Set                                      | Written against              | Status                                       |
+| ---------------------------------------- | ---------------------------- | -------------------------------------------- |
+| `2026-03-16-audit-react-writers-almanac` | the repository in March 2026 | **Historical** — superseded by a later audit |
+
+This table lists only the sets that are **tracked**. A remediation in progress
+keeps its working set on disk and untracked until someone decides it is worth
+committing, so a checkout can contain a directory under `docs/plans/` that this
+table does not name. That is expected; the table is not an inventory of the
+directory.
 
 ## These are records, not documentation
 
@@ -41,18 +46,18 @@ now.
 
 ## There is no ADR home yet
 
-Architectural decision records exist, but only **inline inside plan files** —
-`docs/plans/2026-03-16-audit-react-writers-almanac/Phase-0.md` and
-`docs/plans/2026-08-09-audit-react-writers-almanac/Phase-0.md` each open with an
-"Architecture Decisions" section. They are effectively unfindable: nothing links
-to them, and their numbering is scoped to their own plan.
+Architectural decision records exist, but only **inline inside plan files**: every
+set's `Phase-0.md` opens with an "Architecture Decisions" section, and
+`docs/plans/2026-03-16-audit-react-writers-almanac/Phase-0.md` is the one tracked
+example. They are effectively unfindable — nothing links to them, and their
+numbering is scoped to their own plan.
 
-**Their currency is uncertain and cannot be assumed.** The numbering collides
-across sets — March's ADR-2 is "Preserve Existing Patterns Where Functional",
-August's ADR-2 is "The backend is untouched" — so an unqualified "ADR-2" means
-nothing without naming the set. Several March ADRs were written to constrain a
-remediation that has since finished, and it is not obvious from the text which of
-those were meant to outlive it.
+**Their currency is uncertain and cannot be assumed.** Numbering restarts in each
+set and collides across them: March's ADR-2 is "Preserve Existing Patterns Where
+Functional", and a later set's ADR-2 is something else entirely, so an unqualified
+"ADR-2" means nothing without naming the set it came from. Several March ADRs were
+written to constrain a remediation that has since finished, and it is not obvious
+from the text which of those were meant to outlive it.
 
 They have deliberately **not** been relocated. Deciding which still apply is a
 judgment call about the project's direction, and promoting a stale decision into

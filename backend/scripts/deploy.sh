@@ -167,6 +167,25 @@ echo ""
 # clobbered by a deploy.
 # ---------------------------------------------------------------------------
 
+# `>>` writes at the byte after the last one, so a .env whose final line has no
+# trailing newline gets the new key glued onto the end of it -- producing e.g.
+# `VITE_API_BASE_URL=https://…VITE_CDN_BASE_URL=` on one line, which neither Vite
+# nor a human reads correctly. Every append below goes through this. The
+# create-from-scratch path above always ends with a newline, so this only fires
+# on a .env some other tool or editor wrote.
+#
+# Command substitution strips trailing newlines, so `$(tail -c1 "$file")` is
+# empty exactly when the last byte IS a newline (or the file is empty).
+append_env_line() {
+    local line=$1
+    local file=$2
+
+    if [ -s "$file" ] && [ -n "$(tail -c1 "$file")" ]; then
+        echo "" >> "$file"
+    fi
+    echo "$line" >> "$file"
+}
+
 # Update frontend .env file (portable across GNU/BSD sed)
 update_env_var() {
     local key=$1
@@ -181,7 +200,7 @@ update_env_var() {
         local tmp="${file}.tmp.$$"
         sed "s|^${key}=.*|${key}=${value}|" "$file" > "$tmp" && mv "$tmp" "$file"
     else
-        echo "${key}=${value}" >> "$file"
+        append_env_line "${key}=${value}" "$file"
     fi
 }
 
@@ -193,7 +212,7 @@ ensure_env_var() {
     local file=$2
 
     if ! grep -q "^${key}=" "$file" 2>/dev/null; then
-        echo "${key}=" >> "$file"
+        append_env_line "${key}=" "$file"
     fi
 }
 

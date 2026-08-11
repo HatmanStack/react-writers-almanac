@@ -32,8 +32,11 @@ poets.json
 output/
 
 # Audit working sets are records; reformatting obscures what the auditors wrote.
-# Gitignored by nothing, and 10 of the 13 files behind this entry ARE tracked —
-# so by this file's own framing above, this entry is load-bearing.
+# Gitignored by nothing, and every TRACKED file under docs/plans/ is covered here
+# — `prettier --file-info` reports `ignored: true` for all of them — so by this
+# file's own framing above, this entry is load-bearing. A remediation in progress
+# adds untracked files under the same path, so the total number of files behind
+# this entry varies by checkout; the tracked ones are what make it matter.
 docs/plans/
 
 # Local agent worktrees. Also gitignored.

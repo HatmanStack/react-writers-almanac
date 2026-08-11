@@ -60,7 +60,8 @@ will collide on port 3000. `npm run test:e2e:ui` gives the interactive runner an
 ## Running the whole CI gate locally
 
 CI is `.github/workflows/ci.yml`. A `changes` job computes two path filters and
-four jobs run off them; `status-check` requires all four to pass or skip.
+three jobs run off them; `format` deliberately runs unconditionally, and
+`status-check` requires all four to pass or skip.
 
 | Job            | Runs when                          | Commands, in order                                                                                                                          |
 | -------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |

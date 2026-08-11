@@ -59,8 +59,10 @@ frontend/package-lock.json
 .claude/
 
 # 22 MB source dataset for scripts/split-poets-json.js — not consumed by the app.
-# Untracked, but still present in git history; removing it from history would
-# require a rewrite (see docs/plans/2026-08-09-audit-react-writers-almanac/Phase-0.md ADR-7).
+# Untracked, but still present in git history, so clone size is unchanged by this
+# entry. Removing it from history would take a filter-repo rewrite and a
+# force-push, invalidating every existing clone, fork and open PR -- an
+# outward-facing action deliberately left to the repository owner.
 /poets.json
 
 # Legacy (can be removed after cleanup)
