@@ -114,14 +114,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Deliberately NOT gated on `changes`. `prettier --check .` is repo-wide by
-    # construction, and pairing a repo-wide check with a subtree trigger left 12
-    # of the 141 tracked files inside the gate unable to run it -- among them
+    # construction, and pairing a repo-wide check with a subtree trigger left 16
+    # of the 147 tracked files inside the gate unable to run it -- among them
     # backend/README.md, which ADR-2 keeps inside the gate and which the
     # documentation phase rewrites, plus every workflow file including this one.
-    # (Counted with `prettier --file-info` over `git ls-files`. Two more,
-    # README.md and CHANGELOG.md, were blocked by the workflow-level paths-ignore
-    # instead -- a separate hole, closed above by dropping '*.md' and 'docs/**'
-    # from it. Every tracked file inside this gate can now trigger it.)
+    # (Counted with `prettier --file-info` over `git ls-files` at this commit;
+    # both numbers move as files are added, so re-derive rather than trust them.
+    # FOUR more -- README.md, CHANGELOG.md, CONTRIBUTING.md and docs/README.md --
+    # were blocked by the workflow-level paths-ignore instead, a separate hole,
+    # closed above by dropping '*.md' and 'docs/**' from it. Those four are the
+    # whole set: '*' does not cross '/' in Actions filters, so '*.md' never
+    # matched .github/PULL_REQUEST_TEMPLATE.md, and everything else under
+    # 'docs/**' is docs/plans/**, which .prettierignore keeps out of this gate
+    # anyway. Every tracked file inside this gate can now trigger it.)
     # A path filter here would need widening again the next time a root config is
     # added; matching the job's trigger to the gate's actual scope does not.
     steps:
