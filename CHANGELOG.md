@@ -41,6 +41,18 @@ public tag, which is a deliberate act.
 
 ### Changed
 
+- The archive index — 7,572 author names and poem titles — is served as a static
+  asset rather than compiled into the JavaScript bundle. The entry chunk drops
+  from 263 kB to 194 kB gzipped (-26%); the index is fetched once and cached.
+  Route validation for `/author/:name` and `/poem-title/:title` is consequently
+  asynchronous: an unknown name now shows a brief loading state before the
+  not-found page instead of resolving instantly, and if the index cannot be
+  fetched the page renders and lets the data request report the miss rather than
+  declaring every address unknown (`b8ba84a`)
+- The two audio accessibility tests are no longer skipped. The recorded reason
+  (axe-core hanging on HTML5 audio in jsdom) no longer holds; they assert the
+  audio-mode layout is clean, not that the player itself is accessible — axe
+  evaluates no media rules in this configuration (`cf58677`)
 - Frontend toolchain moved to React 19, Vite 8, Tailwind CSS 4 and MUI 9, with
   ESLint on flat config (`89f90db`, `8abb2fc`, `070c7cd`, `98c7729`)
 - One lockfile: `frontend/package-lock.json` collapsed into the workspace

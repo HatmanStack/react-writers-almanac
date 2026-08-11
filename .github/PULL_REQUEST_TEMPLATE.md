@@ -10,7 +10,7 @@
 
 <!--
 Name the commands you ran and what they printed. "Tests pass" is not
-verification; `npm run check` -> 586 passed is.
+verification; `npm run check` -> 595 passed is.
 
 If this fixes a bug, say how you saw it fail before the fix.
 -->
