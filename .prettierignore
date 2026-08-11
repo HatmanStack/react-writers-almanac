@@ -32,7 +32,8 @@ poets.json
 output/
 
 # Audit working sets are records; reformatting obscures what the auditors wrote.
-# Tracked by nothing and gitignored by nothing — this entry is load-bearing.
+# Gitignored by nothing, and 10 of the 13 files behind this entry ARE tracked —
+# so by this file's own framing above, this entry is load-bearing.
 docs/plans/
 
 # Local agent worktrees. Also gitignored.
