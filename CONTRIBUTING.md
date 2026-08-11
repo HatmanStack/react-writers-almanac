@@ -115,8 +115,12 @@ Three of these deserve a note:
 
 ## Three CI surfaces have never actually executed on GitHub Actions
 
-Two remediation pipelines added jobs to this repository and both were constrained
-to committing only — no push, so nothing they wrote has ever run on a runner. All
+Two remediation pipelines added CI jobs to this repository, and both were
+constrained to committing only. Only one of them stayed that way. The March 2026
+pipeline's commits were pushed afterwards and are on `main` today — `ceb8c0d`
+(the lefthook pre-commit hook) and `8f3ac12` (coverage enforcement) have run on a
+runner many times since. The August 2026 pipeline added the surfaces below, and
+its branch has not been pushed, so it is only these that have never executed. All
 three are green locally, which is not the same thing. What is unverified is the
 **runner path**, and that is different for each:
 
