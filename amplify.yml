@@ -3,7 +3,11 @@ frontend:
   phases:
     preBuild:
       commands:
-        - cd frontend && npm install
+        # Amplify Hosting does not read the repository's .nvmrc, so the version
+        # pinned there and in `engines` has to be selected explicitly here or
+        # the build silently runs on the image default.
+        - nvm use 22
+        - npm ci
     build:
       commands:
         - cd frontend && npm run build
@@ -22,4 +26,7 @@ frontend:
           value: 'public, max-age=31536000, immutable'
   cache:
     paths:
+      # The workspace install hoists to the root; frontend/node_modules keeps
+      # only the few version-conflict entries npm places there.
+      - node_modules/**/*
       - frontend/node_modules/**/*

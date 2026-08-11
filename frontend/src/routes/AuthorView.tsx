@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { useParams } from 'react-router-dom';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
-import { AUTHOR_NAMES } from '../utils/searchIndex';
+import { useSearchIndexQuery } from '../hooks/queries/useSearchIndexQuery';
 import { useAppOutletContext } from './useAppOutletContext';
 import NotFound from './NotFound';
 
@@ -20,6 +20,7 @@ const noop = () => {};
 function AuthorView() {
   const { name } = useParams();
   const { width, goToDate, formatAuthorDate } = useAppOutletContext();
+  const { data: searchIndex, isPending: isIndexPending } = useSearchIndexQuery();
   const authorName = name ?? '';
 
   /*
@@ -27,8 +28,23 @@ function AuthorView() {
    * than rendering the page and letting a failed fetch report it — that way a
    * misspelled name and a CDN outage do not look the same, and there is no
    * round-trip before the reader finds out.
+   *
+   * That check needs the index, which now arrives over the network, so there
+   * are three states rather than two. While it is in flight a misspelling and a
+   * real name are indistinguishable, so neither answer can be given yet.
    */
-  if (!AUTHOR_NAMES.has(authorName)) {
+  if (isIndexPending) {
+    return <LoadingSpinner size="lg" label="Loading author..." />;
+  }
+
+  /*
+   * If the index failed to load, `searchIndex` is undefined and this check is
+   * skipped deliberately. Knowing the name list was only ever an optimisation
+   * that spared a round-trip; without it the Author fetch still reports a real
+   * miss. Treating every address as unknown because an asset 404'd would turn
+   * one failed request into a site that claims nothing exists.
+   */
+  if (searchIndex && !searchIndex.hasAuthor(authorName)) {
     return <NotFound />;
   }
 

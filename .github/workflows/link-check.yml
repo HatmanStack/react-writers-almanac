@@ -1,0 +1,79 @@
+name: Link Check
+
+# External link checking is deliberately NOT a merge gate.
+#
+# It depends on third-party uptime: docs.aws.amazon.com rate-limiting, a redirect
+# someone else changed, or the live demo being briefly down would all turn a
+# healthy PR red. A merge gate that fails for reasons the author cannot fix is a
+# merge gate someone disables, and then nothing is checked at all.
+#
+# The half that fails deterministically -- relative file links and heading
+# fragments, which is what documentation drift actually breaks -- runs on every
+# PR instead, in ci.yml's `docs` job under `--offline`. This workflow is the
+# other half: the same link set with the network turned on, weekly.
+on:
+  schedule:
+    # Mondays 06:00 UTC. Weekly, not daily: a link that rots on Tuesday does not
+    # need a Wednesday alert, and a job that reports most days gets filtered out
+    # of someone's inbox and stops being read.
+    #
+    # `schedule` only ever runs on the default branch. Use workflow_dispatch to
+    # run it on a branch.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  links:
+    name: Check all links, including external
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
+
+      # SHA-pinned with a version comment, matching every `uses:` in ci.yml.
+      # Expected URLs that cannot be fetched without credentials -- the
+      # CloudFront paths, the deliberately nonexistent placeholder API host, the
+      # localhost examples -- are listed with their reasons in .lycheeignore,
+      # which lychee reads from the working directory automatically.
+      - name: Check links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          # --include-fragments is load-bearing, not decoration. Without it a
+          # link to backend/README.md#no-such-anchor does not merely go
+          # under-reported, it passes silently -- exit 0 on a tree carrying only
+          # a broken fragment. Every cross-document link in this repo carries an
+          # anchor.
+          #
+          # docs/plans is excluded for the same reason it is excluded from
+          # Prettier and markdownlint: audit records are kept as the auditors
+          # wrote them. node_modules twice because npm leaves a nested
+          # frontend/node_modules behind.
+          #
+          # PULL_REQUEST_TEMPLATE.md is named explicitly because '**/*.md' does
+          # not match it: lychee skips hidden paths and .github/ is one.
+          # --hidden would also pull .claude/worktrees/*/ into a local run and
+          # not into CI. Same args as the offline pass in ci.yml, minus --offline.
+          args: >-
+            --no-progress
+            --include-fragments
+            --exclude-path node_modules
+            --exclude-path frontend/node_modules
+            --exclude-path docs/plans
+            '**/*.md'
+            .github/PULL_REQUEST_TEMPLATE.md
+          # Both default to true; stated because they are the whole point of the
+          # job. `fail` propagates lychee's exit code; `failIfEmpty` catches the
+          # silent-success case where a bad glob checks nothing at all.
+          fail: true
+          failIfEmpty: true

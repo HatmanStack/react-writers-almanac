@@ -1,7 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { BrowserRouter, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createSearchIndex } from '../utils/searchIndex';
+import { searchIndexKeys } from '../hooks/queries/useSearchIndexQuery';
+import sortedAuthors from '../assets/Authors_sorted';
+import sortedPoems from '../assets/Poems_sorted';
 import { HelmetProvider } from 'react-helmet-async';
 import App from '../App';
 import { ROUTES } from '../utils/routes';
@@ -10,9 +14,21 @@ import { presentDate, DATE_BOUNDARIES } from '../utils/dateMapping';
 /*
  * Stubs for everything that is not routing.
  *
- * Search is stubbed because it imports `@mui/icons-material`, which the
- * workspace-root `overrides` entry leaves uninstalled — a pre-existing problem
- * unrelated to navigation.
+ * These tests are about the route table: which component a URL mounts, what the
+ * address bar reads afterwards, and what the back button does. Everything a
+ * route renders *inside* that is someone else's test.
+ *
+ * Search is the expensive one. Rendering it for real pulls in MUI's Autocomplete
+ * and the x-date-pickers calendar, and — through utils/searchIndex — the two
+ * bundled asset modules `Authors_sorted` and `Poems_sorted`: 1,572 and 6,000
+ * literal strings that no assertion here reads. Search has its own suite in
+ * components/Search/Search.test.tsx, which renders it unstubbed.
+ *
+ * (An older version of this comment said Search was stubbed because
+ * `@mui/icons-material` was left uninstalled by the workspace-root `overrides`
+ * entry. That was a leftover from the MUI override incident and is no longer
+ * true: it resolves at v9.2.0 after the documented install, and Search.test.tsx
+ * renders the real SearchBar through it.)
  */
 vi.mock('../components/Search', () => ({
   default: () => <div data-testid="search" />,
@@ -75,6 +91,27 @@ function LocationProbe() {
 
 const AUTHOR_PATH = ROUTES.author('Billy Collins');
 
+/*
+ * Resolve the route views' lazy chunks before any assertion depends on them.
+ *
+ * AuthorView.tsx:8 and PoemTitleView.tsx:8 render their bodies behind
+ * lazy(() => import(...)). Under full-suite parallel load that dynamic import
+ * can outlast Testing Library's 1000 ms findBy default, and the assertion then
+ * fails against a mounted "Loading author..." Suspense fallback rather than
+ * against anything the router did.
+ *
+ * Warming the module graph removes the race rather than widening the window
+ * for it. The real components are still rendered through the real route table,
+ * which is the coverage these tests exist for — stubbing the boundary would
+ * throw that away.
+ */
+beforeAll(async () => {
+  await Promise.all([
+    import('../components/Author/Author'),
+    import('../components/PoemDates/PoemDates'),
+  ]);
+});
+
 describe('Application routing', () => {
   let queryClient: QueryClient;
 
@@ -102,9 +139,24 @@ describe('Application routing', () => {
     });
   }
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+    /*
+     * Seed the archive index rather than letting it fetch. Route validation
+     * gates on it, and a route view that cannot tell "still loading" from "no
+     * such author" deliberately renders the page instead of NotFound -- so an
+     * unseeded client would make every not-found assertion below vacuous.
+     */
+    queryClient.setQueryData(
+      searchIndexKeys.all,
+      createSearchIndex({ authors: sortedAuthors, poems: sortedPoems })
+    );
   });
 
   describe('back button', () => {
@@ -219,6 +271,29 @@ describe('Application routing', () => {
       renderAt(path);
       expect(await screen.findByRole('heading', { name: /That page/ })).toBeInTheDocument();
       expect(currentPath()).toBe(path);
+    });
+
+    /*
+     * The index is an optimisation: knowing the name list spares a round-trip
+     * before reporting a bad address. When it cannot be fetched, the page must
+     * fall back to rendering and letting the author request decide. Reporting
+     * every address as unknown would turn one failed asset into a site that
+     * claims nothing exists -- a far worse failure than the one being avoided.
+     */
+    it('renders the author page rather than not-found when the index fails to load', async () => {
+      /*
+       * A fresh client, deliberately NOT seeded: `setQueryData(key, undefined)`
+       * is a no-op in TanStack Query, so clearing the seed that way would leave
+       * the index in place and this test would pass without ever reaching the
+       * branch it names.
+       */
+      queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('index unavailable')));
+
+      renderAt(AUTHOR_PATH);
+
+      expect(await screen.findByRole('heading', { name: 'Billy Collins' })).toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: /That page/ })).not.toBeInTheDocument();
     });
   });
 

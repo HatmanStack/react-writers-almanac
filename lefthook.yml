@@ -2,6 +2,6 @@ pre-commit:
   parallel: true
   commands:
     lint:
-      run: cd frontend && npm run lint -- --max-warnings 0
+      run: npm run lint
     typecheck:
-      run: cd frontend && npm run typecheck
+      run: npm run typecheck

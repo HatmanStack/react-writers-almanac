@@ -3,6 +3,18 @@
 /**
  * Split poets.json into individual author files for S3 upload
  *
+ * INPUT: poets.json at the repository root. As of the 2026-08-09 audit
+ * remediation this file is NO LONGER TRACKED IN GIT -- it is 22 MB, was 84% of
+ * the tracked working tree, and no build or workflow invokes this script. It is
+ * listed in .gitignore, so a fresh clone will not have it and this script will
+ * exit at the fs.existsSync check below.
+ *
+ * To obtain it: the blob is still reachable in git history (it was untracked
+ * with `git rm --cached`, not removed from history), so
+ *   git show <commit-before-untracking>:poets.json > poets.json
+ * restores it. It is also the source that produced the author JSON already
+ * published under the S3 bucket's public/ prefix.
+ *
  * This script:
  * 1. Reads poets.json
  * 2. Creates individual author files: authors/by-name/{slug}.json
@@ -10,7 +22,7 @@
  * 4. Validates all JSON output
  * 5. Generates a manifest file
  *
- * Output structure:
+ * Output structure (LOCAL paths, unprefixed):
  * output/
  * ├── authors/
  * │   ├── by-name/
@@ -22,6 +34,13 @@
  * │       ├── B.json
  * │       └── ...
  * └── manifest.json
+ *
+ * UPLOAD PREFIX: these local paths are NOT the S3 keys. Everything the frontend
+ * reads sits under a `public/` prefix -- `getAuthorBySlug` in
+ * frontend/src/api/endpoints.ts builds `/public/authors/by-name/{slug}.json` --
+ * so the sync destination must be `s3://BUCKET/public/authors/`, not
+ * `s3://BUCKET/authors/`. The unprefixed prefix contains no objects and returns
+ * 403. See scripts/s3-structure.md for the full key layout.
  */
 
 const fs = require('fs');
@@ -43,10 +62,10 @@ function nameToSlug(name) {
   return name
     .toLowerCase()
     .trim()
-    .replace(/[\s_.]+/g, '-')      // Replace spaces, underscores, dots with hyphens
+    .replace(/[\s_.]+/g, '-') // Replace spaces, underscores, dots with hyphens
     .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters, numbers, hyphens
-    .replace(/-+/g, '-')           // Replace multiple hyphens with single
-    .replace(/^-+|-+$/g, '');      // Trim leading/trailing hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/^-+|-+$/g, ''); // Trim leading/trailing hyphens
 }
 
 /**
@@ -194,8 +213,8 @@ function main() {
   // Step 7: Next steps
   console.log('📤 Next steps:');
   console.log('   1. Review output files in ./output/');
-  console.log('   2. Upload to S3:');
-  console.log('      aws s3 sync ./output/authors/ s3://YOUR-BUCKET/authors/ \\');
+  console.log('   2. Upload to S3 (note the public/ prefix -- see s3-structure.md):');
+  console.log('      aws s3 sync ./output/authors/ s3://YOUR-BUCKET/public/authors/ \\');
   console.log('        --cache-control "public, max-age=31536000" \\');
   console.log('        --content-type "application/json"');
   console.log('');

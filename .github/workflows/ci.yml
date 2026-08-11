@@ -1,18 +1,34 @@
 name: CI
 
+# paths-ignore used to carry '*.md' and 'docs/**', which meant a documentation-only
+# change ran NO job at all -- including the repo-wide `format` gate, which covers
+# README.md, CHANGELOG.md and docs/README.md. That is a gate nothing could fire.
+# Both are gone. What is left is deliberately narrow:
+#
+#   docs/plans/**  audit working sets. Records, not code: excluded from Prettier
+#                  (.prettierignore) and from markdownlint (.markdownlint-cli2.jsonc)
+#                  precisely so they are never reformatted, so no job here has an
+#                  opinion about them. Note that '*.md' never matched
+#                  backend/README.md anyway -- '*' does not cross '/' in Actions
+#                  filters -- so that file was always reachable.
+#   .claude/**     local agent state, gitignored.
 on:
   push:
     branches: [main]
     paths-ignore:
-      - 'docs/**'
-      - '*.md'
+      - 'docs/plans/**'
       - '.claude/**'
   pull_request:
     branches: [main]
     paths-ignore:
-      - 'docs/**'
-      - '*.md'
+      - 'docs/plans/**'
       - '.claude/**'
+
+# Least privilege for the whole workflow. Nothing here writes to the repository
+# -- no job pushes, comments, or publishes -- so read is the ceiling. Jobs that
+# need more must ask for it explicitly, as `changes` does below.
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,12 +40,22 @@ env:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    # dorny/paths-filter reads the PR's changed-file list through the REST API
+    # on pull_request events; without this it fails with "Resource not
+    # accessible by integration".
+    permissions:
+      contents: read
+      pull-requests: read
     timeout-minutes: 10
     outputs:
       frontend: ${{ steps.filter.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
       - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
         id: filter
         with:
@@ -38,6 +64,22 @@ jobs:
               - 'frontend/**'
               - 'package.json'
               - 'package-lock.json'
+              # Lint and typecheck now cover these too, and the e2e job runs
+              # from them. Without these entries a change to a spec or a script
+              # would skip the very job that was widened to check it.
+              - 'tests/**'
+              - 'scripts/**'
+              - 'eslint.config.cjs'
+              - 'tsconfig.e2e.json'
+              - 'vitest.config.ts'
+              - 'playwright.config.ts'
+              # The workflows themselves. Without this a change to this file
+              # leaves `frontend` false, `check` skips, and `status-check`
+              # counts the skip as a pass -- so a PR editing CI merges with no
+              # lint, typecheck, coverage, build or dependency audit having run.
+              # The job that verifies the repository has to be triggered by
+              # changes to its own definition.
+              - '.github/workflows/**'
             backend:
               - 'backend/**'
 
@@ -49,6 +91,10 @@ jobs:
     if: needs.changes.outputs.frontend == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
@@ -57,19 +103,216 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci && cd frontend && npm ci
+        run: npm ci
 
+      # --omit=dev deliberately. Two numbers, both correct: the full audit
+      # reports 7 findings at this commit (1 low, 6 high), every one of them in
+      # the development toolchain, which does not ship to users. Gating on those
+      # would fail CI on day one and train people to ignore the gate -- or to
+      # "fix" it by widening the level until it passes. This gates on what
+      # reaches production, at moderate and above. Runs before the test job so a
+      # vulnerable dependency surfaces in seconds rather than after a full suite.
+      # Dependabot auto-merges every non-major bump, so this is the only thing
+      # standing between a vulnerable release and main.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
+      # --max-warnings 0 lives in the lint script itself, so this command, the
+      # pre-commit hook and `npm run check` cannot drift apart. Previously only
+      # CI and the hook passed it, so a console.log passed `npm run check`
+      # locally and failed here.
       - name: Lint (fail on warnings)
-        run: cd frontend && npm run lint -- --max-warnings 0
+        run: npm run lint
 
       - name: Type check
-        run: cd frontend && npm run typecheck
+        run: npm run typecheck
 
-      - name: Tests
-        run: npm test -- --reporter=verbose
+      # Coverage thresholds live in vitest.config.ts and are calibrated to the
+      # measured actual. `npm test` stays coverage-free so the local loop and the
+      # pre-commit hook stay fast; CI is where the gate runs.
+      - name: Tests with coverage
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Deliberately NOT gated on `changes`. `prettier --check .` is repo-wide by
+    # construction, and pairing a repo-wide check with a subtree trigger left 16
+    # of the 147 tracked files inside the gate unable to run it -- among them
+    # backend/README.md, which ADR-2 keeps inside the gate and which the
+    # documentation phase rewrites, plus every workflow file including this one.
+    # (Counted with `prettier --file-info` over `git ls-files` at this commit;
+    # both numbers move as files are added, so re-derive rather than trust them.
+    # FOUR more -- README.md, CHANGELOG.md, CONTRIBUTING.md and docs/README.md --
+    # were blocked by the workflow-level paths-ignore instead, a separate hole,
+    # closed above by dropping '*.md' and 'docs/**' from it. Those four are the
+    # whole set: '*' does not cross '/' in Actions filters, so '*.md' never
+    # matched .github/PULL_REQUEST_TEMPLATE.md, and everything else under
+    # 'docs/**' is docs/plans/**, which .prettierignore keeps out of this gate
+    # anyway. Every tracked file inside this gate can now trigger it.)
+    # A path filter here would need widening again the next time a root config is
+    # added; matching the job's trigger to the gate's actual scope does not.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Exclusions live in .prettierignore. Note Prettier 3 also reads
+      # .gitignore, so generated trees are skipped without a second entry; the
+      # load-bearing exclusions are the tracked ones (the ADR-2 backend paths).
+      - name: Format check
+        run: npm run format:check
+
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Deliberately NOT gated on `changes`, for the same reason `format` is not:
+    # `markdownlint-cli2 "**/*.md"` is repo-wide by construction, and the
+    # `frontend` filter matches no Markdown outside frontend/. Pairing a
+    # repo-wide check with a subtree trigger is what left README.md and
+    # CHANGELOG.md inside a gate no job could run.
+    #
+    # A separate job rather than a step in `format`: this one owns documentation
+    # (structure, links, generated reference), `format` owns whitespace, and a
+    # red check should name which. Renaming `format` to cover both would change
+    # a check name that branch protection may already require.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Config and rule rationale in .markdownlint-cli2.jsonc. docs/plans/ is
+      # excluded there; no script runs markdownlint with --fix, so audit records
+      # cannot be reformatted even by accident.
+      - name: Lint Markdown
+        run: npm run docs:lint
+
+      # Relative links and heading fragments only -- --offline skips every
+      # external URL. Those fail deterministically and are what documentation
+      # drift breaks, so they belong on the merge gate; external URLs depend on
+      # third-party uptime and run weekly in link-check.yml instead.
+      #
+      # --include-fragments is load-bearing: without it a link to
+      # backend/README.md#no-such-anchor is not merely under-reported, it passes
+      # SILENTLY. Verified on a tree carrying only a broken fragment: exit 0
+      # without the flag, exit 2 with it.
+      #
+      # PULL_REQUEST_TEMPLATE.md is named explicitly because '**/*.md' does not
+      # match it -- lychee skips hidden paths, and .github/ is one. --hidden
+      # would fix that and cost more than it gains: it also pulls
+      # .claude/worktrees/*/ into a local run and not into CI, which is the
+      # locally-red / CI-green divergence this job exists to avoid. Naming the
+      # one file keeps lychee's input set equal to markdownlint's 8. Verified
+      # load-bearing: a broken link in that file is missed by the glob alone
+      # (exit 0) and caught with the file named (exit 2).
+      - name: Check relative links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: >-
+            --no-progress
+            --offline
+            --include-fragments
+            --exclude-path node_modules
+            --exclude-path frontend/node_modules
+            --exclude-path docs/plans
+            '**/*.md'
+            .github/PULL_REQUEST_TEMPLATE.md
+          fail: true
+          failIfEmpty: true
+
+      # The output is gitignored; this step exists so a malformed doc comment
+      # fails the build rather than silently producing a worse reference.
+      # typedoc.json sets treatWarningsAsErrors, so an unresolvable {@link} or a
+      # type referring to an unexported symbol is an error, not a warning nobody
+      # reads. Runs here rather than in `check` because `check` is gated on the
+      # `frontend` filter, which does not match typedoc.json.
+      - name: Generate API reference
+        run: npm run docs:api
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    # timeout-minutes bounds the WHOLE JOB, not the suite -- an earlier version of
+    # this comment conflated the two. Budget, measured locally under CI=1 (one
+    # worker, retries: 0, the configuration this runner uses):
+    #
+    #   suite                                     4.6-4.7 min (measured, twice)
+    #   checkout + setup-node + npm ci            ~0.5 min
+    #   npx playwright install chromium           ~1-2 min, EVERY run -- there is
+    #                                             no ~/.cache/ms-playwright step
+    #   ------------------------------------------------------------------
+    #   job                                       ~7 min, on a runner likely
+    #                                             slower per-core than the machine
+    #                                             the suite was measured on
+    #
+    # 20 gives roughly 2x that estimate. 10 would have been ~1.4x, and a
+    # timeout-caused red on a healthy suite is exactly what gets a job disabled.
+    # Caching the browser download would cut ~1-2 min, but it is an untested
+    # mechanism on a job that has never run; add it once this job is green.
+    timeout-minutes: 20
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # chromium only: playwright.config.ts defines exactly one project.
+      # Installing all three browsers would triple setup time for no coverage.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # webServer in playwright.config.ts starts the dev server itself.
+      - name: Run Playwright tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
 
   validate-sam:
     name: Validate SAM Template
@@ -79,6 +322,10 @@ jobs:
     if: needs.changes.outputs.backend == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
@@ -89,6 +336,20 @@ jobs:
       - name: Install Lambda dependencies
         run: cd backend/lambdas && npm ci
 
+      # NOT audited here, deliberately, and this is a live finding rather than
+      # an oversight. `npm audit --omit=dev --audit-level=moderate` in
+      # backend/lambdas currently exits 1: fast-xml-parser and fast-xml-builder
+      # carry two high and one moderate advisory, transitive through
+      # @aws-sdk/xml-builder. The frontend audit in `check` is gated on the
+      # `frontend` filter, so this tree is audited by nothing today.
+      #
+      # Adding the gate here would put CI red on arrival, and the fix requires
+      # writing backend/lambdas/package-lock.json, which ADR-2 fences off while
+      # the backend's disposition is undecided -- these handlers currently read
+      # an S3 prefix that does not exist and have no runtime callers, so the
+      # vulnerable code serves no traffic. Wire this gate up in the same change
+      # that resolves that question, not before.
+
       - name: Validate SAM template
         run: |
           pip install aws-sam-cli
@@ -98,13 +359,16 @@ jobs:
     name: All Checks Passed
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [check, validate-sam]
+    needs: [check, format, docs, e2e, validate-sam]
     if: always()
     steps:
       - name: Verify
         run: |
           results=(
             "${{ needs.check.result }}"
+            "${{ needs.format.result }}"
+            "${{ needs.docs.result }}"
+            "${{ needs.e2e.result }}"
             "${{ needs.validate-sam.result }}"
           )
           for result in "${results[@]}"; do

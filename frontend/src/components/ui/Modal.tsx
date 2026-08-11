@@ -69,7 +69,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
   }, [isOpen, handleKeyDown, handleClickOutside]);
 
   return (
-    <CSSTransition in={isOpen} timeout={300} classNames="modal-fade" unmountOnExit nodeRef={transitionRef}>
+    <CSSTransition
+      in={isOpen}
+      timeout={300}
+      classNames="modal-fade"
+      unmountOnExit
+      nodeRef={transitionRef}
+    >
       <div
         ref={transitionRef}
         className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"

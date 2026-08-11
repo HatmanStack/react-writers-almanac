@@ -14,8 +14,14 @@ export default defineConfig({
   // Fail the build on CI if you accidentally left test.only in the source code
   forbidOnly: !!process.env.CI,
 
-  // Retry on CI only
-  retries: process.env.CI ? 2 : 0,
+  // No retries, on CI or locally. The suite reached this state by having three
+  // genuine flakes diagnosed and fixed at the cause -- a viewport test split so
+  // it stops overloading one budget, a content barrier replacing a URL race, and
+  // two budgets declared honestly -- and then held 12 consecutive clean full
+  // runs. With `retries: 2` the next real flake would be absorbed into a slow
+  // green build and nobody would look at it. This phase exists to make gates
+  // gate; a retry is the one setting that quietly stops one from doing so.
+  retries: 0,
 
   // Opt out of parallel tests on CI
   workers: process.env.CI ? 1 : undefined,
@@ -28,8 +34,9 @@ export default defineConfig({
     // Base URL to use in actions like `await page.goto('/')`
     baseURL: 'http://localhost:3000',
 
-    // Collect trace when retrying the failed test
-    trace: 'on-first-retry',
+    // Coupled to `retries: 0` above: 'on-first-retry' would never fire without a
+    // retry, so a CI failure would arrive with no trace at all.
+    trace: 'retain-on-failure',
 
     // Screenshot on failure
     screenshot: 'only-on-failure',

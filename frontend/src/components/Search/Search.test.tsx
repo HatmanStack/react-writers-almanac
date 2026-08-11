@@ -4,12 +4,21 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
 
 import Search from './Search';
-import type { SearchTargetRef } from '../../utils/searchIndex';
+import { createSearchIndex, type SearchTargetRef } from '../../utils/searchIndex';
+import sortedAuthors from '../../assets/Authors_sorted';
+import sortedPoems from '../../assets/Poems_sorted';
 import SearchBar from './SearchBar';
 import CalendarPicker from './CalendarPicker';
 
 const DESKTOP_WIDTH = 1200;
 const MOBILE_WIDTH = 800;
+
+/*
+ * The real archive, built once for the file. Ranking assertions ("frost finds
+ * Robert Frost first") only mean anything against the real lists, and building
+ * the index here keeps these components free of query context.
+ */
+const searchIndex = createSearchIndex({ authors: sortedAuthors, poems: sortedPoems });
 
 describe('Search', () => {
   const onSearch = vi.fn();
@@ -21,6 +30,7 @@ describe('Search', () => {
     onDateSelect,
     currentDate: '20150315',
     width: DESKTOP_WIDTH,
+    searchIndex,
   };
 
   beforeEach(() => {
@@ -59,7 +69,9 @@ describe('SearchBar', () => {
   });
 
   const renderBar = (currentTarget: SearchTargetRef | null = null) =>
-    render(<SearchBar currentTarget={currentTarget} onSearch={onSearch} />);
+    render(
+      <SearchBar currentTarget={currentTarget} onSearch={onSearch} searchIndex={searchIndex} />
+    );
 
   const getInput = () => screen.getByLabelText(/search authors/i);
 

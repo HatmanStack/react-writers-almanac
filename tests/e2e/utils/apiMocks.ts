@@ -1,110 +1,255 @@
 import type { Page } from '@playwright/test';
-import type { Poem } from '../../../src/types/poem';
-import type { Author } from '../../../src/types/author';
-import type { SearchResponse } from '../../../src/types/api';
 import {
-  mockPoem,
-  mockPoem2,
+  MOCK_DATE,
+  MOCK_DATE_NEXT,
+  generateMockAuthor,
+  generateMockPoem,
+  generateMockPoemDates,
   mockAuthor,
   mockAuthor2,
-  mockSearchResults,
-  mockEmptySearchResults,
   mockAuthorsByLetter,
+  mockPoem,
+  mockPoem2,
+  mockPoemDates,
+  type PoemFixture,
 } from '../fixtures/mockData';
 
 /**
- * Mock API error response
+ * The dev server `playwright.config.ts` starts. Anything else is a third party,
+ * and in a test a third party means the real CloudFront distribution.
  */
-export interface MockApiError {
-  message: string;
-  status: number;
-  code?: string;
+const APP_ORIGIN = 'http://localhost:3000';
+
+/*
+ * URL shapes the application requests.
+ *
+ * Derived from `frontend/src/api/endpoints.ts` and confirmed against a
+ * temporary `page.route('**\/*')` logger, not copied from the previous mocks —
+ * which is how they came to intercept URLs the app stopped producing:
+ *
+ *   getPoemByDate('20150315')        -> /public/2015/03/20150315.json
+ *   getPoemAudio('20150315')         -> /public/2015/03/20150315.mp3
+ *   getAuthorBySlug('robert-frost')  -> /public/authors/by-name/robert-frost.json
+ *   getAuthorsByLetter('B')          -> /public/authors/by-letter/B.json
+ *   getPoemBySlug('rereading-frost') -> /public/poems/by-title/rereading-frost.json
+ *
+ * These are RegExps rather than globs on purpose. A Playwright glob `*` does not
+ * cross `/`, and the three-segment shapes collide under `**\/public\/*\/*\/*.json`
+ * — `/public/authors/by-name/x.json` matches it just as `/public/2015/03/x.json`
+ * does. A pattern that matches the wrong handler is the same class of bug as one
+ * that matches nothing.
+ */
+const POEM_JSON = /\/public\/\d{4}\/\d{2}\/(\d{8})\.json$/;
+const POEM_AUDIO = /\/public\/\d{4}\/\d{2}\/\d{8}\.mp3$/;
+const AUTHOR_JSON = /\/public\/authors\/by-name\/([^/]+)\.json$/;
+const AUTHOR_LETTER_JSON = /\/public\/authors\/by-letter\/([^/]+)\.json$/;
+const POEM_TITLE_JSON = /\/public\/poems\/by-title\/([^/]+)\.json$/;
+
+/**
+ * Author portraits. Built inline at `frontend/src/components/Author/Author.tsx`
+ * from `${CDN_BASE_URL}/public/images/${filename}`, not by any endpoints.ts
+ * builder — so it is easy to miss when reading endpoints.ts alone. The probe
+ * that produced the list above caught it.
+ */
+const AUTHOR_IMAGE = /\/public\/images\/[^/]+$/;
+
+/** How long the stand-in recording runs. See `silentWav`. */
+const AUDIO_SECONDS = 60;
+
+/**
+ * A minute of silence, as a real WAV.
+ *
+ * Two things about it are load-bearing.
+ *
+ * DECODABLE. The old mocks answered every recording with an EMPTY audio/mpeg
+ * buffer, which a browser cannot decode: `play()` rejects, the element never
+ * leaves `paused`, and no spec could observe playback at all.
+ *
+ * LONG. A short clip ends before an assertion can see it playing, which makes
+ * "is it playing?" a race with machine speed — a tenth of a second flaked about
+ * one run in three under parallel load. A minute cannot finish inside any
+ * assertion window, so the answer is the same on a fast machine and a slow one.
+ * 8 kHz 8-bit mono keeps that to 480 kB, built once at module load.
+ *
+ * WAV rather than MP3 because it can be built here in a dozen lines, and the
+ * media element takes its format from the Content-Type rather than from the
+ * `.mp3` in the URL.
+ */
+function silentWav(): Buffer {
+  const sampleRate = 8000;
+  const samples = sampleRate * AUDIO_SECONDS;
+  const header = Buffer.alloc(44);
+
+  header.write('RIFF', 0, 'ascii');
+  header.writeUInt32LE(36 + samples, 4);
+  header.write('WAVE', 8, 'ascii');
+  header.write('fmt ', 12, 'ascii');
+  header.writeUInt32LE(16, 16); // PCM chunk size
+  header.writeUInt16LE(1, 20); // format: PCM
+  header.writeUInt16LE(1, 22); // channels: mono
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE(sampleRate, 28); // byte rate
+  header.writeUInt16LE(1, 32); // block align
+  header.writeUInt16LE(8, 34); // bits per sample
+  header.write('data', 36, 'ascii');
+  header.writeUInt32LE(samples, 40);
+
+  // 8-bit PCM is unsigned, so silence is 0x80, not 0x00.
+  return Buffer.concat([header, Buffer.alloc(samples, 0x80)]);
+}
+
+const SILENT_AUDIO = silentWav();
+
+/** A one-pixel transparent PNG, enough for an <img> to load without erroring. */
+const PIXEL_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  'base64'
+);
+
+/**
+ * Fail the test on any request to a host other than the dev server that no mock
+ * claimed.
+ *
+ * This is the mechanism that stops this file rotting silently again. Before it,
+ * `setupApiMocks` registered `**\/public\/*.json` against an app that had been
+ * requesting `/public/{YYYY}/{MM}/{YYYYMMDD}.json` since the archive rewrite:
+ * the glob never matched, the handler never ran, and the request went to the
+ * real CloudFront distribution. The specs passed, so nothing said so. Now the
+ * next endpoint move surfaces as a failure naming the URL.
+ *
+ * Registered first, because Playwright matches routes in reverse registration
+ * order — verified, not assumed — so every specific route below takes
+ * precedence over it, as does any mock a spec registers afterwards.
+ */
+async function failOnUnmockedExternalRequests(page: Page): Promise<void> {
+  await page.route(
+    url => !url.href.startsWith(APP_ORIGIN),
+    async route => {
+      const url = route.request().url();
+      await route.abort('blockedbyclient');
+      throw new Error(
+        `Unmocked external request: ${url}\n` +
+          'A spec reached a third-party host. Either the application changed the ' +
+          'URL it requests and the mock in tests/e2e/utils/apiMocks.ts is stale, ' +
+          'or this request needs a mock of its own. Do not let it through: an ' +
+          'E2E suite that talks to production is not testing what it claims to.'
+      );
+    }
+  );
 }
 
 /**
  * Setup API route mocking for a page
- * This intercepts all API calls and returns mock data
+ * This intercepts every CDN call the app makes and returns mock data
  */
 export async function setupApiMocks(page: Page) {
-  // Mock poem endpoint
-  await page.route('**/public/*.json', async route => {
-    const url = route.request().url();
-    const dateMatch = url.match(/\/public\/(\d{8})\.json$/);
+  await failOnUnmockedExternalRequests(page);
 
-    if (dateMatch) {
-      const date = dateMatch[1];
+  // Poem JSON for a broadcast date
+  await page.route(POEM_JSON, async route => {
+    const date = POEM_JSON.exec(route.request().url())?.[1] ?? '';
 
-      // Return different poems for different dates
-      if (date === '20240101') {
-        await route.fulfill({ json: mockPoem });
-      } else if (date === '20240102') {
-        await route.fulfill({ json: mockPoem2 });
-      } else {
-        await route.fulfill({ json: mockPoem });
-      }
+    if (date === MOCK_DATE) {
+      await route.fulfill({ json: mockPoem });
+    } else if (date === MOCK_DATE_NEXT) {
+      await route.fulfill({ json: mockPoem2 });
     } else {
-      await route.continue();
+      // Any other date still resolves. `/` redirects to whatever archive date
+      // `presentDate()` maps today onto, which moves with the system clock, so
+      // a fixed pair of dates cannot cover the home page.
+      await route.fulfill({ json: generateMockPoem(date, date) });
     }
   });
 
-  // Mock audio endpoint
-  await page.route('**/public/*.mp3', async route => {
-    // Return a mock audio file or success response
+  // Poem audio.
+  //
+  // Range requests are honoured, which is not decoration. Without
+  // `Accept-Ranges` and a 206, Chromium reports `seekable.end(0) === 0` even
+  // though `buffered.end(0)` is the whole 60 s — so `currentTime = 12` is
+  // silently ignored and any test that claims to exercise seeking is really
+  // asserting the default of 0. CloudFront serves ranges; the mock now does too.
+  await page.route(POEM_AUDIO, async route => {
+    const total = SILENT_AUDIO.length;
+    const range = route.request().headers()['range'];
+    const match = range ? /bytes=(\d*)-(\d*)/.exec(range) : null;
+
+    if (!match) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'audio/wav',
+        headers: { 'accept-ranges': 'bytes', 'content-length': String(total) },
+        body: SILENT_AUDIO,
+      });
+      return;
+    }
+
+    const start = match[1] ? Number(match[1]) : 0;
+    const end = match[2] ? Number(match[2]) : total - 1;
+    const chunk = SILENT_AUDIO.subarray(start, end + 1);
+
     await route.fulfill({
-      status: 200,
-      contentType: 'audio/mpeg',
-      body: Buffer.from([]), // Empty buffer for testing
+      status: 206,
+      contentType: 'audio/wav',
+      headers: {
+        'accept-ranges': 'bytes',
+        'content-range': `bytes ${start}-${end}/${total}`,
+        'content-length': String(chunk.length),
+      },
+      body: chunk,
     });
   });
 
-  // Mock author endpoint
-  await page.route('**/api/author/*', async route => {
-    const url = route.request().url();
-    const slug = url.split('/').pop();
+  // Author JSON
+  await page.route(AUTHOR_JSON, async route => {
+    const slug = AUTHOR_JSON.exec(route.request().url())?.[1] ?? '';
 
     if (slug === 'robert-frost') {
       await route.fulfill({ json: mockAuthor });
     } else if (slug === 'emily-dickinson') {
       await route.fulfill({ json: mockAuthor2 });
     } else {
-      await route.fulfill({
-        status: 404,
-        json: { message: 'Author not found', status: 404 },
-      });
+      await route.fulfill({ json: generateMockAuthor(slug) });
     }
   });
 
-  // Mock authors by letter endpoint
-  await page.route('**/api/authors/letter/*', async route => {
+  // Authors by first letter
+  await page.route(AUTHOR_LETTER_JSON, async route => {
     await route.fulfill({ json: mockAuthorsByLetter });
   });
 
-  // Mock search endpoint
-  await page.route('**/api/search/autocomplete*', async route => {
-    const url = new URL(route.request().url());
-    const query = url.searchParams.get('q') || '';
-
-    if (query.toLowerCase().includes('frost')) {
-      await route.fulfill({ json: mockSearchResults });
-    } else if (query === '') {
-      await route.fulfill({ json: mockEmptySearchResults });
-    } else {
-      await route.fulfill({
-        json: {
-          query,
-          results: [],
-          total: 0,
-        },
-      });
-    }
+  // Dates a poem title was broadcast
+  await page.route(POEM_TITLE_JSON, async route => {
+    const slug = POEM_TITLE_JSON.exec(route.request().url())?.[1] ?? '';
+    await route.fulfill({
+      json: slug === 'rereading-frost' ? mockPoemDates : generateMockPoemDates(slug),
+    });
   });
+
+  // Author portraits
+  await page.route(AUTHOR_IMAGE, async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'image/png',
+      body: PIXEL_PNG,
+    });
+  });
+}
+
+/** Path a broadcast date's JSON lives at, in the nested archive layout. */
+function poemJsonPath(date: string): string {
+  return `**/public/${date.substring(0, 4)}/${date.substring(4, 6)}/${date}.json`;
+}
+
+/** Path a broadcast date's audio lives at. */
+function poemAudioPath(date: string): string {
+  return `**/public/${date.substring(0, 4)}/${date.substring(4, 6)}/${date}.mp3`;
 }
 
 /**
  * Mock a successful poem response
  */
-export async function mockPoemSuccess(page: Page, poem: Poem, date: string = '20240101') {
-  await page.route(`**/public/${date}.json`, async route => {
+export async function mockPoemSuccess(page: Page, poem: PoemFixture, date: string = MOCK_DATE) {
+  await page.route(poemJsonPath(date), async route => {
     await route.fulfill({ json: poem });
   });
 }
@@ -112,8 +257,8 @@ export async function mockPoemSuccess(page: Page, poem: Poem, date: string = '20
 /**
  * Mock a poem error response (404)
  */
-export async function mockPoemError(page: Page, date: string = '20240101') {
-  await page.route(`**/public/${date}.json`, async route => {
+export async function mockPoemError(page: Page, date: string = MOCK_DATE) {
+  await page.route(poemJsonPath(date), async route => {
     await route.fulfill({
       status: 404,
       json: {
@@ -127,18 +272,9 @@ export async function mockPoemError(page: Page, date: string = '20240101') {
 /**
  * Mock a network error for poem endpoint
  */
-export async function mockPoemNetworkError(page: Page, date: string = '20240101') {
-  await page.route(`**/public/${date}.json`, async route => {
+export async function mockPoemNetworkError(page: Page, date: string = MOCK_DATE) {
+  await page.route(poemJsonPath(date), async route => {
     await route.abort('failed');
-  });
-}
-
-/**
- * Mock a successful author response
- */
-export async function mockAuthorSuccess(page: Page, author: Author, slug: string) {
-  await page.route(`**/api/author/${slug}`, async route => {
-    await route.fulfill({ json: author });
   });
 }
 
@@ -146,7 +282,7 @@ export async function mockAuthorSuccess(page: Page, author: Author, slug: string
  * Mock an author error response (404)
  */
 export async function mockAuthorError(page: Page, slug: string) {
-  await page.route(`**/api/author/${slug}`, async route => {
+  await page.route(`**/public/authors/by-name/${slug}.json`, async route => {
     await route.fulfill({
       status: 404,
       json: {
@@ -158,38 +294,16 @@ export async function mockAuthorError(page: Page, slug: string) {
 }
 
 /**
- * Mock a successful search response
+ * Mock a poem-dates error response (404)
  */
-export async function mockSearchSuccess(page: Page, response: SearchResponse) {
-  await page.route('**/api/search/autocomplete*', async route => {
-    await route.fulfill({ json: response });
-  });
-}
-
-/**
- * Mock a search error response
- */
-export async function mockSearchError(page: Page) {
-  await page.route('**/api/search/autocomplete*', async route => {
+export async function mockPoemDatesError(page: Page, slug: string) {
+  await page.route(`**/public/poems/by-title/${slug}.json`, async route => {
     await route.fulfill({
-      status: 500,
+      status: 404,
       json: {
-        message: 'Search service unavailable',
-        status: 500,
+        message: 'Poem not found',
+        status: 404,
       },
-    });
-  });
-}
-
-/**
- * Mock audio availability
- */
-export async function mockAudioAvailable(page: Page, date: string = '20240101') {
-  await page.route(`**/public/${date}.mp3`, async route => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'audio/mpeg',
-      body: Buffer.from([]),
     });
   });
 }
@@ -197,8 +311,8 @@ export async function mockAudioAvailable(page: Page, date: string = '20240101') 
 /**
  * Mock audio not available (404)
  */
-export async function mockAudioNotAvailable(page: Page, date: string = '20240101') {
-  await page.route(`**/public/${date}.mp3`, async route => {
+export async function mockAudioNotAvailable(page: Page, date: string = MOCK_DATE) {
+  await page.route(poemAudioPath(date), async route => {
     await route.fulfill({
       status: 404,
       json: { message: 'Audio not available' },

@@ -1,0 +1,21 @@
+{
+  // Typechecks the Playwright suite, which frontend/tsconfig.json never covered
+  // -- its `include` is ["src"]. The consequence was live: the e2e fixtures
+  // imported types from ../../../src/types/, a directory that does not exist,
+  // and nothing reported it.
+  //
+  // The specs import application code by relative path (../../../frontend/src/...),
+  // so tsc pulls those files in transitively; `include` only needs the suite.
+  "extends": "./frontend/tsconfig.json",
+  "compilerOptions": {
+    // frontend/tsconfig.json sets baseUrl "." and maps @/* to ./src/*, both
+    // resolved against *this* file's directory once inherited. Nothing under
+    // tests/e2e or frontend/src uses the @/ alias (verified), so the mapping is
+    // repointed rather than relied on, and it stays correct if one ever does.
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./frontend/src/*"]
+    }
+  },
+  "include": ["tests/e2e/**/*.ts", "playwright.config.ts"]
+}

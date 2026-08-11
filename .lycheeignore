@@ -1,0 +1,36 @@
+# URLs lychee must not treat as broken. One regex per line; blank lines and
+# lines starting with # are comments.
+#
+# Everything below is a URL a CORRECT document may legitimately contain and that
+# an unauthenticated fetch cannot succeed against. Without these entries the
+# weekly check reports them as broken, and a link checker that cries wolf is a
+# link checker someone deletes.
+#
+# SCOPE, measured 2026-08-10: lychee extracts links from prose, not from fenced
+# code blocks or inline code spans. Today every URL below sits inside one of
+# those -- README.md:94-95, scripts/s3-structure.md:217,237, backend/README.md's
+# example SAM output, and the localhost lines in four documents -- so none of
+# these entries fires yet. They are here for the day one is written as prose or
+# as a link, which is exactly when an unexplained red would arrive.
+
+# The CloudFront distribution serving the archive. A key that exists returns 200
+# (verified 2026-08-10: /public/2015/03/20150315.json), but the origin access
+# grants no s3:ListBucket, so the distribution root and every missing key return
+# 403 rather than 404 -- root verified 403 the same day. Paths quoted in the docs
+# are illustrations of key shape, not promises that a given object is there.
+^https?://d3vq6af2mo7fcy\.cloudfront\.net
+
+# Not a scheme any HTTP client can fetch.
+^s3://
+
+# README.md's environment table names this host to show the SHAPE of
+# VITE_API_BASE_URL. It deliberately does not exist; DNS resolution fails.
+^https?://placeholder-api-gateway\.amazonaws\.com
+
+# backend/README.md quotes example SAM stack output. The account id in it is
+# made up and no such API Gateway stage exists.
+^https?://[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com
+
+# Developer instructions. Nothing listens on these ports on a CI runner.
+^https?://localhost(:[0-9]+)?
+^https?://127\.0\.0\.1(:[0-9]+)?

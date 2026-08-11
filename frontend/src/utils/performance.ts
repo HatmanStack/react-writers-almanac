@@ -3,7 +3,7 @@
  *
  * Tracks Core Web Vitals metrics for performance optimization:
  * - LCP (Largest Contentful Paint): Loading performance
- * - FID (First Input Delay): Interactivity
+ * - INP (Interaction to Next Paint): Interactivity
  * - CLS (Cumulative Layout Shift): Visual stability
  * - TTFB (Time to First Byte): Server responsiveness
  * - FCP (First Contentful Paint): Initial render
@@ -17,7 +17,7 @@ import { onCLS, onINP, onLCP, onTTFB, onFCP, type Metric } from 'web-vitals';
  */
 const THRESHOLDS = {
   LCP: { good: 2500, needsImprovement: 4000 }, // ms
-  FID: { good: 100, needsImprovement: 300 }, // ms
+  INP: { good: 200, needsImprovement: 500 }, // ms - https://web.dev/articles/inp
   CLS: { good: 0.1, needsImprovement: 0.25 }, // score
   TTFB: { good: 800, needsImprovement: 1800 }, // ms
   FCP: { good: 1800, needsImprovement: 3000 }, // ms
@@ -26,7 +26,7 @@ const THRESHOLDS = {
 /**
  * Get performance rating based on metric value and thresholds
  */
-function getRating(name: string, value: number): 'good' | 'needs-improvement' | 'poor' {
+export function getRating(name: string, value: number): 'good' | 'needs-improvement' | 'poor' {
   const threshold = THRESHOLDS[name as keyof typeof THRESHOLDS];
   if (!threshold) return 'good';
 
@@ -38,7 +38,7 @@ function getRating(name: string, value: number): 'good' | 'needs-improvement' | 
 /**
  * Format metric value for display
  */
-function formatValue(name: string, value: number): string {
+export function formatValue(name: string, value: number): string {
   if (name === 'CLS') {
     return value.toFixed(3);
   }
@@ -122,7 +122,7 @@ export function initPerformanceMonitoring(): void {
   // Track Largest Contentful Paint (loading performance)
   onLCP(handleMetric);
 
-  // Track Interaction to Next Paint (interactivity, replaces FID)
+  // Track Interaction to Next Paint (interactivity; supersedes First Input Delay)
   onINP(handleMetric);
 
   // Track Cumulative Layout Shift (visual stability)
@@ -141,7 +141,7 @@ export function initPerformanceMonitoring(): void {
       'color: #0CCE6B; font-weight: bold; font-size: 14px;'
     );
     // eslint-disable-next-line no-console
-    console.log('Tracking: LCP, FID, CLS, TTFB, FCP');
+    console.log('Tracking: LCP, INP, CLS, TTFB, FCP');
   }
 }
 
@@ -151,7 +151,7 @@ export function initPerformanceMonitoring(): void {
  */
 export const PERFORMANCE_BUDGETS = {
   LCP: 2500, // Target: < 2.5s
-  FID: 100, // Target: < 100ms
+  INP: 200, // Target: < 200ms
   CLS: 0.1, // Target: < 0.1
   TTFB: 800, // Target: < 800ms
   FCP: 1800, // Target: < 1.8s

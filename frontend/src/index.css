@@ -1,17 +1,18 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Tailwind v4 theme configuration (replaces tailwind.config.js) */
 @theme {
   /* Colors */
   --color-app-bg: #1c1924;
-  --color-app-text: #FFFFF6;
+  --color-app-text: #fffff6;
   --color-app-container: #8293a2;
   --color-border-glow-start: rgba(168, 239, 255, 1);
   --color-border-glow-end: rgba(168, 239, 255, 0.1);
 
   /* Font families */
-  --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   /* Keyframes */
   --animate-border-spin: border-rotate 2.5s linear infinite;

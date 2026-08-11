@@ -1,14 +1,29 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
-  AUTHOR_NAMES,
-  POEM_TITLES,
   MAX_SUGGESTIONS,
-  findTarget,
-  getSearchTargets,
+  SEARCH_INDEX_URL,
+  createSearchIndex,
+  fetchSearchIndex,
   normalizeSearchText,
-  resolveSearchTarget,
-  searchTargets,
 } from './searchIndex';
+import sortedAuthors from '../assets/Authors_sorted';
+import sortedPoems from '../assets/Poems_sorted';
+
+/*
+ * The ranking rules are what matter here, and they are only meaningful against
+ * the real archive -- "frost reaches Robert Frost before Frost at Midnight"
+ * says nothing about a three-item fixture. The lists are imported directly:
+ * this is a test, so it costs no bundle weight, and it keeps every assertion
+ * below identical to the ones written when the index was built at module load.
+ */
+const index = createSearchIndex({ authors: sortedAuthors, poems: sortedPoems });
+
+const AUTHOR_NAMES = new Set(sortedAuthors);
+const POEM_TITLES = new Set(sortedPoems);
+const getSearchTargets = () => index.getTargets();
+const searchTargets = (query: string, limit?: number) => index.searchTargets(query, limit);
+const findTarget = (ref: Parameters<typeof index.findTarget>[0]) => index.findTarget(ref);
+const resolveSearchTarget = (query: string) => index.resolveSearchTarget(query);
 
 describe('normalizeSearchText', () => {
   it('lowercases and collapses punctuation to single spaces', () => {
@@ -150,5 +165,82 @@ describe('resolveSearchTarget', () => {
 
   it('returns null for blank input', () => {
     expect(resolveSearchTarget('  ')).toBeNull();
+  });
+});
+
+describe('createSearchIndex', () => {
+  it('answers membership for both kinds', () => {
+    const small = createSearchIndex({ authors: ['Billy Collins'], poems: ['The Lanyard'] });
+
+    expect(small.hasAuthor('Billy Collins')).toBe(true);
+    expect(small.hasAuthor('The Lanyard')).toBe(false);
+    expect(small.hasPoemTitle('The Lanyard')).toBe(true);
+    expect(small.hasPoemTitle('Billy Collins')).toBe(false);
+  });
+
+  it('exposes the lists in the order it was given them, for neighbour stepping', () => {
+    const small = createSearchIndex({ authors: ['A', 'B'], poems: ['X', 'Y'] });
+
+    expect(small.authors).toEqual(['A', 'B']);
+    expect(small.poems).toEqual(['X', 'Y']);
+  });
+
+  it('keeps two indexes independent', () => {
+    const a = createSearchIndex({ authors: ['Only In A'], poems: [] });
+    const b = createSearchIndex({ authors: ['Only In B'], poems: [] });
+
+    expect(a.hasAuthor('Only In B')).toBe(false);
+    expect(b.hasAuthor('Only In A')).toBe(false);
+  });
+});
+
+describe('fetchSearchIndex', () => {
+  const payload = { authors: ['Billy Collins'], poems: ['The Lanyard'] };
+
+  function stubFetch(response: Partial<Response> & { json?: () => Promise<unknown> }) {
+    return vi.fn().mockResolvedValue({ ok: true, status: 200, ...response } as Response);
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('builds an index from the fetched asset', async () => {
+    vi.stubGlobal('fetch', stubFetch({ json: () => Promise.resolve(payload) }));
+
+    const fetched = await fetchSearchIndex();
+
+    expect(fetched.hasAuthor('Billy Collins')).toBe(true);
+    expect(fetched.hasPoemTitle('The Lanyard')).toBe(true);
+  });
+
+  it('requests the asset from the app origin and forwards the abort signal', async () => {
+    const fetchStub = stubFetch({ json: () => Promise.resolve(payload) });
+    vi.stubGlobal('fetch', fetchStub);
+    const controller = new AbortController();
+
+    await fetchSearchIndex(controller.signal);
+
+    expect(fetchStub).toHaveBeenCalledWith(SEARCH_INDEX_URL, { signal: controller.signal });
+  });
+
+  it('throws when the asset is missing rather than resolving to an empty index', async () => {
+    // An empty index would report every real author as unknown, which is worse
+    // than failing: the caller can only degrade safely if it knows it failed.
+    vi.stubGlobal('fetch', stubFetch({ ok: false, status: 404 }));
+
+    await expect(fetchSearchIndex()).rejects.toThrow('404');
+  });
+
+  it('rejects a payload that is not two arrays of strings', async () => {
+    vi.stubGlobal('fetch', stubFetch({ json: () => Promise.resolve({ authors: [1], poems: [] }) }));
+
+    await expect(fetchSearchIndex()).rejects.toThrow('malformed');
+  });
+
+  it('rejects a payload missing a list entirely', async () => {
+    vi.stubGlobal('fetch', stubFetch({ json: () => Promise.resolve({ authors: [] }) }));
+
+    await expect(fetchSearchIndex()).rejects.toThrow('malformed');
   });
 });

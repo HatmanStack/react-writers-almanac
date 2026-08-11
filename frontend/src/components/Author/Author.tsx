@@ -251,7 +251,7 @@ function Author({
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center m-8 z-10">
+      <div className="relative flex justify-center items-center m-8 z-10">
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           Loading author data...
         </div>
@@ -262,7 +262,7 @@ function Author({
   // Error state
   if (error) {
     return (
-      <div className="flex justify-center items-center m-8 z-10">
+      <div className="relative flex justify-center items-center m-8 z-10">
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           <p className="font-bold mb-4">Error loading author: {error.message}</p>
           <button
@@ -281,7 +281,7 @@ function Author({
   // Not found state
   if (!authorData) {
     return (
-      <div className="flex justify-center items-center m-8 z-10">
+      <div className="relative flex justify-center items-center m-8 z-10">
         <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           Author not found
         </div>

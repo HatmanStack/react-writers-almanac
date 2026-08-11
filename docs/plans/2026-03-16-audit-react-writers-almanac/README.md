@@ -1,5 +1,14 @@
 # Audit Remediation Plan: react-writers-almanac
 
+> **Historical.** This plan describes the repository as it stood in March 2026
+> (committed `ba3845b`..`896dc5b`, 2026-03-16) and was superseded by
+> `2026-08-09-audit-react-writers-almanac`. **Do not cite it as evidence about
+> current code.** Several statements below were true when written and are false
+> now -- the Prerequisites section names React 18 and Vite 7 and prescribes a
+> two-step `npm ci && cd frontend && npm ci` install; the project is on React 19
+> and Vite 8 with a single root lockfile. See [`../../README.md`](../../README.md)
+> for what this directory is and where current documentation lives.
+
 ## Overview
 
 This plan remediates findings from three concurrent audits of the react-writers-almanac codebase: a health audit (tech debt), a 12-pillar evaluation, and a documentation drift audit. The codebase is a React + Vite SPA with a Zustand store, TanStack Query, and three AWS Lambda backend functions. It serves archived daily poems from a CDN/S3 backend.

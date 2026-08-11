@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { setupApiMocks } from './utils/apiMocks';
 import { NavigationHelpers, AssertionHelpers } from './utils/helpers';
+import { MOCK_DATE, MOCK_DATE_NEXT, mockPoem, mockPoem2 } from './fixtures/mockData';
 
 test.describe('Responsive Design', () => {
   test.beforeEach(async ({ page }) => {
@@ -100,26 +101,7 @@ test.describe('Responsive Design', () => {
     await expect(poem).toBeVisible();
   });
 
-  test('should support touch interactions on mobile', async ({ page }) => {
-    const nav = new NavigationHelpers(page);
-
-    // Set mobile viewport with touch support
-    await page.setViewportSize({ width: 375, height: 667 });
-
-    // Navigate to home page
-    await nav.goToHome();
-
-    // Test tap on next button
-    const nextButton = page.getByRole('button', { name: /next/i });
-    await nextButton.tap();
-    await page.waitForLoadState('networkidle');
-
-    // Verify navigation worked
-    const poem = page.locator('h1, h2').first();
-    await expect(poem).toBeVisible();
-  });
-
-  test('should show mobile menu if hamburger icon exists', async ({ page }) => {
+  test('should put the whole header on screen with no menu to open', async ({ page }) => {
     const nav = new NavigationHelpers(page);
 
     // Set mobile viewport
@@ -128,21 +110,15 @@ test.describe('Responsive Design', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Look for hamburger menu (common in mobile layouts)
-    const hamburger = page.getByRole('button', { name: /menu|navigation/i });
-    const hasHamburger = await hamburger.isVisible().catch(() => false);
+    // AppLayout's narrow branch (`width > 1000 ? ... : ...`) stacks the same
+    // header the desktop branch lays out in a row: logo, search, day, date.
+    // Nothing is collapsed behind a menu button, and none exists to click.
+    await expect(page.getByRole('button', { name: /menu|navigation/i })).toHaveCount(0);
+    await expect(page.locator('[role="menu"]')).toHaveCount(0);
 
-    if (hasHamburger) {
-      // Click hamburger to open menu
-      await hamburger.click();
-
-      // Verify menu is visible
-      const menu = page.locator('[role="menu"], nav');
-      await expect(menu).toBeVisible();
-    } else {
-      // No hamburger menu, navigation might be always visible
-      expect(true).toBeTruthy();
-    }
+    // What it shows instead, all reachable without opening anything.
+    await expect(page.getByRole('combobox', { name: /search/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /open calendar/i })).toBeVisible();
   });
 
   test('should adjust font sizes for mobile readability', async ({ page }) => {
@@ -204,38 +180,43 @@ test.describe('Responsive Design', () => {
     expect(essentialContent).toBeGreaterThan(0);
   });
 
-  test('should maintain functionality across all viewport sizes', async ({ page }) => {
-    const viewports = [
-      { width: 1920, height: 1080, name: 'desktop' },
-      { width: 768, height: 1024, name: 'tablet' },
-      { width: 375, height: 667, name: 'mobile' },
-    ];
+  // One test per viewport, not a loop over all three.
+  //
+  // The loop version put three full page loads and six retrying assertions
+  // inside a single 30s budget — measured at 21-24s of it — and it crossed the
+  // 1000px branch boundary (1920 -> 768) on the way, which unmounts one
+  // <Suspense><Audio/></Suspense> subtree and mounts the other. The next button
+  // lives in that subtree, so it could be absent at the click even after the
+  // poem had rendered. It failed 7 of 20 repeats. Split, each of these runs in
+  // about a third of the budget, and a failure names the viewport that failed.
+  //
+  // (The loop's own `waitForLoadState('networkidle')` calls are gone either way
+  // — waiting on the poem that should have rendered says the same thing, and
+  // says it about the app rather than about the network.)
+  for (const viewport of [
+    { name: 'desktop', width: 1920, height: 1080 },
+    { name: 'tablet', width: 768, height: 1024 },
+    { name: 'mobile', width: 375, height: 667 },
+  ]) {
+    test(`should stay usable at ${viewport.name} (${viewport.width}x${viewport.height})`, async ({
+      page,
+    }) => {
+      const nav = new NavigationHelpers(page);
+      const assert = new AssertionHelpers(page);
 
-    for (const viewport of viewports) {
-      // Set viewport
-      await page.setViewportSize(viewport);
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
 
-      // Navigate to home page
-      await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await nav.goToDate(MOCK_DATE);
+      await assert.expectPoemTitle(mockPoem.poemtitle[0]);
 
-      // Verify poem is visible
-      const poem = page.locator('h1, h2').first();
-      await expect(poem).toBeVisible();
-
-      // Verify navigation works
       const nextButton = page.getByRole('button', { name: /next/i });
       await expect(nextButton).toBeVisible();
-
-      // Test navigation
       await nextButton.click();
-      await page.waitForLoadState('networkidle');
 
-      // Verify still functional after navigation
-      const poemAfter = page.locator('h1, h2').first();
-      await expect(poemAfter).toBeVisible();
-    }
-  });
+      await expect(page).toHaveURL(new RegExp(`${MOCK_DATE_NEXT}$`));
+      await assert.expectPoemTitle(mockPoem2.poemtitle[0]);
+    });
+  }
 
   test('should handle orientation changes on tablets', async ({ page }) => {
     const nav = new NavigationHelpers(page);
@@ -258,24 +239,33 @@ test.describe('Responsive Design', () => {
     await expect(poem2).toBeVisible();
   });
 
-  test('should make interactive elements large enough for touch on mobile', async ({ page }) => {
+  test.fixme('should make interactive elements large enough for touch on mobile', async ({
+    page,
+  }) => {
+    // FAILS FOR REAL, and the fix is a design decision — recorded rather than
+    // guessed (Phase-3 Task 5, "undecidable" bucket; also in feedback.md).
+    //
+    // Measured at 375x667 on a broadcast page:
+    //   "Navigate to previous content"  22 x 22
+    //   "Navigate to next content"      22 x 22
+    //   "Open calendar"                 24 x 24
+    //   "Hide content containers"      130 x 36
+    //   "View poem: ..."               327 x 40
+    //
+    // The two arrows are the primary way to move through the archive on a phone
+    // and are the smallest targets on the page. 22px is below WCAG 2.2's AA
+    // minimum of 24x24 (SC 2.5.8) as well as the 36px this test asks for.
+    // Enlarging them means changing how the audio row looks, which is a visual
+    // decision this remediation plan has no mandate to make.
     const nav = new NavigationHelpers(page);
 
-    // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
-
-    // Navigate to home page
     await nav.goToHome();
 
-    // Get navigation button
-    const nextButton = page.getByRole('button', { name: /next/i });
-    await nextButton.waitFor({ state: 'visible' });
-
-    // Check button size (should be at least 44x44px for touch)
-    const box = await nextButton.boundingBox();
-    if (box) {
-      expect(box.height).toBeGreaterThanOrEqual(36); // Minimum touch target
-      expect(box.width).toBeGreaterThanOrEqual(36);
+    for (const name of [/next/i, /previous|prev/i, /open calendar/i]) {
+      const box = await page.getByRole('button', { name }).boundingBox();
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(36);
+      expect(box?.width ?? 0).toBeGreaterThanOrEqual(36);
     }
   });
 
@@ -288,27 +278,23 @@ test.describe('Responsive Design', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Search field should be visible and usable
-    const searchField = page.getByRole('textbox', { name: /search/i });
-    const searchVisible = await searchField.isVisible().catch(() => false);
+    // SearchBar is rendered unconditionally by Search.tsx in both breakpoints —
+    // only the stacking direction differs — so it is always here to assert on.
+    //
+    // The old locator asked for role `textbox`, which matched nothing: MUI's
+    // Autocomplete gives its input role `combobox`. That is what made the
+    // `else` branch below the only reachable one, and it asserted nothing.
+    const searchField = page.getByRole('combobox', { name: /search/i });
+    await expect(searchField).toBeVisible();
 
-    if (searchVisible) {
-      // Should be wide enough for input
-      const box = await searchField.boundingBox();
-      if (box) {
-        expect(box.width).toBeGreaterThan(200);
-      }
+    // Wide enough to type an author name into. Search.tsx gives the wrapper
+    // `w-full` below 1000px rather than the desktop `w-[18em]`.
+    const box = await searchField.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box?.width ?? 0).toBeGreaterThan(200);
 
-      // Test typing in search
-      await searchField.fill('test');
-
-      // Verify input works
-      const value = await searchField.inputValue();
-      expect(value).toBe('test');
-    } else {
-      // Search might be in a collapsed menu
-      expect(true).toBeTruthy();
-    }
+    await searchField.fill('test');
+    await expect(searchField).toHaveValue('test');
   });
 
   test('should prevent content overflow on small screens', async ({ page }) => {
@@ -338,22 +324,92 @@ test.describe('Responsive Design', () => {
     // Navigate to home page
     await nav.goToHome();
 
-    // Check that images (if any) are loaded
+    // There is always at least one image: AppLayout renders the logo
+    // unconditionally in both branches. The old `if (imageCount > 0)` guard did
+    // not need to hold, and the assertion under it passed either way.
     const images = page.locator('img');
+    await expect(images.first()).toBeVisible();
+
     const imageCount = await images.count();
+    expect(imageCount).toBeGreaterThan(0);
 
-    if (imageCount > 0) {
-      // Images should have appropriate sizing
-      const firstImage = images.first();
-      const box = await firstImage.boundingBox();
-
-      if (box) {
-        // Image should not exceed viewport width
-        expect(box.width).toBeLessThanOrEqual(375);
-      }
+    // No image may be wider than the viewport, or the page scrolls sideways.
+    // The logo asks for `w-[35rem]` (560px) and is held to 343px here by the
+    // reset's `max-width: 100%`, which is the behaviour worth pinning.
+    for (let i = 0; i < imageCount; i++) {
+      const box = await images.nth(i).boundingBox();
+      expect(box?.width ?? 0).toBeLessThanOrEqual(375);
     }
+  });
+  // Hide Content is the one header control the suite never exercised, and that
+  // hole is what let a regression land here from this phase's own date-picker
+  // fix: raising the search container to z-20 tied the button's z-20, and
+  // document order handed the overlap to the container, which paints over the
+  // button with its own background. It is checked at both breakpoints because
+  // the two AppLayout branches lay the same two elements out differently.
+  for (const viewport of [
+    { name: 'desktop', width: 1920, height: 1080 },
+    { name: 'mobile', width: 375, height: 667 },
+  ]) {
+    test(`should hide and restore the content containers on ${viewport.name}`, async ({ page }) => {
+      const nav = new NavigationHelpers(page);
+      const assert = new AssertionHelpers(page);
 
-    // Test passes regardless of image presence
-    expect(true).toBeTruthy();
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await nav.goToDate(MOCK_DATE);
+      await assert.expectPoemTitle(mockPoem.poemtitle[0]);
+
+      const hide = page.getByRole('button', { name: /hide content containers/i });
+      await expect(hide).toBeVisible();
+      await expect(hide).toHaveAttribute('aria-expanded', 'true');
+
+      await hide.click();
+
+      // AppLayout gates the whole <Outlet /> section on !isContentHidden.
+      await expect(page.getByRole('region', { name: 'Main content' })).toHaveCount(0);
+      await expect(page.getByRole('heading', { name: mockPoem.poemtitle[0] })).toHaveCount(0);
+
+      // The header itself stays, so there is a way back.
+      await expect(page.getByRole('combobox', { name: /search/i })).toBeVisible();
+
+      const show = page.getByRole('button', { name: /show content containers/i });
+      await expect(show).toHaveAttribute('aria-expanded', 'false');
+
+      await show.click();
+
+      await assert.expectPoemTitle(mockPoem.poemtitle[0]);
+    });
+  }
+
+  test.describe('with a touchscreen', () => {
+    // Playwright's "Desktop Chrome" device has no touch, so Locator.tap() throws
+    // rather than failing an assertion. Touch is opted into here, for the tests
+    // that are actually about touch.
+    test.use({ hasTouch: true });
+
+    test('should support touch interactions on mobile', async ({ page }) => {
+      const nav = new NavigationHelpers(page);
+      const assert = new AssertionHelpers(page);
+
+      await page.setViewportSize({ width: 375, height: 667 });
+      await nav.goToDate(MOCK_DATE);
+      await assert.expectPoemTitle(mockPoem.poemtitle[0]);
+
+      await page.getByRole('button', { name: /next/i }).tap();
+
+      await expect(page).toHaveURL(new RegExp(`${MOCK_DATE_NEXT}$`));
+      await assert.expectPoemTitle(mockPoem2.poemtitle[0]);
+    });
+
+    test('should open the date picker by tap', async ({ page }) => {
+      const nav = new NavigationHelpers(page);
+
+      await page.setViewportSize({ width: 375, height: 667 });
+      await nav.goToDate(MOCK_DATE);
+
+      await page.getByRole('button', { name: /open calendar/i }).tap();
+
+      await expect(page.locator('.MuiDateCalendar-root').first()).toBeVisible();
+    });
   });
 });

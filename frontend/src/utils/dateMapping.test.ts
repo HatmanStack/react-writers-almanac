@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { formatAuthorDate, isRealCalendarDate } from './dateMapping';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { formatAuthorDate, isRealCalendarDate, isWithinArchive, presentDate } from './dateMapping';
 
 describe('formatAuthorDate', () => {
   it('parses the display format used across the archive', () => {
@@ -69,5 +69,71 @@ describe('isRealCalendarDate', () => {
     expect(isRealCalendarDate('20150300')).toBe(false);
     expect(isRealCalendarDate('not-a-date')).toBe(false);
     expect(isRealCalendarDate('')).toBe(false);
+  });
+});
+
+describe('presentDate', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function at(year: number, monthIndex: number, day: number): string {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(year, monthIndex, day));
+    return presentDate();
+  }
+
+  it('keeps the mapped years it already had', () => {
+    expect(at(2026, 2, 15)).toBe('20150315');
+    expect(at(2027, 6, 4)).toBe('20100704');
+  });
+
+  it('falls back to the default archive year for an unmapped year', () => {
+    expect(at(2029, 5, 10)).toBe('20140610');
+  });
+
+  /*
+   * presentDate() substitutes only the year, so 29 February lands on an
+   * archive year that need not be a leap year — and DEFAULT_ARCHIVE_YEAR
+   * ('2014') is not one. This produced '20140229'; App.tsx:28 redirects / to
+   * that date, isValidDateParam rejects it, and the homepage rendered
+   * NotFound.
+   */
+  it('returns a real archive date on 29 February 2028', () => {
+    const result = at(2028, 1, 29);
+    expect(isRealCalendarDate(result)).toBe(true);
+    expect(isWithinArchive(result)).toBe(true);
+  });
+
+  it('returns a real archive date on 29 February 2032', () => {
+    const result = at(2032, 1, 29);
+    expect(isRealCalendarDate(result)).toBe(true);
+    expect(isWithinArchive(result)).toBe(true);
+  });
+
+  /*
+   * The sweep is what makes the fix durable rather than dated: it holds for
+   * every future leap year in range, not just the two named above.
+   */
+  it('returns a real, in-archive date for every day from 2026 to 2040', () => {
+    vi.useFakeTimers();
+
+    const cursor = new Date(2026, 0, 1);
+    const end = new Date(2040, 11, 31);
+    const failures: string[] = [];
+
+    while (cursor.getTime() <= end.getTime()) {
+      vi.setSystemTime(cursor);
+      const result = presentDate();
+
+      if (!isRealCalendarDate(result) || !isWithinArchive(result)) {
+        const today = `${cursor.getFullYear()}-${cursor.getMonth() + 1}-${cursor.getDate()}`;
+        failures.push(`${today} -> ${result}`);
+      }
+
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    expect(failures).toEqual([]);
   });
 });

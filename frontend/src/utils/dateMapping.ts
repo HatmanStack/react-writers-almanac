@@ -29,13 +29,22 @@ export const DATE_BOUNDARIES = {
 /**
  * Year mapping for present-day dates.
  * Maps current calendar years to archive years with similar day-of-week alignment.
+ *
+ * The table is deliberately short. `presentDate()` guarantees a real, in-archive
+ * date for any system clock without needing an entry here, so extending it is a
+ * day-of-week-alignment improvement only — never a correctness fix.
  */
 export const YEAR_MAPPINGS: Record<string, string> = {
   '2026': '2015',
   '2027': '2010',
 } as const;
 
-/** Default fallback year when current year isn't in YEAR_MAPPINGS */
+/**
+ * Default fallback year when the current year isn't in YEAR_MAPPINGS.
+ *
+ * Note this is not a leap year, which is why `presentDate()` clamps rather than
+ * substituting the year blindly.
+ */
 export const DEFAULT_ARCHIVE_YEAR = '2014';
 
 /**
@@ -102,17 +111,41 @@ export function formatDate(
  * Get the present date mapped to an appropriate archive date.
  * Uses year mappings to find archive dates with similar day-of-week alignment.
  *
+ * Guarantees a real calendar date inside the archive bounds for any system
+ * clock, whether or not the current year appears in YEAR_MAPPINGS.
+ *
  * @returns Archive date string in YYYYMMDD format
  *
  * @example
  * // If today is 2026-03-15:
  * presentDate() // '20150315'
+ * // If today is 2028-02-29 (unmapped year, fallback 2014 is not a leap year):
+ * presentDate() // '20140228'
  */
 export function presentDate(): string {
   const today = formatDate(new Date(), false);
   const year = today.substring(0, 4);
+  const monthDay = today.substring(4);
   const archiveYear = YEAR_MAPPINGS[year] ?? DEFAULT_ARCHIVE_YEAR;
-  return archiveYear + today.substring(4);
+  const candidate = archiveYear + monthDay;
+
+  if (isRealCalendarDate(candidate)) {
+    return candidate;
+  }
+
+  /*
+   * Only the year is substituted, so 29 February lands on an archive year that
+   * need not be a leap year — DEFAULT_ARCHIVE_YEAR is not one, so every year
+   * from 2028 on produced '20140229'. App.tsx:28 redirects / to this date and
+   * isValidDateParam rejects it, so the homepage rendered NotFound.
+   *
+   * Clamp to the last real day of the same month, reusing isRealCalendarDate
+   * rather than widening YEAR_MAPPINGS by hand — a longer table would move the
+   * failure date instead of removing it.
+   */
+  const month = monthDay.substring(0, 2);
+  const lastDayOfMonth = new Date(Number(archiveYear), Number(month), 0).getDate();
+  return `${archiveYear}${month}${String(lastDayOfMonth).padStart(2, '0')}`;
 }
 
 /**

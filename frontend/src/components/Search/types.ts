@@ -1,4 +1,4 @@
-import type { SearchTarget, SearchTargetRef } from '../../utils/searchIndex';
+import type { SearchIndex, SearchTarget, SearchTargetRef } from '../../utils/searchIndex';
 
 export interface SearchProps {
   /** What is on screen now, or null when viewing by date */
@@ -11,4 +11,10 @@ export interface SearchProps {
   currentDate: string;
   /** Viewport width, used to pick the stacking direction */
   width: number;
+  /**
+   * The archive index, or undefined while it is still in flight. Passed in
+   * rather than fetched here so the field stays a leaf component: it renders
+   * from what it is given and needs no query context to be tested.
+   */
+  searchIndex?: SearchIndex;
 }
