@@ -73,6 +73,13 @@ jobs:
               - 'tsconfig.e2e.json'
               - 'vitest.config.ts'
               - 'playwright.config.ts'
+              # The workflows themselves. Without this a change to this file
+              # leaves `frontend` false, `check` skips, and `status-check`
+              # counts the skip as a pass -- so a PR editing CI merges with no
+              # lint, typecheck, coverage, build or dependency audit having run.
+              # The job that verifies the repository has to be triggered by
+              # changes to its own definition.
+              - '.github/workflows/**'
             backend:
               - 'backend/**'
 
@@ -328,6 +335,20 @@ jobs:
 
       - name: Install Lambda dependencies
         run: cd backend/lambdas && npm ci
+
+      # NOT audited here, deliberately, and this is a live finding rather than
+      # an oversight. `npm audit --omit=dev --audit-level=moderate` in
+      # backend/lambdas currently exits 1: fast-xml-parser and fast-xml-builder
+      # carry two high and one moderate advisory, transitive through
+      # @aws-sdk/xml-builder. The frontend audit in `check` is gated on the
+      # `frontend` filter, so this tree is audited by nothing today.
+      #
+      # Adding the gate here would put CI red on arrival, and the fix requires
+      # writing backend/lambdas/package-lock.json, which ADR-2 fences off while
+      # the backend's disposition is undecided -- these handlers currently read
+      # an S3 prefix that does not exist and have no runtime callers, so the
+      # vulnerable code serves no traffic. Wire this gate up in the same change
+      # that resolves that question, not before.
 
       - name: Validate SAM template
         run: |
