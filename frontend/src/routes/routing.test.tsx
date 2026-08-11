@@ -10,9 +10,21 @@ import { presentDate, DATE_BOUNDARIES } from '../utils/dateMapping';
 /*
  * Stubs for everything that is not routing.
  *
- * Search is stubbed because it imports `@mui/icons-material`, which the
- * workspace-root `overrides` entry leaves uninstalled — a pre-existing problem
- * unrelated to navigation.
+ * These tests are about the route table: which component a URL mounts, what the
+ * address bar reads afterwards, and what the back button does. Everything a
+ * route renders *inside* that is someone else's test.
+ *
+ * Search is the expensive one. Rendering it for real pulls in MUI's Autocomplete
+ * and the x-date-pickers calendar, and — through utils/searchIndex — the two
+ * bundled asset modules `Authors_sorted` and `Poems_sorted`: 1,572 and 6,000
+ * literal strings that no assertion here reads. Search has its own suite in
+ * components/Search/Search.test.tsx, which renders it unstubbed.
+ *
+ * (An older version of this comment said Search was stubbed because
+ * `@mui/icons-material` was left uninstalled by the workspace-root `overrides`
+ * entry. That was a leftover from the MUI override incident and is no longer
+ * true: it resolves at v9.2.0 after the documented install, and Search.test.tsx
+ * renders the real SearchBar through it.)
  */
 vi.mock('../components/Search', () => ({
   default: () => <div data-testid="search" />,
