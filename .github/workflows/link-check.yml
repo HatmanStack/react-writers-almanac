@@ -46,14 +46,20 @@ jobs:
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
           # --include-fragments is load-bearing, not decoration. Without it a
-          # link to backend/README.md#no-such-anchor passes silently; verified by
-          # breaking one and watching the run go from 1 error to 2. Every
-          # cross-document link in this repo carries an anchor.
+          # link to backend/README.md#no-such-anchor does not merely go
+          # under-reported, it passes silently -- exit 0 on a tree carrying only
+          # a broken fragment. Every cross-document link in this repo carries an
+          # anchor.
           #
           # docs/plans is excluded for the same reason it is excluded from
           # Prettier and markdownlint: audit records are kept as the auditors
           # wrote them. node_modules twice because npm leaves a nested
           # frontend/node_modules behind.
+          #
+          # PULL_REQUEST_TEMPLATE.md is named explicitly because '**/*.md' does
+          # not match it: lychee skips hidden paths and .github/ is one.
+          # --hidden would also pull .claude/worktrees/*/ into a local run and
+          # not into CI. Same args as the offline pass in ci.yml, minus --offline.
           args: >-
             --no-progress
             --include-fragments
@@ -61,6 +67,7 @@ jobs:
             --exclude-path frontend/node_modules
             --exclude-path docs/plans
             '**/*.md'
+            .github/PULL_REQUEST_TEMPLATE.md
           # Both default to true; stated because they are the whole point of the
           # job. `fail` propagates lychee's exit code; `failIfEmpty` catches the
           # silent-success case where a bad glob checks nothing at all.

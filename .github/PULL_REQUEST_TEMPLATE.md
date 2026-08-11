@@ -18,6 +18,8 @@ If this fixes a bug, say how you saw it fail before the fix.
 - [ ] `npm run check`
 - [ ] `npm run build`
 - [ ] `npm run format:check`
+- [ ] `npm run docs:lint`
+- [ ] `npm run docs:api`
 - [ ] `npm run test:e2e` (if this touches the UI or the routes)
 
 ## Closes

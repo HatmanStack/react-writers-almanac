@@ -180,8 +180,18 @@ jobs:
       # third-party uptime and run weekly in link-check.yml instead.
       #
       # --include-fragments is load-bearing: without it a link to
-      # backend/README.md#no-such-anchor passes silently. Verified locally by
-      # breaking one -- 1 error without the flag, 2 with it.
+      # backend/README.md#no-such-anchor is not merely under-reported, it passes
+      # SILENTLY. Verified on a tree carrying only a broken fragment: exit 0
+      # without the flag, exit 2 with it.
+      #
+      # PULL_REQUEST_TEMPLATE.md is named explicitly because '**/*.md' does not
+      # match it -- lychee skips hidden paths, and .github/ is one. --hidden
+      # would fix that and cost more than it gains: it also pulls
+      # .claude/worktrees/*/ into a local run and not into CI, which is the
+      # locally-red / CI-green divergence this job exists to avoid. Naming the
+      # one file keeps lychee's input set equal to markdownlint's 8. Verified
+      # load-bearing: a broken link in that file is missed by the glob alone
+      # (exit 0) and caught with the file named (exit 2).
       - name: Check relative links
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
@@ -193,6 +203,7 @@ jobs:
             --exclude-path frontend/node_modules
             --exclude-path docs/plans
             '**/*.md'
+            .github/PULL_REQUEST_TEMPLATE.md
           fail: true
           failIfEmpty: true
 
