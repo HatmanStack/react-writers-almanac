@@ -98,6 +98,8 @@ public tag, which is a deliberate act.
   nothing reads
 - `docs/README.md` added, and both audit working-sets under `docs/plans/` marked
   as historical records rather than current documentation
+- `CONTRIBUTING.md` and `.github/PULL_REQUEST_TEMPLATE.md` added — there was no
+  contributor entry path at all, and `README.md` was the only way in
 
 ## [1.4.0] - 2026-03-16
 

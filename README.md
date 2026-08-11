@@ -271,6 +271,14 @@ If the tag for the top version already exists, the workflow skips — so re-touc
 
 ---
 
+## Contributing
+
+[`CONTRIBUTING.md`](CONTRIBUTING.md) covers setup, the local loop, how to run the
+whole CI gate on your machine, the pre-commit hook, and the commit convention —
+with two commits from this repository's own history as the worked examples.
+
+---
+
 ## License
 
 Licensed under the Apache License, Version 2.0. See [`LICENSE`](LICENSE) for the
