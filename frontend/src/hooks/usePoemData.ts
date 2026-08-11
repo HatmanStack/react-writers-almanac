@@ -8,6 +8,7 @@
 import { useEffect } from 'react';
 import { cdnClient, CDN_BASE_URL } from '../api/client';
 import { CDN_ENDPOINTS, isAudioAvailable } from '../api/endpoints';
+import { useAudioDatesQuery } from './queries/useAudioDatesQuery';
 import { sanitizePoemText, sanitizePoemLines } from '../api/transforms';
 import { useAppStore } from '../store/useAppStore';
 
@@ -57,6 +58,10 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
   const setPoemData = useAppStore(state => state.setPoemData);
   const setAuthorData = useAppStore(state => state.setAuthorData);
   const setAudioData = useAppStore(state => state.setAudioData);
+
+  // Which broadcasts actually have a recording. Undefined until it lands, which
+  // setAudioUrl below treats as "assume yes" -- see the note there.
+  const { data: audioDates } = useAudioDatesQuery();
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -143,8 +148,19 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
     }
 
     function setAudioUrl() {
-      // Audio only available after 2009-01-11
-      if (!isAudioAvailable(linkDate)) {
+      /*
+       * The manifest is the fact; the date rule is a fallback. 96 broadcasts
+       * after the 2009-01-11 cutoff have no recording, so the rule alone hands
+       * the player a URL that 403s.
+       *
+       * Unlike the author page, this falls back to the OPTIMISTIC answer when
+       * the manifest has not arrived: the two callers want opposite failure
+       * behaviour. A highlight is a promise and must not be made unconfirmed;
+       * a player URL is an attempt, and attempting a recording that turns out
+       * to be missing is no worse than never trying for one that exists.
+       */
+      const known = audioDates?.has(linkDate) ?? isAudioAvailable(linkDate);
+      if (!known) {
         setAudioData({ mp3Url: 'NotAvailable' });
         return;
       }
@@ -170,5 +186,6 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
     setPoemData,
     setAuthorData,
     setAudioData,
+    audioDates,
   ]);
 }

@@ -7,6 +7,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePoemData } from './usePoemData';
 import { cdnClient } from '../api/client';
 import { useAppStore } from '../store/useAppStore';
@@ -61,7 +62,17 @@ function seedRenderedPoem(): void {
 }
 
 function renderPoemHook(linkDate = '20150315') {
-  return renderHook(() => usePoemData({ linkDate, setDay: vi.fn(), setPoemByline: vi.fn() }));
+  // usePoemData reads the audio-date manifest to decide whether there is a
+  // recording to play, so it needs query context. Left unseeded on purpose:
+  // that exercises the fallback path, where an absent manifest means the date
+  // rule still decides rather than the player going silent.
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+  return renderHook(() => usePoemData({ linkDate, setDay: vi.fn(), setPoemByline: vi.fn() }), {
+    wrapper,
+  });
 }
 
 /**

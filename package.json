@@ -23,6 +23,7 @@
     "deploy": "bash backend/scripts/deploy.sh",
     "dev": "cd frontend && npm run dev",
     "build:search-index": "node scripts/generate-search-index.mjs",
+    "build:audio-index": "node scripts/generate-audio-index.mjs",
     "build": "cd frontend && npm run build",
     "preview": "cd frontend && npm run preview",
     "test:e2e": "playwright test",
