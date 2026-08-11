@@ -244,6 +244,33 @@ The application uses AWS infrastructure:
 
 ---
 
+## Releases
+
+**`CHANGELOG.md` is what cuts a release.** This is not obvious from anywhere else
+in the repository, so it is worth stating plainly.
+
+`.github/workflows/release.yml` triggers on any push to `main` whose diff touches
+`CHANGELOG.md`. It reads the **first** `## [x.y.z]` heading in the file, and if no
+tag `vx.y.z` exists yet it creates one, pushes it, and publishes a GitHub release
+with that section as the notes. Nothing else in the repository publishes anything.
+
+To cut a release: add a semver `## [x.y.z]` heading at the top of `CHANGELOG.md`
+and merge to `main`.
+
+Two deliberate refusals:
+
+- **`## [Unreleased]` is ignored.** The version pattern requires digits, so an
+  `[Unreleased]` heading falls through to the skip branch. That is why entries can
+  accumulate under it without publishing anything.
+- **Prereleases are ignored too.** `## [1.4.0-rc.1]` does not match either, so
+  cutting a prerelease stays a manual act. This workflow holds `contents: write`,
+  and skipping is the safe direction for an automation that does.
+
+If the tag for the top version already exists, the workflow skips — so re-touching
+`CHANGELOG.md` without adding a new heading is harmless.
+
+---
+
 ## License
 
 Licensed under the Apache License, Version 2.0. See [`LICENSE`](LICENSE) for the
