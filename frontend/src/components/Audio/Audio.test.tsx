@@ -199,15 +199,33 @@ describe('Audio Component', () => {
   });
 
   describe('Accessibility', () => {
-    // axe-core hangs on HTML5 audio elements in jsdom. See: https://github.com/dequelabs/axe-core/issues/2765
-    // Manual accessibility testing should be performed for audio controls.
-    it.skip('should have no axe violations when rendered with audio (skipped: axe-core/jsdom audio API limitation)', async () => {
+    /*
+     * The first two here were `it.skip` for a long time, on the recorded grounds
+     * that "axe-core hangs on HTML5 audio elements in jsdom". That reason is no
+     * longer true: on axe-core 4.11.0 with jsdom 29, both complete in about
+     * 40 ms. Re-measured before un-skipping, not assumed.
+     *
+     * They are also not vacuous, which is the failure mode un-skipping hides.
+     * Injecting one `<img>` with no `alt` into the audio-only subtree of
+     * Audio.tsx fails BOTH of them -- `expected [ { id: 'image-alt', ... } ] to
+     * deeply equal []` -- while the third test below ('search mode') stays
+     * green. So they cover a branch nothing else in this file reaches.
+     *
+     * What they do NOT cover is the `<audio>` element itself. Probed on this
+     * configuration, no axe rule returns any result for it -- not a pass, not a
+     * violation, not an incomplete -- so `audio-caption` and the other media
+     * rules are not being evaluated here at all. What these assert is that the
+     * audio-mode LAYOUT is clean: the transcript button and the prev/next
+     * buttons on that branch. Media-specific rules still need a real browser,
+     * and nothing in this repository checks them yet.
+     */
+    it('should have no axe violations when rendered with audio', async () => {
       const { container } = render(<Audio {...defaultProps} />);
       const results = await axe(container);
       expect(results.violations).toEqual([]);
     });
 
-    it.skip('should have no axe violations in mobile view (skipped: axe-core/jsdom audio API limitation)', async () => {
+    it('should have no axe violations in mobile view', async () => {
       const { container } = render(<Audio {...defaultProps} width={800} />);
       const results = await axe(container);
       expect(results.violations).toEqual([]);
