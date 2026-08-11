@@ -156,4 +156,20 @@ module.exports = [
       eqeqeq: ['error', 'always'],
     },
   },
+  {
+    // Same rules, ESM parse. `scripts/**/*.js` cannot cover .mjs, so without
+    // this block the generator is silently unlinted -- and .mjs is the correct
+    // extension for it, since package.json sets "type": "module" while the
+    // older scripts here are CommonJS.
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: globals.node,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      eqeqeq: ['error', 'always'],
+    },
+  },
 ];

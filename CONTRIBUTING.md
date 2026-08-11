@@ -113,35 +113,38 @@ Three of these deserve a note:
   CI-green split these gates exist to avoid. Naming the one file keeps lychee's
   input set equal to markdownlint's eight.
 
-## Four CI surfaces have never actually executed on GitHub Actions
+## Four CI surfaces have been seen green once, and never seen red
 
 Two remediation pipelines added CI jobs to this repository, and both were
-constrained to committing only. Only one of them stayed that way. The March 2026
-pipeline's commits were pushed afterwards and are on `main` today — `ceb8c0d`
-(the lefthook pre-commit hook) and `8f3ac12` (coverage enforcement) have run on a
-runner many times since. The August 2026 pipeline added the surfaces below, and
-its branch has not been pushed, so it is only these that have never executed. All
-four are green locally, which is not the same thing. What is unverified is the
-**runner path**, and that is different for each:
+constrained to committing only. The March 2026 pipeline's commits were pushed
+afterwards and are on `main` today — `ceb8c0d` (the lefthook pre-commit hook) and
+`8f3ac12` (coverage enforcement) have run on a runner many times since.
 
-| Surface          | Gates a merge?                                               | What has never run                                                                                                                                                                                                                                              |
+The August 2026 pipeline added the surfaces below. They first executed on
+[CI run 31486993682](https://github.com/HatmanStack/react-writers-almanac/actions/runs/31486993682)
+and all passed, so the runner paths in the table are no longer unverified — each
+has worked exactly once. **None has ever been seen fail.** A gate only ever seen
+green is not a proven gate: it cannot distinguish "nothing was wrong" from
+"nothing was checked". What each still owes is a deliberate red:
+
+| Surface          | Gates a merge?                                               | Runner path proven once by run                                                                                                                                                                                                                                  |
 | ---------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format` job     | **yes, always** — it has no filter                           | `prettier --check .` over an `actions/checkout` tree. Every local run has covered a strictly larger file set — a working tree also carries untracked `.claude/` and `docs/plans/` files and gitignored build output — so CI checks a set no run has yet checked |
 | `docs` job       | **yes, always** — it has no filter                           | the `lycheeverse/lychee-action` step's runner path: binary download, job summary write, `GITHUB_TOKEN` rate-limit handling. `docs:lint` and `docs:api` run identically locally                                                                                  |
 | `e2e` job        | yes, when the `frontend` filter matches — otherwise it skips | `npx playwright install --with-deps chromium` on a clean image, the `setup-node` npm cache, the artifact upload path, Vite's cold start inside the webServer timeout                                                                                            |
 | `link-check.yml` | no — `schedule` + `workflow_dispatch` only                   | the whole workflow. It has never been dispatched, and `schedule` only fires on the default branch                                                                                                                                                               |
 
-`status-check` aggregates the three jobs, so a red `format`, `docs` or `e2e`
-blocks the merge; a skipped one counts as a pass. `link-check.yml` is a separate
+`status-check` aggregates five jobs — `check`, `format`, `docs`, `e2e` and
+`validate-sam` — so a red result in any of them blocks the merge; a skipped one
+counts as a pass. Three of those five are new here. `link-check.yml` is a separate
 workflow and is aggregated by nothing, which is why a silent failure there is
 possible in a way it is not for the other three. `format` and `docs` are the ones
 to watch hardest, because nothing can filter either out — every pull request
 depends on both.
 
-**If you are the first person to see any of these run, watch it go both green and
-red before trusting it.** A job that has only ever been seen green is not a proven
-gate; make it fail on purpose once, and confirm the failure reaches
-`status-check`.
+**Make each one fail on purpose once, and confirm the failure reaches
+`status-check`.** Green on first run says the runner path works; it says nothing
+about whether the gate would catch the thing it exists to catch.
 
 For `link-check.yml`, run it from the Actions tab (`workflow_dispatch`) before
 relying on the weekly schedule. The link set itself has been verified against the

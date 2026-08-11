@@ -95,8 +95,11 @@ never ran and the specs silently talked to production CloudFront.
   `Accept-Ranges` plus a 206, Chromium reports `seekable.end(0) === 0` even with
   the whole clip buffered, so `currentTime = 12` is silently ignored and any
   seek test really asserts the default of 0.
-- **Search is not mocked, because search issues no request.** It reads a bundled
-  index (`frontend/src/utils/searchIndex.ts`) and answers synchronously.
+- **Search is not mocked, but it does issue a request.** `useSearchIndexQuery`
+  fetches `/search-index.json` — a generated static asset served by the dev
+  server, not the CDN. Being same-origin, it is outside what
+  `failOnUnmockedExternalRequests` guards, so it needs no route stub; ranking
+  itself is still synchronous once the asset lands.
 
 **Anything else fails the test.** `setupApiMocks` registers a catch-all that
 aborts any request to a host other than the dev server and throws with the
@@ -317,14 +320,17 @@ Test configuration is in `playwright.config.ts`:
 - **retries**: 0 locally, 2 in CI
 - **screenshots**: On failure
 - **videos**: On failure
-- **trace**: On first retry
+- **trace**: Retained on failure (`retain-on-failure`). `on-first-retry` cannot
+  fire with `retries: 0`, so a CI failure would have arrived with no trace at all
 
 ## CI/CD Integration
 
-E2E tests are not yet wired into `.github/workflows/ci.yml`; that job is added
-separately, now that the suite is capable of failing. A single full run takes
-**about 2m10s with two workers**, and `playwright.config.ts` pins CI to one
-worker, so budget roughly double and leave headroom. Shape of the job:
+E2E tests run in the `e2e` job of `.github/workflows/ci.yml`. `retries` is **0**
+in every environment, so a flake is a failure rather than a slow pass — which is
+the point, but it means a racy assertion cannot hide. A full run takes **about
+2m10s with two workers**; `playwright.config.ts` pins CI to one worker, and a
+measured single-worker run is about **4.6 minutes**, which is what
+`timeout-minutes` is budgeted against. The job as configured:
 
 ```yaml
 e2e:

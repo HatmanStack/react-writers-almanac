@@ -72,7 +72,16 @@ async function request<T>(
   } catch (error: unknown) {
     clearTimeout(id);
 
-    if (error instanceof DOMException && error.name === 'AbortError') {
+    // A caller that aborts with a reason makes AbortSignal.any reject with that
+    // reason rather than a DOMException, so testing only for AbortError would
+    // misfile it as a network failure and clear the reader's poem -- the exact
+    // harm H6 names. Treat an aborted caller signal as cancellation regardless
+    // of what the rejection looks like.
+    if (
+      (error instanceof DOMException && error.name === 'AbortError') ||
+      options.signal?.aborted === true ||
+      controller.signal.aborted
+    ) {
       // Which signal fired decides what this is, and the composed signal cannot
       // say: it aborts for either reason. `controller` belongs to the timeout
       // and nothing else aborts it, so `controller.signal.aborted` is true for
@@ -83,7 +92,9 @@ async function request<T>(
       // load failed, so it must show that. Reporting both as TIMEOUT_ERROR made
       // usePoemData swallow a real timeout and leave a stale poem in place with
       // no error state — the harm health-audit H6 names.
-      const timedOut = controller.signal.aborted;
+      // The caller's own signal wins: if it aborted, the reader moved on, even
+      // if the timeout fired in the same tick.
+      const timedOut = controller.signal.aborted && options.signal?.aborted !== true;
       throw {
         message: timedOut ? `Request timed out after ${timeout}ms` : 'Request cancelled',
         status: 0,

@@ -17,31 +17,49 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary'],
+      // Without an explicit include, the v8 provider reports only files some
+      // test happened to load, so a module with no test at all is absent from
+      // the denominator rather than counted as zero -- coverage measures the
+      // tested subset and calls it the whole. These globs make the denominator
+      // the production source itself.
+      //
+      // backend/lambdas is deliberately NOT included: its three handlers are
+      // untested (health-audit H8d) and whether that tier is fixed or deleted is
+      // an open decision, so setting a gate against code that may be removed
+      // would bake in a number nobody chose.
+      include: ['frontend/src/**/*.{ts,tsx}'],
       exclude: [
         '**/node_modules/**',
         '**/test/**',
         '**/*.test.*',
         '**/dist/**',
         'backend/lambdas/shared/utils.test.js',
+        'frontend/src/**/*.d.ts',
+        'frontend/src/main.tsx',
+        'frontend/src/assets/**',
       ],
-      // Measured 2026-08-10 at bb21134: 83.64 statements / 71.11 branches /
-      // 85.08 functions / 83.93 lines. Thresholds sit five points below each.
+      // Measured 2026-08-11 with `include` configured: 80.98 statements /
+      // 69.52 branches / 81.92 functions / 81.41 lines. Thresholds sit roughly
+      // five points below each.
       //
-      // Five, not two, because these numbers are load-dependent as well as
-      // quality-dependent: the v8 provider only reports files some test actually
-      // loaded, so a module with no test at all is absent from the denominator
-      // rather than counted as zero. Two runtime modules are invisible today --
-      // api/queryClient.ts and hooks/queries/usePoemDatesQuery.ts (the latter
-      // because routes/routing.test.tsx:61 mocks it). Measured: a throwaway test
-      // that merely imports both drops the four figures by 2.23 / 2.00 / 2.98 /
-      // 2.39, with no change in test quality whatsoever. A two-point margin would
-      // be breached by that alone, and a gate that a no-op import can break is a
+      // These are ~3 points lower than the figures recorded before `include`
+      // existed, and nothing about the tests changed. Previously the v8 provider
+      // reported only files some test had loaded, so a module with no test was
+      // absent from the denominator rather than counted as zero -- the number
+      // described the tested subset, not the source. It is now measured against
+      // the production tree, so it can fall when a file is added as well as when
+      // a test is removed.
+      //
+      // The margin stays wide for the same reason it was widened before, only
+      // the mechanism differs: an untested module used to be invisible, and now
+      // lands as a hard zero. Either way a single unrelated file can move these
+      // by more than a point or two, and a gate that ordinary work breaks is a
       // gate someone deletes.
       thresholds: {
-        statements: 78,
-        branches: 66,
-        functions: 80,
-        lines: 78,
+        statements: 76,
+        branches: 65,
+        functions: 77,
+        lines: 76,
       },
     },
   },

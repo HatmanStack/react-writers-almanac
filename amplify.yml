@@ -3,6 +3,10 @@ frontend:
   phases:
     preBuild:
       commands:
+        # Amplify Hosting does not read the repository's .nvmrc, so the version
+        # pinned there and in `engines` has to be selected explicitly here or
+        # the build silently runs on the image default.
+        - nvm use 22
         - npm ci
     build:
       commands:

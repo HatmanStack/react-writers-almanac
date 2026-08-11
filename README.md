@@ -102,7 +102,8 @@ app therefore looks like it works.**
 
 At present no rendered component calls the API path — `apiClient` is reached
 only by `frontend/src/hooks/queries/useSearchQuery.ts`, which nothing but its
-own test imports, and search runs entirely client-side against a bundled index.
+own test imports, and search runs entirely client-side against the generated
+`search-index.json` asset, fetched from the app's own origin and cached.
 So today the missing variable fails a path that is already unused. That is a
 description of the current state, not a reason to leave it unset: the moment
 anything wires the API tier up, an unset `VITE_API_BASE_URL` becomes a silent

@@ -30,8 +30,10 @@ export function sanitizeHtml(html: string, stripNonPrintable: boolean = false): 
   // Patterns use \uXXXX escapes so this source cannot be corrupted by the
   // very encoding problem it repairs.
   const cleaned = html
-    // Non-breaking space: UTF-8 C2 A0 -> space
-    .replaceAll(/\u00C2\s/g, ' ')
+    // Non-breaking space: UTF-8 C2 A0 -> space. Matched as the exact second
+    // byte rather than \s, which also matches tab and newline -- a stray byte
+    // before a line break was collapsing into a space and reflowing the text.
+    .replaceAll(/\u00C2\u00A0/g, ' ')
     // Left double quote: UTF-8 E2 80 9C -> "
     .replaceAll(/\u00E2\u20AC\u0153/g, '"')
     // Left single quote: UTF-8 E2 80 98 -> '

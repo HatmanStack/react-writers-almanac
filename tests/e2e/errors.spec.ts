@@ -274,13 +274,19 @@ test.describe('Error Handling', () => {
     // 404; the app itself logs nothing on this path (usePoemData:113 emits a
     // console.warn for a missing transcript, which is `warn`, not `error`).
     const EXPECTED = [/Failed to load resource: .*404/];
+
+    // `consoleErrors` fills from the console event, which the browser emits on
+    // its own schedule -- the 404 report can land after the combobox is
+    // visible. Reading the array once raced that, and with retries: 0 a race is
+    // a hard failure, so poll until the expected entry arrives.
+    await expect
+      .poll(() => consoleErrors.some(text => /404/.test(text)), {
+        message: 'browser never reported the mocked 404 on the console',
+      })
+      .toBe(true);
+
     const unexpected = consoleErrors.filter(text => !EXPECTED.some(rx => rx.test(text)));
-
     expect(unexpected, `unexpected console errors: ${JSON.stringify(unexpected)}`).toEqual([]);
-
-    // And the expected one really is produced, so the allowlist is not covering
-    // an empty set.
-    expect(consoleErrors.some(text => /404/.test(text))).toBe(true);
   });
 
   test('should load a healthy page with no console errors at all', async ({ page }) => {

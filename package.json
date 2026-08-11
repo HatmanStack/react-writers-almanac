@@ -13,7 +13,7 @@
   "scripts": {
     "test": "vitest run --reporter=verbose --config vitest.config.ts",
     "test:coverage": "vitest run --coverage --config vitest.config.ts",
-    "lint": "eslint frontend/src tests/e2e scripts --max-warnings 0",
+    "lint": "eslint frontend/src tests/e2e scripts playwright.config.ts --max-warnings 0",
     "typecheck": "tsc --noEmit -p frontend/tsconfig.json && tsc --noEmit -p tsconfig.e2e.json",
     "check": "npm run lint && npm run typecheck && npm run test",
     "format": "prettier --write .",

@@ -24,6 +24,12 @@ on:
       - 'docs/plans/**'
       - '.claude/**'
 
+# Least privilege for the whole workflow. Nothing here writes to the repository
+# -- no job pushes, comments, or publishes -- so read is the ceiling. Jobs that
+# need more must ask for it explicitly, as `changes` does below.
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -34,12 +40,22 @@ env:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    # dorny/paths-filter reads the PR's changed-file list through the REST API
+    # on pull_request events; without this it fails with "Resource not
+    # accessible by integration".
+    permissions:
+      contents: read
+      pull-requests: read
     timeout-minutes: 10
     outputs:
       frontend: ${{ steps.filter.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
       - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
         id: filter
         with:
@@ -68,6 +84,10 @@ jobs:
     if: needs.changes.outputs.frontend == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
@@ -131,6 +151,10 @@ jobs:
     # added; matching the job's trigger to the gate's actual scope does not.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
@@ -163,6 +187,10 @@ jobs:
     # a check name that branch protection may already require.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
@@ -246,6 +274,10 @@ jobs:
     if: needs.changes.outputs.frontend == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
@@ -283,6 +315,10 @@ jobs:
     if: needs.changes.outputs.backend == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job never pushes, so leaving the token in .git/config only
+          # widens what a later step (or a cached artifact) could pick up.
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6

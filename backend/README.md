@@ -180,7 +180,7 @@ Your AWS user/role needs permissions for:
 
 ### Two files, one gitignored and one tracked
 
-`backend/.env.deploy` holds your answers and is gitignored (`.gitignore:26`).
+`backend/.env.deploy` holds your answers and is gitignored.
 `backend/samconfig.toml` is derived from it and **is tracked**. So every deploy
 from a machine whose answers differ from the committed ones produces a diff in a
 tracked file — most visibly `region`, `s3_bucket`, and the bucket name inside

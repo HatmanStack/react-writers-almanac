@@ -41,7 +41,18 @@ test.describe('Search Flow', () => {
     //   Carol Frost / Richard Frost / Robert Frost   (authors, word start)
     //   Rereading Frost / Thanks, Robert Frost       (poems, word start)
     //   Hoarfrost and Fog                            (poem, buried mid-word)
-    const labels = await page.locator('[role="option"]').allInnerTexts();
+    // allInnerTexts() snapshots immediately and does not wait. If the dropdown
+    // has not finished rendering, `labels` is short or empty and the ordering
+    // assertions below read a partial list. Wait for the list to stop growing
+    // first -- the guards below would turn a partial read into a failure, but
+    // with retries: 0 that failure is indistinguishable from a real regression.
+    const options = page.locator('[role="option"]');
+    await expect(options.first()).toBeVisible();
+    await expect
+      .poll(async () => options.count(), { message: 'option list never settled' })
+      .toBeGreaterThan(1);
+
+    const labels = await options.allInnerTexts();
     const kinds = labels.map(text => (text.includes('AUTHOR') ? 'author' : 'poem'));
 
     // Both kinds must actually be present. Without this, a change to the chip's

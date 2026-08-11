@@ -157,3 +157,19 @@ describe('sanitize utilities', () => {
     });
   });
 });
+
+describe('mojibake: non-breaking space', () => {
+  it('repairs the C2 A0 sequence to a plain space', () => {
+    expect(sanitizeHtml('a\u00C2\u00A0b')).toBe('a b');
+  });
+
+  it('leaves a newline after the stray byte alone', () => {
+    // The pattern used \s, which also matches tab and newline, so a stray byte
+    // before a line break collapsed into a space and changed the text layout.
+    expect(sanitizeHtml('a\u00C2\nb')).toContain('\n');
+  });
+
+  it('leaves a tab after the stray byte alone', () => {
+    expect(sanitizeHtml('a\u00C2\tb')).toContain('\t');
+  });
+});
