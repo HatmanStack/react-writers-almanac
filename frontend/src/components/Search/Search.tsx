@@ -15,6 +15,7 @@ const Search = memo(function Search({
   onDateSelect,
   currentDate,
   width,
+  searchIndex,
 }: SearchProps) {
   const isDesktop = width > 1000;
 
@@ -23,6 +24,7 @@ const Search = memo(function Search({
       <SearchBar
         currentTarget={currentTarget}
         onSearch={onSearch}
+        searchIndex={searchIndex}
         className={isDesktop ? 'w-[18em]' : 'w-full'}
       />
       <CalendarPicker currentDate={currentDate} onDateSelect={onDateSelect} />

@@ -4,9 +4,7 @@ import { Search as SearchIcon } from '@mui/icons-material';
 
 import {
   MAX_SUGGESTIONS,
-  findTarget,
-  resolveSearchTarget,
-  searchTargets,
+  type SearchIndex,
   type SearchTarget,
   type SearchTargetRef,
 } from '../../utils/searchIndex';
@@ -21,6 +19,12 @@ interface SearchBarProps {
   currentTarget: SearchTargetRef | null;
   /** Called with the resolved target whenever a search is submitted */
   onSearch: (target: SearchTarget) => void;
+  /**
+   * The archive index, or undefined while it is still in flight. Passed in
+   * rather than fetched here so this stays a leaf component: it renders from
+   * what it is given and needs no query context to be tested.
+   */
+  searchIndex?: SearchIndex;
   /** Extra classes for the wrapper (layout is the parent's business) */
   className?: string;
 }
@@ -41,7 +45,12 @@ const ACCENT = 'rgba(168, 239, 255, 0.85)';
  *   the first row is always what Enter picks.
  * - Typing something with no matches says so instead of failing silently.
  */
-const SearchBar = memo(function SearchBar({ currentTarget, onSearch, className }: SearchBarProps) {
+const SearchBar = memo(function SearchBar({
+  currentTarget,
+  onSearch,
+  searchIndex,
+  className,
+}: SearchBarProps) {
   const currentLabel = currentTarget?.label ?? '';
   const [inputValue, setInputValue] = useState<string>(currentLabel);
 
@@ -59,12 +68,17 @@ const SearchBar = memo(function SearchBar({ currentTarget, onSearch, className }
    * is what submitting means; the other one stays pickable from the dropdown.
    */
   const pinnedTarget = useMemo(
-    () => (currentTarget && inputValue === currentTarget.label ? findTarget(currentTarget) : null),
-    [currentTarget, inputValue]
+    () =>
+      searchIndex && currentTarget && inputValue === currentTarget.label
+        ? searchIndex.findTarget(currentTarget)
+        : null,
+    [searchIndex, currentTarget, inputValue]
   );
 
   const options = useMemo(() => {
-    const matches = searchTargets(inputValue, MAX_SUGGESTIONS);
+    // No index yet means no suggestions to offer. The field stays usable and
+    // fills in once it lands, rather than blocking on a 65 kB asset.
+    const matches = searchIndex ? searchIndex.searchTargets(inputValue, MAX_SUGGESTIONS) : [];
     if (!pinnedTarget) return matches;
 
     // Keep what you are viewing at the top, so re-submitting an untouched field
@@ -72,10 +86,12 @@ const SearchBar = memo(function SearchBar({ currentTarget, onSearch, className }
     const index = matches.findIndex(match => match.key === pinnedTarget.key);
     if (index <= 0) return matches;
     return [matches[index], ...matches.slice(0, index), ...matches.slice(index + 1)];
-  }, [inputValue, pinnedTarget]);
+  }, [searchIndex, inputValue, pinnedTarget]);
 
   const trimmedInput = inputValue.trim();
-  const showNoMatches = trimmedInput.length > 0 && options.length === 0;
+  // Only an index that has actually arrived can say a term matches nothing;
+  // while it loads, an empty option list means "not yet", not "no such poem".
+  const showNoMatches = Boolean(searchIndex) && trimmedInput.length > 0 && options.length === 0;
 
   const submit = useCallback(
     (target: SearchTarget) => {
@@ -94,14 +110,14 @@ const SearchBar = memo(function SearchBar({ currentTarget, onSearch, className }
       if (typeof selected === 'string') {
         // An untouched field means "run this again", so keep the exact target
         // rather than re-resolving text that may match both types.
-        const resolved = pinnedTarget ?? resolveSearchTarget(selected);
+        const resolved = pinnedTarget ?? searchIndex?.resolveSearchTarget(selected) ?? null;
         if (resolved) submit(resolved);
         return;
       }
 
       submit(selected);
     },
-    [submit, pinnedTarget]
+    [submit, pinnedTarget, searchIndex]
   );
 
   return (

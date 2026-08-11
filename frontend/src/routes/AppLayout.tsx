@@ -6,8 +6,6 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import Modal from '../components/ui/Modal';
 import { SEOHead, JsonLd } from '../components/SEOHead';
 import logo from '../assets/logo_writersalmanac.png';
-import sortedAuthors from '../assets/Authors_sorted';
-import sortedPoems from '../assets/Poems_sorted';
 import type { SearchTargetRef } from '../utils/searchIndex';
 
 import { useWindowSize } from 'react-use';
@@ -16,6 +14,7 @@ import { useAppStore } from '../store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 
 // Custom hooks
+import { useSearchIndexQuery } from '../hooks/queries/useSearchIndexQuery';
 import { useRouteState } from '../hooks/useRouteState';
 import { usePoemData } from '../hooks/usePoemData';
 import { useSeoData } from '../hooks/useSeoData';
@@ -82,6 +81,11 @@ function AppLayout() {
 
   // View state derived from the URL - the single source of truth
   const { activeDate, isShowingContentByDate, searchTerm, searchType } = useRouteState();
+
+  // The archive lists, fetched once and cached for the session. Search and the
+  // prev/next arrows are the only consumers here, and both degrade to doing
+  // nothing rather than blocking the page while it loads.
+  const { data: searchIndex } = useSearchIndexQuery();
 
   // Local component state (not in store)
   const [day, setDay] = useState<string | undefined>();
@@ -219,7 +223,12 @@ function AppLayout() {
       // that is; deriving it from the term instead would send a poem whose
       // title is also an author name into the author list.
       const isAuthor = searchType !== 'poem';
-      const sortedList = isAuthor ? sortedAuthors : sortedPoems;
+      // Stepping needs the archive lists, which arrive over the network. Before
+      // they land there is no neighbour to step to, so the arrows do nothing
+      // rather than guessing -- the same outcome as a term that is not in the
+      // list, which the check below already handles.
+      if (!searchIndex) return;
+      const sortedList = isAuthor ? searchIndex.authors : searchIndex.poems;
       const index = sortedList.indexOf(searchTerm);
       if (index === -1) {
         return;
@@ -230,7 +239,15 @@ function AppLayout() {
       const neighbour = sortedList[(index + step + sortedList.length) % sortedList.length];
       handleSearch({ label: neighbour, type: isAuthor ? 'author' : 'poem' });
     },
-    [isShowingContentByDate, searchType, searchTerm, activeDate, navigate, handleSearch]
+    [
+      isShowingContentByDate,
+      searchType,
+      searchTerm,
+      activeDate,
+      navigate,
+      handleSearch,
+      searchIndex,
+    ]
   );
 
   // Compute SEO data using the useSeoData hook
@@ -306,6 +323,7 @@ function AppLayout() {
                     onDateSelect={handleDateSelect}
                     width={width}
                     currentDate={activeDate}
+                    searchIndex={searchIndex}
                   />
                 </ErrorBoundary>
                 {/* Plain text: `role="text"` is not a real ARIA role, and with it
@@ -388,6 +406,7 @@ function AppLayout() {
                     onDateSelect={handleDateSelect}
                     width={width}
                     currentDate={activeDate}
+                    searchIndex={searchIndex}
                   />
                 </ErrorBoundary>
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(day || '') }} />

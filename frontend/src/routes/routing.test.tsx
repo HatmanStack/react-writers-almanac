@@ -1,7 +1,11 @@
-import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { BrowserRouter, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createSearchIndex } from '../utils/searchIndex';
+import { searchIndexKeys } from '../hooks/queries/useSearchIndexQuery';
+import sortedAuthors from '../assets/Authors_sorted';
+import sortedPoems from '../assets/Poems_sorted';
 import { HelmetProvider } from 'react-helmet-async';
 import App from '../App';
 import { ROUTES } from '../utils/routes';
@@ -135,9 +139,24 @@ describe('Application routing', () => {
     });
   }
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+    /*
+     * Seed the archive index rather than letting it fetch. Route validation
+     * gates on it, and a route view that cannot tell "still loading" from "no
+     * such author" deliberately renders the page instead of NotFound -- so an
+     * unseeded client would make every not-found assertion below vacuous.
+     */
+    queryClient.setQueryData(
+      searchIndexKeys.all,
+      createSearchIndex({ authors: sortedAuthors, poems: sortedPoems })
+    );
   });
 
   describe('back button', () => {
@@ -252,6 +271,29 @@ describe('Application routing', () => {
       renderAt(path);
       expect(await screen.findByRole('heading', { name: /That page/ })).toBeInTheDocument();
       expect(currentPath()).toBe(path);
+    });
+
+    /*
+     * The index is an optimisation: knowing the name list spares a round-trip
+     * before reporting a bad address. When it cannot be fetched, the page must
+     * fall back to rendering and letting the author request decide. Reporting
+     * every address as unknown would turn one failed asset into a site that
+     * claims nothing exists -- a far worse failure than the one being avoided.
+     */
+    it('renders the author page rather than not-found when the index fails to load', async () => {
+      /*
+       * A fresh client, deliberately NOT seeded: `setQueryData(key, undefined)`
+       * is a no-op in TanStack Query, so clearing the seed that way would leave
+       * the index in place and this test would pass without ever reaching the
+       * branch it names.
+       */
+      queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('index unavailable')));
+
+      renderAt(AUTHOR_PATH);
+
+      expect(await screen.findByRole('heading', { name: 'Billy Collins' })).toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: /That page/ })).not.toBeInTheDocument();
     });
   });
 

@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { useParams } from 'react-router-dom';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
-import { POEM_TITLES } from '../utils/searchIndex';
+import { useSearchIndexQuery } from '../hooks/queries/useSearchIndexQuery';
 import { useAppOutletContext } from './useAppOutletContext';
 import NotFound from './NotFound';
 
@@ -20,10 +20,16 @@ const noop = () => {};
 function PoemTitleView() {
   const { title } = useParams();
   const { goToDate, formatAuthorDate } = useAppOutletContext();
+  const { data: searchIndex, isPending: isIndexPending } = useSearchIndexQuery();
   const poemTitle = title ?? '';
 
-  // A title the archive does not have is a bad address; see AuthorView.
-  if (!POEM_TITLES.has(poemTitle)) {
+  // A title the archive does not have is a bad address; see AuthorView, which
+  // carries the reasoning for all three of these branches.
+  if (isIndexPending) {
+    return <LoadingSpinner size="lg" label="Loading poem dates..." />;
+  }
+
+  if (searchIndex && !searchIndex.hasPoemTitle(poemTitle)) {
     return <NotFound />;
   }
 
