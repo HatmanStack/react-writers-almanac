@@ -22,7 +22,7 @@
  * 4. Validates all JSON output
  * 5. Generates a manifest file
  *
- * Output structure:
+ * Output structure (LOCAL paths, unprefixed):
  * output/
  * ├── authors/
  * │   ├── by-name/
@@ -34,6 +34,13 @@
  * │       ├── B.json
  * │       └── ...
  * └── manifest.json
+ *
+ * UPLOAD PREFIX: these local paths are NOT the S3 keys. Everything the frontend
+ * reads sits under a `public/` prefix -- `getAuthorBySlug` in
+ * frontend/src/api/endpoints.ts builds `/public/authors/by-name/{slug}.json` --
+ * so the sync destination must be `s3://BUCKET/public/authors/`, not
+ * `s3://BUCKET/authors/`. The unprefixed prefix contains no objects and returns
+ * 403. See scripts/s3-structure.md for the full key layout.
  */
 
 const fs = require('fs');
@@ -206,8 +213,8 @@ function main() {
   // Step 7: Next steps
   console.log('📤 Next steps:');
   console.log('   1. Review output files in ./output/');
-  console.log('   2. Upload to S3:');
-  console.log('      aws s3 sync ./output/authors/ s3://YOUR-BUCKET/authors/ \\');
+  console.log('   2. Upload to S3 (note the public/ prefix -- see s3-structure.md):');
+  console.log('      aws s3 sync ./output/authors/ s3://YOUR-BUCKET/public/authors/ \\');
   console.log('        --cache-control "public, max-age=31536000" \\');
   console.log('        --content-type "application/json"');
   console.log('');
