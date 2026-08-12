@@ -147,32 +147,7 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
       }
     }
 
-    function setAudioUrl() {
-      /*
-       * The manifest is the fact; the date rule is a fallback. 96 broadcasts
-       * after the 2009-01-11 cutoff have no recording, so the rule alone hands
-       * the player a URL that 403s.
-       *
-       * Unlike the author page, this falls back to the OPTIMISTIC answer when
-       * the manifest has not arrived: the two callers want opposite failure
-       * behaviour. A highlight is a promise and must not be made unconfirmed;
-       * a player URL is an attempt, and attempting a recording that turns out
-       * to be missing is no worse than never trying for one that exists.
-       */
-      const known = audioDates?.has(linkDate) ?? isAudioAvailable(linkDate);
-      if (!known) {
-        setAudioData({ mp3Url: 'NotAvailable' });
-        return;
-      }
-
-      // Use direct CDN URL - browser handles streaming and range requests natively
-      const directUrl = `${CDN_BASE_URL}${CDN_ENDPOINTS.getPoemAudio(linkDate)}`;
-      setAudioData({ mp3Url: directUrl });
-    }
-
-    // Fetch poem data and set audio URL
     fetchPoemData();
-    setAudioUrl();
 
     // Cleanup: abort pending requests when effect re-runs or component unmounts
     return () => {
@@ -186,6 +161,39 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
     setPoemData,
     setAuthorData,
     setAudioData,
-    audioDates,
   ]);
+
+  /*
+   * Audio availability is a separate concern on a separate schedule, so it gets
+   * its own effect.
+   *
+   * `audioDates` normally resolves a moment AFTER mount. While it shared the
+   * poem effect's dependency array, that resolution re-ran the whole effect:
+   * the cleanup aborted the in-flight poem request and a second identical fetch
+   * replaced it. One wasted round-trip and one cancelled request on the first
+   * poem of every session, for a value that has nothing to do with fetching the
+   * poem.
+   */
+  useEffect(() => {
+    /*
+     * The manifest is the fact; the date rule is a fallback. 96 broadcasts
+     * after the 2009-01-11 cutoff have no recording, so the rule alone hands
+     * the player a URL that 403s.
+     *
+     * Unlike the author page, this falls back to the OPTIMISTIC answer when
+     * the manifest has not arrived: the two callers want opposite failure
+     * behaviour. A highlight is a promise and must not be made unconfirmed;
+     * a player URL is an attempt, and attempting a recording that turns out
+     * to be missing is no worse than never trying for one that exists.
+     */
+    const known = audioDates?.has(linkDate) ?? isAudioAvailable(linkDate);
+    if (!known) {
+      setAudioData({ mp3Url: 'NotAvailable' });
+      return;
+    }
+
+    // Use direct CDN URL - browser handles streaming and range requests natively
+    const directUrl = `${CDN_BASE_URL}${CDN_ENDPOINTS.getPoemAudio(linkDate)}`;
+    setAudioData({ mp3Url: directUrl });
+  }, [linkDate, audioDates, setAudioData]);
 }
