@@ -7,6 +7,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { audioDatesKeys } from './queries/useAudioDatesQuery';
 import { usePoemData } from './usePoemData';
 import { cdnClient } from '../api/client';
 import { useAppStore } from '../store/useAppStore';
@@ -61,7 +63,17 @@ function seedRenderedPoem(): void {
 }
 
 function renderPoemHook(linkDate = '20150315') {
-  return renderHook(() => usePoemData({ linkDate, setDay: vi.fn(), setPoemByline: vi.fn() }));
+  // usePoemData reads the audio-date manifest to decide whether there is a
+  // recording to play, so it needs query context. Left unseeded on purpose:
+  // that exercises the fallback path, where an absent manifest means the date
+  // rule still decides rather than the player going silent.
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+  return renderHook(() => usePoemData({ linkDate, setDay: vi.fn(), setPoemByline: vi.fn() }), {
+    wrapper,
+  });
 }
 
 /**
@@ -167,5 +179,57 @@ describe('usePoemData — aborted-request guard', () => {
     expect(state.poemTitle).toEqual(['The Title']);
     expect(state.author).toEqual(['The Poet']);
     expect(state.transcript).toBe('The transcript');
+  });
+});
+
+describe('usePoemData — the audio manifest must not re-trigger the poem fetch', () => {
+  /*
+   * `audioDates` decides only whether there is a recording to play. It arrives
+   * after mount in the normal case, so if it sits in the dependency array of
+   * the effect that also fetches the poem, that resolution aborts the in-flight
+   * request and starts a second one -- an extra round-trip and a cancelled
+   * request on the first poem of every session.
+   */
+  it('does not refetch the poem when the manifest resolves after mount', async () => {
+    mockGet.mockResolvedValue({
+      data: {
+        dayofweek: 'Sunday',
+        date: 'March 15, 2015',
+        poem: 'A single line',
+        poemtitle: 'The Title',
+        author: 'The Poet',
+        notes: 'The note',
+        transcript: 'The transcript',
+      },
+    });
+
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    // Hoisted: `vi.fn()` inline in the hook callback mints a new function on
+    // every render, which changes the effect's dependencies by itself and
+    // would make this test count re-runs it caused rather than the one under
+    // test.
+    const setDay = vi.fn();
+    const setPoemByline = vi.fn();
+
+    const { rerender } = renderHook(
+      () => usePoemData({ linkDate: '20150315', setDay, setPoemByline }),
+      { wrapper }
+    );
+
+    await waitFor(() => expect(mockGet).toHaveBeenCalled());
+    const afterMount = mockGet.mock.calls.length;
+
+    // The manifest lands, exactly as the real query does a moment after mount.
+    await act(async () => {
+      queryClient.setQueryData(audioDatesKeys.all, new Set(['20150315']));
+      await Promise.resolve();
+    });
+    rerender();
+
+    expect(mockGet.mock.calls.length).toBe(afterMount);
   });
 });

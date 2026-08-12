@@ -8,6 +8,7 @@
 import { useEffect } from 'react';
 import { cdnClient, CDN_BASE_URL } from '../api/client';
 import { CDN_ENDPOINTS, isAudioAvailable } from '../api/endpoints';
+import { useAudioDatesQuery } from './queries/useAudioDatesQuery';
 import { sanitizePoemText, sanitizePoemLines } from '../api/transforms';
 import { useAppStore } from '../store/useAppStore';
 
@@ -57,6 +58,10 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
   const setPoemData = useAppStore(state => state.setPoemData);
   const setAuthorData = useAppStore(state => state.setAuthorData);
   const setAudioData = useAppStore(state => state.setAudioData);
+
+  // Which broadcasts actually have a recording. Undefined until it lands, which
+  // setAudioUrl below treats as "assume yes" -- see the note there.
+  const { data: audioDates } = useAudioDatesQuery();
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -142,21 +147,7 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
       }
     }
 
-    function setAudioUrl() {
-      // Audio only available after 2009-01-11
-      if (!isAudioAvailable(linkDate)) {
-        setAudioData({ mp3Url: 'NotAvailable' });
-        return;
-      }
-
-      // Use direct CDN URL - browser handles streaming and range requests natively
-      const directUrl = `${CDN_BASE_URL}${CDN_ENDPOINTS.getPoemAudio(linkDate)}`;
-      setAudioData({ mp3Url: directUrl });
-    }
-
-    // Fetch poem data and set audio URL
     fetchPoemData();
-    setAudioUrl();
 
     // Cleanup: abort pending requests when effect re-runs or component unmounts
     return () => {
@@ -171,4 +162,48 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
     setAuthorData,
     setAudioData,
   ]);
+
+  /*
+   * Audio availability is a separate concern on a separate schedule, so it gets
+   * its own effect.
+   *
+   * `audioDates` normally resolves a moment AFTER mount. While it shared the
+   * poem effect's dependency array, that resolution re-ran the whole effect:
+   * the cleanup aborted the in-flight poem request and a second identical fetch
+   * replaced it. One wasted round-trip and one cancelled request on the first
+   * poem of every session, for a value that has nothing to do with fetching the
+   * poem.
+   *
+   * Splitting them changes one behaviour, deliberately. The old shared effect
+   * gave a failed poem fetch a second attempt as a side effect of the manifest
+   * landing. It no longer does, so in the narrow case where the poem fetch has
+   * already failed AND the manifest resolves afterwards, this can set a real
+   * mp3Url beside a blank poem -- a playable player next to no text.
+   *
+   * That is the intended reading: whether a recording exists is a fact about
+   * the broadcast, not about whether one JSON request happened to fail. Retries
+   * belong to the fetch that failed, not to an unrelated dependency changing.
+   */
+  useEffect(() => {
+    /*
+     * The manifest is the fact; the date rule is a fallback. 96 broadcasts
+     * after the 2009-01-11 cutoff have no recording, so the rule alone hands
+     * the player a URL that 403s.
+     *
+     * Unlike the author page, this falls back to the OPTIMISTIC answer when
+     * the manifest has not arrived: the two callers want opposite failure
+     * behaviour. A highlight is a promise and must not be made unconfirmed;
+     * a player URL is an attempt, and attempting a recording that turns out
+     * to be missing is no worse than never trying for one that exists.
+     */
+    const known = audioDates?.has(linkDate) ?? isAudioAvailable(linkDate);
+    if (!known) {
+      setAudioData({ mp3Url: 'NotAvailable' });
+      return;
+    }
+
+    // Use direct CDN URL - browser handles streaming and range requests natively
+    const directUrl = `${CDN_BASE_URL}${CDN_ENDPOINTS.getPoemAudio(linkDate)}`;
+    setAudioData({ mp3Url: directUrl });
+  }, [linkDate, audioDates, setAudioData]);
 }

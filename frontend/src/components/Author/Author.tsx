@@ -4,7 +4,7 @@ import { useAuthorQuery } from '../../hooks/queries/useAuthorQuery';
 import type { AuthorSource, PoemItem } from '../../types/author';
 import { sanitizeHtml } from '../../utils';
 import { CDN_BASE_URL } from '../../api/client';
-import { isAudioAvailable } from '../../api/endpoints';
+import { useAudioDatesQuery } from '../../hooks/queries/useAudioDatesQuery';
 
 /** Poem entry paired with whether an audio recording exists for its date */
 interface PoemListItem extends PoemItem {
@@ -217,16 +217,26 @@ function Author({
 
   /**
    * Tag each poem with audio availability.
-   * Recordings exist on the CDN for broadcast dates after 2009-01-11, so the
-   * date alone determines whether there is something to listen to.
+   *
+   * Looked up in the generated manifest rather than inferred from the date.
+   * The old rule was "anything after 2009-01-11 has a recording", which is
+   * wrong for 96 broadcasts -- 94 of them in 2014 -- every one of which was
+   * given a speaker icon and an aria-label promising audio that 403s.
+   *
+   * Unconfirmed means NOT highlighted: while the manifest is in flight, or if
+   * it fails to load, no promise is made. Under-claiming costs a reader an icon
+   * they could have had; over-claiming sends them to a player with nothing to
+   * play.
    */
+  const { data: audioDates } = useAudioDatesQuery();
+
   const poemsWithAudio = useMemo<PoemListItem[]>(
     () =>
       poems.map(item => ({
         ...item,
-        hasAudio: isAudioAvailable(formatAuthorDate(item.date)),
+        hasAudio: audioDates?.has(formatAuthorDate(item.date)) ?? false,
       })),
-    [poems, formatAuthorDate]
+    [poems, formatAuthorDate, audioDates]
   );
 
   /** Only show the legend when at least one visible poem is highlighted */

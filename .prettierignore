@@ -56,3 +56,4 @@ backend/samconfig.toml
 # anyone edits, and reformatting it would add ~30 kB of indentation to every
 # visitor's download.
 frontend/public/search-index.json
+frontend/public/audio-dates.json

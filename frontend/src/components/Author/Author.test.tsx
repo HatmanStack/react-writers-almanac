@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { audioDatesKeys } from '../../hooks/queries/useAudioDatesQuery';
 import { axe } from 'vitest-axe';
 import Author from './Author';
 import { useAuthorQuery } from '../../hooks/queries/useAuthorQuery';
@@ -53,6 +54,21 @@ describe('Author Component', () => {
         },
       },
     });
+
+    /*
+     * Seed the audio manifest. The highlight is now a lookup against the real
+     * set of recordings rather than a date rule, and an unseeded client makes
+     * every poem unhighlighted -- which would let the assertions below pass for
+     * the wrong reason, or fail for one.
+     */
+    queryClient.setQueryData(
+      audioDatesKeys.all,
+      // The highlighting block renders with the REAL formatAuthorDate, so the
+      // lookup key is the normalised date. Only the Feb. 5 2015 broadcast is
+      // in the set: that is what makes the assertions below discriminate --
+      // highlighted iff present in the manifest, not iff after a cutoff.
+      new Set(['20150205'])
+    );
 
     // Default mock: successful query with data
     (useAuthorQuery as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
@@ -249,12 +265,16 @@ describe('Author Component', () => {
   });
 
   describe('Audio Availability Highlighting', () => {
-    // Real-world author dates: audio exists for broadcasts after 2009-01-11
+    // Highlighting is a lookup in the generated manifest, not a date rule:
+    // 96 post-2009 broadcasts have no recording, so the date cannot decide.
     const dataWithMixedAudio: AuthorType = {
       'poetry foundation': {
         poems: [
           { date: 'Mar. 4, 2001', title: 'No Audio Poem' },
           { date: 'Feb. 5, 2015', title: 'Audio Poem' },
+          // A real broadcast from AFTER the old 2009-01-11 cutoff that has no
+          // recording. 20140804 is one of 96 such dates, 94 of them in 2014.
+          { date: 'Aug. 4, 2014', title: 'Silent 2014 Poem' },
         ],
       },
     };
@@ -275,6 +295,25 @@ describe('Author Component', () => {
       const audioButton = screen.getByRole('button', { name: /Audio Poem from Feb\. 5, 2015/ });
       expect(audioButton).toHaveClass('ring-1');
       expect(audioButton.querySelector('svg')).toBeInTheDocument();
+    });
+
+    /*
+     * The regression this whole change exists for. Under the old rule --
+     * `date > 20090111` -- this poem was highlighted, given a speaker icon and
+     * an aria-label promising a recording, and clicking it handed the player a
+     * URL that 403s. A date cannot answer this question; only the manifest can.
+     *
+     * This is also the assertion that makes the block discriminate: the two
+     * tests either side of it pass under the old date rule too, because 2001 is
+     * before the cutoff and 2015 is after.
+     */
+    it('should not highlight a post-cutoff poem that has no recording', () => {
+      renderWithRealDates();
+      const silent = screen.getByRole('button', { name: /Silent 2014 Poem from Aug\. 4, 2014/ });
+
+      expect(silent).not.toHaveClass('ring-1');
+      expect(silent.querySelector('svg')).not.toBeInTheDocument();
+      expect(silent.getAttribute('aria-label')).not.toContain('audio recording available');
     });
 
     it('should not highlight poems from before audio was archived', () => {
