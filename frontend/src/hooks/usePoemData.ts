@@ -173,6 +173,16 @@ export function usePoemData({ linkDate, setDay, setPoemByline }: UsePoemDataOpti
    * replaced it. One wasted round-trip and one cancelled request on the first
    * poem of every session, for a value that has nothing to do with fetching the
    * poem.
+   *
+   * Splitting them changes one behaviour, deliberately. The old shared effect
+   * gave a failed poem fetch a second attempt as a side effect of the manifest
+   * landing. It no longer does, so in the narrow case where the poem fetch has
+   * already failed AND the manifest resolves afterwards, this can set a real
+   * mp3Url beside a blank poem -- a playable player next to no text.
+   *
+   * That is the intended reading: whether a recording exists is a fact about
+   * the broadcast, not about whether one JSON request happened to fail. Retries
+   * belong to the fetch that failed, not to an unrelated dependency changing.
    */
   useEffect(() => {
     /*
