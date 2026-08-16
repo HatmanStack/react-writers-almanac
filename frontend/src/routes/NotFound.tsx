@@ -13,8 +13,13 @@ function NotFound() {
   const navigate = useNavigate();
 
   return (
-    <div className="relative flex justify-center items-center m-8 z-10">
-      <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-2xl text-center">
+    /*
+     * Only the card is lifted above the particle canvas. Lifting this wrapper
+     * instead would put its full-width box over the canvas too, and the drags
+     * the particles react to would die in the empty band beside the card.
+     */
+    <div className="flex justify-center items-center m-8">
+      <div className="relative z-10 bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-2xl text-center">
         <h2 className="font-bold text-2xl mb-4">That page isn&apos;t here</h2>
         <p className="text-base mb-6">
           The address doesn&apos;t match a broadcast, an author, or a poem in the archive.

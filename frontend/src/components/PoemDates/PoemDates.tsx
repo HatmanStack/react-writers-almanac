@@ -41,8 +41,8 @@ function PoemDates({
   // Loading state
   if (isLoading) {
     return (
-      <div className="relative flex justify-center items-center m-8 z-10">
-        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
+      <div className="flex justify-center items-center m-8">
+        <div className="relative z-10 bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           Loading poem dates...
         </div>
       </div>
@@ -52,8 +52,8 @@ function PoemDates({
   // Error state
   if (error) {
     return (
-      <div className="relative flex justify-center items-center m-8 z-10">
-        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
+      <div className="flex justify-center items-center m-8">
+        <div className="relative z-10 bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           <p className="font-bold mb-4">Error loading poem dates: {error.message}</p>
           <button
             type="button"
@@ -71,8 +71,8 @@ function PoemDates({
   // Not found or empty state
   if (!poemData || !poemData.dates) {
     return (
-      <div className="relative flex justify-center items-center m-8 z-10">
-        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
+      <div className="flex justify-center items-center m-8">
+        <div className="relative z-10 bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           No dates found for this poem
         </div>
       </div>
@@ -89,8 +89,8 @@ function PoemDates({
 
   if (validDates.length === 0) {
     return (
-      <div className="relative flex justify-center items-center m-8 z-10">
-        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
+      <div className="flex justify-center items-center m-8">
+        <div className="relative z-10 bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           No dates found for this poem
         </div>
       </div>
@@ -100,8 +100,8 @@ function PoemDates({
   return (
     <div>
       {/* Header section */}
-      <section className="flex justify-center m-8 z-10">
-        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl">
+      <section className="flex justify-center m-8">
+        <div className="relative z-10 bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl">
           <h2 className="font-bold text-2xl mb-4">{poemTitle}</h2>
           <p className="text-base">
             This poem appeared on {validDates.length} {validDates.length === 1 ? 'date' : 'dates'}:

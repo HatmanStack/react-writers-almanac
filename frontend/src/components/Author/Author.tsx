@@ -261,8 +261,8 @@ function Author({
   // Loading state
   if (isLoading) {
     return (
-      <div className="relative flex justify-center items-center m-8 z-10">
-        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
+      <div className="flex justify-center items-center m-8">
+        <div className="relative z-10 bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           Loading author data...
         </div>
       </div>
@@ -272,8 +272,8 @@ function Author({
   // Error state
   if (error) {
     return (
-      <div className="relative flex justify-center items-center m-8 z-10">
-        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
+      <div className="flex justify-center items-center m-8">
+        <div className="relative z-10 bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           <p className="font-bold mb-4">Error loading author: {error.message}</p>
           <button
             type="button"
@@ -291,8 +291,8 @@ function Author({
   // Not found state
   if (!authorData) {
     return (
-      <div className="relative flex justify-center items-center m-8 z-10">
-        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
+      <div className="flex justify-center items-center m-8">
+        <div className="relative z-10 bg-app-container rounded-[3rem] px-8 py-8 text-app-text">
           Author not found
         </div>
       </div>
@@ -300,109 +300,114 @@ function Author({
   }
 
   return (
-    <div className="relative z-20">
-      {/* Header section - show author name, photo, bio, and links */}
-      <section className="flex justify-center m-8">
-        <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl w-full relative z-20">
-          {/* Author name */}
-          <h2 className="font-bold text-2xl mb-4">{authorName}</h2>
+    /*
+     * Layout wrappers here stay unpositioned on purpose. The particle canvas is
+     * `fixed z-0`, and a positioned ancestor paints its whole box above that -
+     * including the empty band either side of the centred card - which swallows
+     * the drags the particles react to. Only the card itself is lifted, so the
+     * space around it stays live. The broadcast and poem-title pages already
+     * work this way.
+     */
+    <section className="flex justify-center m-8">
+      <div className="bg-app-container rounded-[3rem] px-8 py-8 text-app-text max-w-4xl w-full relative z-20">
+        {/* Author name */}
+        <h2 className="font-bold text-2xl mb-4">{authorName}</h2>
 
-          {/* Photo (floated) and Biography with text wrapping */}
-          <div className="mb-6">
-            {photos.length > 0 && (
-              <img
-                src={photos[0]}
-                alt={`Portrait of ${authorName}`}
-                className={`${width <= 1000 ? 'w-48 h-48 mx-auto mb-4' : 'w-48 h-48 float-left mr-6 mb-4'} object-cover rounded-2xl shadow-lg`}
-                onError={e => {
-                  // Hide image if it fails to load
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            )}
-            {/* Biography */}
-            {biography && (
-              <div
-                className="text-base leading-relaxed"
-                dangerouslySetInnerHTML={{
-                  __html: sanitizeHtml(biography),
-                }}
-              />
-            )}
-          </div>
-
-          {/* Clear float */}
-          <div className="clear-both"></div>
-
-          {/* Links Section */}
-          <div className="mt-6">
-            {/* Internal Poems (from our database) */}
-            {poems.length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-sm font-semibold mb-2 opacity-70">
-                  Poems on The Writer&apos;s Almanac:
-                </h3>
-                {hasAnyAudio && (
-                  <p className="flex items-center gap-1.5 text-xs mb-2 opacity-70">
-                    <AudioIcon />
-                    Highlighted poems have an audio recording you can listen to
-                  </p>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  {poemsWithAudio.slice(0, 20).map((item, index) => (
-                    <button
-                      key={`${item.date}-${index}`}
-                      type="button"
-                      onClick={() => handleClick(item.date)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 bg-app-bg rounded-full text-sm hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
-                        item.hasAudio
-                          ? 'ring-1 ring-border-glow-start/70 shadow-[0_0_8px_rgba(168,239,255,0.35)]'
-                          : ''
-                      }`}
-                      aria-label={`View ${item.title || 'poem'} from ${item.date}${
-                        item.hasAudio ? ' (audio recording available)' : ''
-                      }`}
-                    >
-                      {item.hasAudio && <AudioIcon />}
-                      {item.title ? item.title.replaceAll(/[^\x20-\x7E]/g, '') : item.date}
-                    </button>
-                  ))}
-                  {poems.length > 20 && (
-                    <span className="inline-flex items-center px-3 py-1 text-sm opacity-70">
-                      +{poems.length - 20} more
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* External Poems (other sites) */}
-            {additionalWorks.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold mb-2 opacity-70">Other Poems:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {additionalWorks.map((link, index) => (
-                    <a
-                      key={index}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-1 bg-app-bg rounded-full text-sm hover:opacity-80 transition-opacity border border-app-text border-opacity-20 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                      aria-label={`Read ${link.name} on external site`}
-                    >
-                      {link.name}
-                      <span className="ml-1" aria-hidden="true">
-                        ↗
-                      </span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+        {/* Photo (floated) and Biography with text wrapping */}
+        <div className="mb-6">
+          {photos.length > 0 && (
+            <img
+              src={photos[0]}
+              alt={`Portrait of ${authorName}`}
+              className={`${width <= 1000 ? 'w-48 h-48 mx-auto mb-4' : 'w-48 h-48 float-left mr-6 mb-4'} object-cover rounded-2xl shadow-lg`}
+              onError={e => {
+                // Hide image if it fails to load
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          )}
+          {/* Biography */}
+          {biography && (
+            <div
+              className="text-base leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHtml(biography),
+              }}
+            />
+          )}
         </div>
-      </section>
-    </div>
+
+        {/* Clear float */}
+        <div className="clear-both"></div>
+
+        {/* Links Section */}
+        <div className="mt-6">
+          {/* Internal Poems (from our database) */}
+          {poems.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold mb-2 opacity-70">
+                Poems on The Writer&apos;s Almanac:
+              </h3>
+              {hasAnyAudio && (
+                <p className="flex items-center gap-1.5 text-xs mb-2 opacity-70">
+                  <AudioIcon />
+                  Highlighted poems have an audio recording you can listen to
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {poemsWithAudio.slice(0, 20).map((item, index) => (
+                  <button
+                    key={`${item.date}-${index}`}
+                    type="button"
+                    onClick={() => handleClick(item.date)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 bg-app-bg rounded-full text-sm hover:opacity-80 transition-opacity focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
+                      item.hasAudio
+                        ? 'ring-1 ring-border-glow-start/70 shadow-[0_0_8px_rgba(168,239,255,0.35)]'
+                        : ''
+                    }`}
+                    aria-label={`View ${item.title || 'poem'} from ${item.date}${
+                      item.hasAudio ? ' (audio recording available)' : ''
+                    }`}
+                  >
+                    {item.hasAudio && <AudioIcon />}
+                    {item.title ? item.title.replaceAll(/[^\x20-\x7E]/g, '') : item.date}
+                  </button>
+                ))}
+                {poems.length > 20 && (
+                  <span className="inline-flex items-center px-3 py-1 text-sm opacity-70">
+                    +{poems.length - 20} more
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* External Poems (other sites) */}
+          {additionalWorks.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold mb-2 opacity-70">Other Poems:</h3>
+              <div className="flex flex-wrap gap-2">
+                {additionalWorks.map((link, index) => (
+                  <a
+                    key={index}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-3 py-1 bg-app-bg rounded-full text-sm hover:opacity-80 transition-opacity border border-app-text border-opacity-20 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                    aria-label={`Read ${link.name} on external site`}
+                  >
+                    {link.name}
+                    <span className="ml-1" aria-hidden="true">
+                      ↗
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 
